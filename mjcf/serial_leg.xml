@@ -1,0 +1,265 @@
+<mujoco model="serial_five_link_wheel_leg">
+    <compiler angle="degree" autolimits="true"/>
+    <option timestep="0.002" integrator="RK4" gravity="0 0 -9.81"/>
+
+    <default>
+        <joint axis="0 1 0" damping="0.01"/>
+        <geom rgba="0.25 0.28 0.30 1" contype="0" conaffinity="0"/>
+        <default class="leg_link">
+            <geom type="box" rgba="0.05 0.05 0.05 1"/>
+        </default>
+        <default class="joint_marker">
+            <geom type="cylinder" size="0.016 0.008 0.016" euler="90 0 0" rgba="0.15 0.15 0.15 1"/>
+        </default>
+        <default class="wheel">
+            <geom type="cylinder" size="0.05" contype="1" conaffinity="1"
+                  condim="6" friction="0.8 0.005 0.0001"
+                  solref="0.005 1" solimp="0.9 0.95 0.001"/>
+        </default>
+    </default>
+
+    <worldbody>
+        <!-- 唯一光源 -->
+        <light name="key_light" directional="true" diffuse="0.5 0.5 0.5" pos="0 0 3" dir="0 0 -1"/>
+
+        <!-- 相机 -->
+        <camera name="overview" pos="1.6 -2.4 1.1" xyaxes="0.832 0.555 0 -0.210 0.315 0.925"/>
+
+        <!-- 地面 -->
+        <geom name="ground" type="plane" size="200 200 0.1" contype="1" conaffinity="1"
+              rgba="0.6 0.6 0.6 1"
+              friction="1.0 0.001 0.0001" condim="6"/>
+
+        <!-- 基座（车身） -->
+        <body name="base" pos="0 0 0.245">
+            <freejoint name="base_free"/>
+            <inertial pos="0 0 0" mass="20.275132741229"
+                      diaginertia="0.304356536822 0.156700286822 0.156098776548"/>
+            <site name="imu" pos="0 0 0" size="0.01" rgba="1 0 0 1"/>
+            <geom name="base_body" type="box" size="0.15 0.15 0.025" rgba="0.6 0.6 0.6 1"/>
+            <geom name="left_hip_mount" type="box" pos="0 0.155 0" size="0.026 0.005 0.026"
+                  rgba="0.21 0.16 0.10 1"/>
+            <geom name="right_hip_mount" type="box" pos="0 -0.155 0" size="0.026 0.005 0.026"
+                  rgba="0.21 0.16 0.10 1"/>
+
+            <!-- ========== 左侧五连杆腿 ========== -->
+            <body name="left_front_upper_link" pos="0.0547679943505 0.165 -0.0146750398573">
+                <inertial pos="0 0 0" mass="0.13482"
+                          diaginertia="3.651375000e-06 1.877543766e-04 1.863500016e-04"/>
+                <joint name="left_front_hip_joint" pos="-0.0547679943505 0 0.0146750398573"
+                       ref="15" damping="0.05"/>
+                <geom name="left_front_upper_geom" class="leg_link"
+                      size="0.0642 0.0075 0.0075" euler="0 15 0"/>
+                <geom name="left_front_hip_pin" class="joint_marker"
+                      pos="-0.0547679943505 0 0.0146750398573"/>
+
+                <body name="left_front_lower_link" pos="0 0.01 -0.0523939581187">
+                    <inertial pos="0 0 0" mass="0.1554"
+                              diaginertia="4.2087500e-06 2.8657055e-04 2.8495180e-04"/>
+                    <joint name="left_front_knee_joint" pos="0.0547679943505 0 0.0377189182614"/>
+                    <geom name="left_front_lower_geom" class="leg_link"
+                          size="0.074 0.0075 0.0075" euler="0 -34.555326848126 0"/>
+                    <geom name="left_front_knee_pin" class="joint_marker"
+                          pos="0.0547679943505 0 0.0377189182614"/>
+
+                    <body name="left_lower_bridge_link" pos="-0.1391107056504 -0.01 0.0203682158611">
+                        <inertial pos="0 0 0" mass="0.230811"
+                                  diaginertia="6.251131250000e-06 9.337426768397e-04 9.313383955897e-04"/>
+                        <joint name="left_bridge_joint" pos="0.084342711299 0 -0.0580871341226"/>
+                        <geom name="left_lower_bridge_geom" class="leg_link"
+                              size="0.10991 0.0075 0.0075" euler="0 34.555326848126 0"/>
+                        <geom name="left_bridge_pin" class="joint_marker"
+                              pos="0.084342711299 0 -0.0580871341226"/>
+                        <site name="left_bridge_rear_connect" pos="-0.0251932774012 0.005 0.0173507024002"
+                              size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+
+                        <body name="left_wheel_carrier_link" pos="-0.1309969287096 -0.01 0.0455861742441">
+                            <inertial pos="0 0 0" mass="0.11718"
+                                      diaginertia="3.173625000e-06 1.238159034e-04 1.225952784e-04"/>
+                            <joint name="left_carrier_joint" pos="0.0466542174097 0 0.0125009598784"
+                                   range="-50 25"/>
+                            <geom name="left_wheel_carrier_geom" class="leg_link"
+                                  size="0.0558 0.0075 0.0075" euler="0 -15 0"/>
+                            <geom name="left_carrier_pin" class="joint_marker"
+                                  pos="0.0466542174097 0 0.0125009598784"/>
+
+                            <body name="left_lower_leg_link" pos="0.0843427112999 0.01 -0.1027190243719">
+                                <inertial pos="0 0 0" mass="0.349772111111"
+                                          diaginertia="9.472994675923e-06 3.240972841707e-03 3.237329382216e-03"/>
+                                <joint name="left_lower_leg_joint" pos="-0.1309969287096 0 0.0902180644934"
+                                       range="-23 70"/>
+                                <geom name="left_lower_leg_geom" class="leg_link"
+                                      size="0.1665581481481 0.0075 0.0075" euler="0 34.555326848126 0"/>
+                                <geom name="left_lower_leg_pin" class="joint_marker"
+                                      pos="-0.1309969287096 0 0.0902180644934"/>
+                                <site name="left_lower_leg_rear_connect" pos="-0.071847494811 0.005 0.0494816327711"
+                                      size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+
+                                <body name="left_wheel" pos="0.1309969287096 -0.015 -0.0902180644934">
+                                    <inertial pos="0 0.005 0" mass="0.353429173529"
+                                              diaginertia="0.000223838477 0.000223838477 0.000441786467"/>
+                                    <joint name="left_wheel_joint" pos="0 0 0" limited="false"/>
+                                    <geom name="left_wheel_geom" class="wheel" fromto="0 0 0 0 0.01 0"
+                                          rgba="0.04 0.04 0.045 1"/>
+                                    <geom name="left_wheel_hub_geom" type="cylinder" fromto="0 -0.001 0 0 0.011 0"
+                                          size="0.028" rgba="0.15 0.16 0.18 1"/>
+                                    <geom name="left_wheel_axle_geom" type="cylinder" fromto="0 -0.008 0 0 0.018 0"
+                                          size="0.010" rgba="0.21 0.16 0.10 1"/>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+
+            <body name="left_rear_upper_link" pos="-0.1014222117603 0.175 -0.0271759997357">
+                <inertial pos="0 0 0" mass="0.23625"
+                          diaginertia="6.398437500e-06 1.001109375e-03 9.986484375e-04"/>
+                <joint name="left_rear_hip_joint" pos="0.1014222117603 0 0.0271759997357" ref="165"/>
+                <geom name="left_rear_upper_geom" class="leg_link"
+                      size="0.1125 0.0075 0.0075" euler="0 -15 0"/>
+                <geom name="left_rear_hip_pin" class="joint_marker"
+                      pos="0.1014222117603 0 0.0271759997357"/>
+                <site name="left_rear_to_bridge_connect" pos="-0.0081137769408 -0.005 -0.0021740799788"
+                      size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+                <site name="left_rear_to_lower_connect" pos="-0.1014222117603 -0.005 -0.0271759997357"
+                      size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+            </body>
+
+            <!-- ========== 右侧五连杆腿 ========== -->
+            <body name="right_front_upper_link" pos="0.0547679943505 -0.165 -0.0146750398573">
+                <inertial pos="0 0 0" mass="0.13482"
+                          diaginertia="3.651375000e-06 1.877543766e-04 1.863500016e-04"/>
+                <joint name="right_front_hip_joint" pos="-0.0547679943505 0 0.0146750398573"
+                       ref="15" damping="0.05"/>
+                <geom name="right_front_upper_geom" class="leg_link"
+                      size="0.0642 0.0075 0.0075" euler="0 15 0"/>
+                <geom name="right_front_hip_pin" class="joint_marker"
+                      pos="-0.0547679943505 0 0.0146750398573"/>
+
+                <body name="right_front_lower_link" pos="0 -0.01 -0.0523939581187">
+                    <inertial pos="0 0 0" mass="0.1554"
+                              diaginertia="4.2087500e-06 2.8657055e-04 2.8495180e-04"/>
+                    <joint name="right_front_knee_joint" pos="0.0547679943505 0 0.0377189182614"/>
+                    <geom name="right_front_lower_geom" class="leg_link"
+                          size="0.074 0.0075 0.0075" euler="0 -34.555326848126 0"/>
+                    <geom name="right_front_knee_pin" class="joint_marker"
+                          pos="0.0547679943505 0 0.0377189182614"/>
+
+                    <body name="right_lower_bridge_link" pos="-0.1391107056504 0.01 0.0203682158611">
+                        <inertial pos="0 0 0" mass="0.230811"
+                                  diaginertia="6.251131250000e-06 9.337426768397e-04 9.313383955897e-04"/>
+                        <joint name="right_bridge_joint" pos="0.084342711299 0 -0.0580871341226"/>
+                        <geom name="right_lower_bridge_geom" class="leg_link"
+                              size="0.10991 0.0075 0.0075" euler="0 34.555326848126 0"/>
+                        <geom name="right_bridge_pin" class="joint_marker"
+                              pos="0.084342711299 0 -0.0580871341226"/>
+                        <site name="right_bridge_rear_connect" pos="-0.0251932774012 -0.005 0.0173507024002"
+                              size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+
+                        <body name="right_wheel_carrier_link" pos="-0.1309969287096 0.01 0.0455861742441">
+                            <inertial pos="0 0 0" mass="0.11718"
+                                      diaginertia="3.173625000e-06 1.238159034e-04 1.225952784e-04"/>
+                            <joint name="right_carrier_joint" pos="0.0466542174097 0 0.0125009598784"
+                                   range="-50 25"/>
+                            <geom name="right_wheel_carrier_geom" class="leg_link"
+                                  size="0.0558 0.0075 0.0075" euler="0 -15 0"/>
+                            <geom name="right_carrier_pin" class="joint_marker"
+                                  pos="0.0466542174097 0 0.0125009598784"/>
+
+                            <body name="right_lower_leg_link" pos="0.0843427112999 -0.01 -0.1027190243719">
+                                <inertial pos="0 0 0" mass="0.349772111111"
+                                          diaginertia="9.472994675923e-06 3.240972841707e-03 3.237329382216e-03"/>
+                                <joint name="right_lower_leg_joint" pos="-0.1309969287096 0 0.0902180644934"
+                                       range="-23 70"/>
+                                <geom name="right_lower_leg_geom" class="leg_link"
+                                      size="0.1665581481481 0.0075 0.0075" euler="0 34.555326848126 0"/>
+                                <geom name="right_lower_leg_pin" class="joint_marker"
+                                      pos="-0.1309969287096 0 0.0902180644934"/>
+                                <site name="right_lower_leg_rear_connect" pos="-0.071847494811 -0.005 0.0494816327711"
+                                      size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+
+                                <body name="right_wheel" pos="0.1309969287096 0.015 -0.0902180644934">
+                                    <inertial pos="0 -0.005 0" mass="0.353429173529"
+                                              diaginertia="0.000223838477 0.000223838477 0.000441786467"/>
+                                    <joint name="right_wheel_joint" pos="0 0 0" limited="false"/>
+                                    <geom name="right_wheel_geom" class="wheel" fromto="0 0 0 0 -0.01 0"
+                                          rgba="0.04 0.04 0.045 1"/>
+                                    <geom name="right_wheel_hub_geom" type="cylinder" fromto="0 0.001 0 0 -0.011 0"
+                                          size="0.028" rgba="0.15 0.16 0.18 1"/>
+                                    <geom name="right_wheel_axle_geom" type="cylinder" fromto="0 0.008 0 0 -0.018 0"
+                                          size="0.010" rgba="0.21 0.16 0.10 1"/>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+
+            <body name="right_rear_upper_link" pos="-0.1014222117603 -0.175 -0.0271759997357">
+                <inertial pos="0 0 0" mass="0.23625"
+                          diaginertia="6.398437500e-06 1.001109375e-03 9.986484375e-04"/>
+                <joint name="right_rear_hip_joint" pos="0.1014222117603 0 0.0271759997357" ref="165"/>
+                <geom name="right_rear_upper_geom" class="leg_link"
+                      size="0.1125 0.0075 0.0075" euler="0 -15 0"/>
+                <geom name="right_rear_hip_pin" class="joint_marker"
+                      pos="0.1014222117603 0 0.0271759997357"/>
+                <site name="right_rear_to_bridge_connect" pos="-0.0081137769408 0.005 -0.0021740799788"
+                      size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+                <site name="right_rear_to_lower_connect" pos="-0.1014222117603 0.005 -0.0271759997357"
+                      size="0.004" rgba="0.86 0.60 0.16 0.75"/>
+            </body>
+        </body>
+    </worldbody>
+
+    <!-- 闭环约束 -->
+    <equality>
+        <connect name="left_rear_bridge_loop" site1="left_rear_to_bridge_connect" site2="left_bridge_rear_connect"
+                 solref="0.002 1"/>
+        <connect name="left_rear_lower_loop" site1="left_rear_to_lower_connect" site2="left_lower_leg_rear_connect"
+                 solref="0.002 1"/>
+        <connect name="right_rear_bridge_loop" site1="right_rear_to_bridge_connect" site2="right_bridge_rear_connect"
+                 solref="0.002 1"/>
+        <connect name="right_rear_lower_loop" site1="right_rear_to_lower_connect" site2="right_lower_leg_rear_connect"
+                 solref="0.002 1"/>
+    </equality>
+
+    <!-- 执行器 -->
+    <actuator>
+        <motor name="left_front_hip_motor" joint="left_front_hip_joint" gear="1" ctrlrange="-50 50"/>
+        <motor name="right_front_hip_motor" joint="right_front_hip_joint" gear="1" ctrlrange="-50 50"/>
+        <motor name="left_rear_hip_motor" joint="left_rear_hip_joint" gear="1" ctrlrange="-50 50"/>
+        <motor name="right_rear_hip_motor" joint="right_rear_hip_joint" gear="1" ctrlrange="-50 50"/>
+        <motor name="left_wheel_motor" joint="left_wheel_joint" gear="1" ctrlrange="-5 5"/>
+        <motor name="right_wheel_motor" joint="right_wheel_joint" gear="1" ctrlrange="-5 5"/>
+    </actuator>
+
+    <!-- 传感器 -->
+    <sensor>
+        <gyro name="imu_gyro" site="imu"/>
+        <framequat name="imu_quat" objtype="site" objname="imu"/>
+        <accelerometer name="imu_accel" site="imu"/>
+        <framepos name="base_pos" objtype="site" objname="imu"/>
+        <framelinvel name="base_linvel" objtype="site" objname="imu"/>
+
+        <jointpos name="left_front_hip_pos" joint="left_front_hip_joint"/>
+        <jointvel name="left_front_hip_vel" joint="left_front_hip_joint"/>
+        <jointpos name="left_rear_hip_pos" joint="left_rear_hip_joint"/>
+        <jointvel name="left_rear_hip_vel" joint="left_rear_hip_joint"/>
+        <jointpos name="right_front_hip_pos" joint="right_front_hip_joint"/>
+        <jointvel name="right_front_hip_vel" joint="right_front_hip_joint"/>
+        <jointpos name="right_rear_hip_pos" joint="right_rear_hip_joint"/>
+        <jointvel name="right_rear_hip_vel" joint="right_rear_hip_joint"/>
+        <jointpos name="left_wheel_pos" joint="left_wheel_joint"/>
+        <jointvel name="left_wheel_vel" joint="left_wheel_joint"/>
+        <jointpos name="right_wheel_pos" joint="right_wheel_joint"/>
+        <jointvel name="right_wheel_vel" joint="right_wheel_joint"/>
+
+        <actuatorfrc name="left_front_hip_force" actuator="left_front_hip_motor"/>
+        <actuatorfrc name="right_front_hip_force" actuator="right_front_hip_motor"/>
+        <actuatorfrc name="left_rear_hip_force" actuator="left_rear_hip_motor"/>
+        <actuatorfrc name="right_rear_hip_force" actuator="right_rear_hip_motor"/>
+        <actuatorfrc name="left_wheel_force" actuator="left_wheel_motor"/>
+        <actuatorfrc name="right_wheel_force" actuator="right_wheel_motor"/>
+    </sensor>
+</mujoco>

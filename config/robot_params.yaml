@@ -1,0 +1,180 @@
+# Serial_Leg_Simulation 统一参数文件。
+# 工程中的 MATLAB 建模、MuJoCo 仿真、Python 控制都从这里读取同一套参数。
+
+schema_version: 0.1
+robot_name: serial_five_link_wheel_leg
+
+# 仿真基础设置。
+simulation:
+  timestep_s: 0.002
+  control_period_s: 0.002
+  control_frequency_hz: 500
+  integrator: RK4
+  gravity_mps2: 9.81
+
+# 坐标系约定。
+coordinates:
+  world_frame:
+    x: forward
+    y: left
+    z: up
+  body_euler_order: roll_pitch_yaw
+  lqr_state_order:
+    - x
+    - yaw
+    - pitch
+    - theta_L
+    - theta_R
+    - x_dot
+    - yaw_dot
+    - pitch_dot
+    - theta_L_dot
+    - theta_R_dot
+  lqr_output_order:
+    - tau_L_virtual_leg
+    - tau_R_virtual_leg
+    - T_wheel_L
+    - T_wheel_R
+
+# 几何参数，单位为 m。
+geometry:
+  wheel:
+    radius_m: 0.05
+    width_m: 0.01
+  chassis:
+    half_track_m: 0.165
+    track_width_m: 0.33
+    body_box_half_size_m: [0.15, 0.15, 0.025]
+    nominal_body_height_m: 0.245
+  five_link:
+    # 五连杆正运动学中使用的等效杆长。
+    front_big_m: 0.21
+    back_big_m: 0.21
+    front_small_m: 0.2462962962962
+    back_small_m: 0.2462962962962
+    anchor_base_m: 0.0
+    min_length_m: 0.12
+    max_length_m: 0.35
+    nominal_length_m: 0.194052
+
+# 质量和转动惯量参数，单位为 kg、kg*m^2。
+mass_properties:
+  total_robot_mass_kg: 23.430457310509
+  body:
+    mass_kg: 20.275132741229
+    inertia_kg_m2: [0.304356536822, 0.156700286822, 0.156098776548]
+    com_local_m: [0.0, 0.0, 0.0]
+  links:
+    front_upper_mass_kg: 0.13482
+    front_lower_mass_kg: 0.1554
+    lower_bridge_mass_kg: 0.230811
+    wheel_carrier_mass_kg: 0.11718
+    lower_leg_mass_kg: 0.349772111111
+    rear_upper_mass_kg: 0.23625
+  wheel:
+    mass_kg: 0.353429173529
+    inertia_kg_m2: [0.000223838477, 0.000223838477, 0.000441786467]
+
+# MuJoCo 模型和接口命名。
+mujoco:
+  xml_path: mjcf/serial_leg.xml
+  base_body: base
+  imu_site: imu
+  active_joints:
+    left_front: left_front_hip_joint
+    left_back: left_rear_hip_joint
+    right_front: right_front_hip_joint
+    right_back: right_rear_hip_joint
+  wheel_joints:
+    left: left_wheel_joint
+    right: right_wheel_joint
+  actuator_order:
+    - left_front_hip_motor
+    - right_front_hip_motor
+    - left_rear_hip_motor
+    - right_rear_hip_motor
+    - left_wheel_motor
+    - right_wheel_motor
+  sensors:
+    quat: imu_quat
+    gyro: imu_gyro
+    accel: imu_accel
+    base_pos: base_pos
+    base_linvel: base_linvel
+    left_front_pos: left_front_hip_pos
+    left_front_vel: left_front_hip_vel
+    left_back_pos: left_rear_hip_pos
+    left_back_vel: left_rear_hip_vel
+    right_front_pos: right_front_hip_pos
+    right_front_vel: right_front_hip_vel
+    right_back_pos: right_rear_hip_pos
+    right_back_vel: right_rear_hip_vel
+    left_wheel_pos: left_wheel_pos
+    left_wheel_vel: left_wheel_vel
+    right_wheel_pos: right_wheel_pos
+    right_wheel_vel: right_wheel_vel
+
+# 执行器限制。
+actuators:
+  joint_motor:
+    ctrlrange_Nm: [-50.0, 50.0]
+    default_limit_Nm: 40.0
+  wheel_motor:
+    model: M3508
+    ctrlrange_Nm: [-5.0, 5.0]
+    default_limit_Nm: 5.0
+    power_model:
+      # P = k1*w*I + k2*I^2 + k3*w^2 + k4
+      k1: 1.5756e-02
+      k2: 1.94e-01
+      k3: 1.9202e-05
+      k4: 1.15
+      current_convert_A_per_cmd: 0.001220703125
+
+# 接触参数主要影响轮地接触稳定性。
+contact:
+  ground:
+    friction: [1.0, 0.001, 0.0001]
+    condim: 6
+  wheel:
+    friction: [0.8, 0.005, 0.0001]
+    condim: 6
+    solref: [0.005, 1.0]
+    solimp: [0.9, 0.95, 0.001]
+  closed_chain_equality:
+    solref: [0.002, 1.0]
+
+# 初始控制参数。这里只用于仿真启动，不代表最终实机参数。
+control_initial:
+  lqr_gain_table: data/lqr_gain_table.txt
+  leg_length_pid:
+    position_kp: 2000.0
+    position_ki: 0.0
+    position_kd: 0.0
+    velocity_kp: 100.0
+    velocity_ki: 0.0
+    velocity_kd: 0.0
+  roll_pid:
+    kp: 2000.0
+    ki: 0.0
+    kd: 1000.0
+  lqr_target:
+    # LQR 状态目标偏置。
+    x_m: 0.0
+    yaw_rad: 0.0
+    pitch_rad: 0.0
+    left_leg_theta_rad: 0.0
+    right_leg_theta_rad: 0.0
+    x_dot_mps: 0.0
+    yaw_dot_radps: 0.0
+  keyboard_command:
+    max_speed_mps: 1.50
+    max_yaw_rate_radps: 5.00
+    speed_accel_mps2: 0.80
+    speed_release_accel_mps2: 1.20
+    yaw_rate_accel_radps2: 1.50
+    yaw_rate_release_accel_radps2: 2.50
+    instant_stop_on_release: true
+    speed_axis_sign: 1.0
+    yaw_axis_sign: 1.0
+  fall_angle_rad: 1.0
