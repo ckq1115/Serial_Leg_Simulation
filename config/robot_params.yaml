@@ -168,12 +168,12 @@ control_initial:
     x_dot_mps: 0.0
     yaw_dot_radps: 0.0
   keyboard_command:
-    max_speed_mps: 1.50
+    max_speed_mps: 2.00
     max_yaw_rate_radps: 5.00
     speed_accel_mps2: 3.00
     speed_release_accel_mps2: 4.00
-    yaw_rate_accel_radps2: 1.50
-    yaw_rate_release_accel_radps2: 2.50
+    yaw_rate_accel_radps2: 3.00
+    yaw_rate_release_accel_radps2: 4.50
     instant_stop_on_release: true
     speed_axis_sign: 1.0
     yaw_axis_sign: 1.0

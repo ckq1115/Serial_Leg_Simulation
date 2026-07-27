@@ -69,6 +69,7 @@
 <li><a href="#3.2">3.2 非线性动力学方程的建立</a></li>
 <li><a href="#3.3">3.3 平衡点线性化</a></li>
 <li><a href="#3.4">3.4 系统可控性与可观测性</a></li>
+<li><a href="#3.5">3.5 线性化工具链：两种工程实现路径</a></li>
 </ul>
 <ol start="4">
 <li><a href="#4">LQR 最优控制器设计</a></li>
@@ -88,6 +89,7 @@
 <li><a href="#5.3">5.3 多项式拟合方法</a></li>
 <li><a href="#5.4">5.4 平衡偏移量补偿</a></li>
 <li><a href="#5.5">5.5 类MPC前馈补偿——轮端扰动抑制</a></li>
+<li><a href="#5.6">5.6 二维增益调度——左右腿独立伸缩</a></li>
 </ul>
 <ol start="6">
 <li><a href="#6">VMC 虚拟模型控制</a></li>
@@ -112,6 +114,7 @@
 <li><a href="#8.1">8.1 腿长位置-速度级联</a></li>
 <li><a href="#8.2">8.2 Roll 角稳定控制</a></li>
 <li><a href="#8.3">8.3 重力前馈补偿与力控综合</a></li>
+<li><a href="#8.4">8.4 LQR 俯仰方向的附加补偿</a></li>
 </ul>
 <ol start="9">
 <li><a href="#9">地面接触检测与悬空控制</a></li>
@@ -122,52 +125,67 @@
 <li><a href="#9-stuck">卡腿检测与处理</a></li>
 <li><a href="#9-slip">打滑检测与动态卡尔曼滤波</a></li>
 <li><a href="#9-com">质心偏移补偿</a></li>
+<li><a href="#9-self-rescue">倒地自救援</a></li>
+<li><a href="#9-speed-limit">基于腿长的高度分级速度限制</a></li>
+<li><a href="#9-yaw">偏航方向管理</a></li>
 </ul>
 <ol start="10">
-<li><a href="#10">仿真平台与对比分析</a></li>
+<li><a href="#10">跳跃控制——一种基于力控状态机的实现方法</a></li>
 </ol>
 <ul>
-<li><a href="#10.1">10.1 MuJoCo</a></li>
-<li><a href="#10.2">10.2 Webots</a></li>
-<li><a href="#10.3">10.3 其他仿真平台</a></li>
+<li><a href="#10.1">10.1 状态定义与转移逻辑</a></li>
+<li><a href="#10.2">10.2 力控综合方程</a></li>
+<li><a href="#10.3">10.3 空中 LQR 降维</a></li>
+<li><a href="#10.4">10.4 关键参数与整定原则</a></li>
 </ul>
 <ol start="11">
-<li><a href="#11">MATLAB 离线计算工具链</a></li>
+<li><a href="#11">仿真平台与对比分析</a></li>
 </ol>
 <ul>
-<li><a href="#11-tasks">核心任务列表</a></li>
-<li><a href="#11-offline-notes">离线计算实现要点</a></li>
-<li><a href="#11-c-format">实机中的 C 数据格式</a></li>
+<li><a href="#11.1">11.1 MuJoCo</a></li>
+<li><a href="#11.2">11.2 Webots</a></li>
+<li><a href="#11.3">11.3 其他仿真平台</a></li>
 </ul>
 <ol start="12">
-<li><a href="#12">C 语言嵌入式移植</a></li>
+<li><a href="#12">离线计算工具链</a></li>
 </ol>
 <ul>
-<li><a href="#12.1">12.1 模块划分原则</a></li>
-<li><a href="#12.2">12.2 移植注意事项</a></li>
-<li><a href="#12.3">12.3 推荐软件架构</a></li>
+<li><a href="#12-tasks">核心任务列表</a></li>
+<li><a href="#12-offline-notes">离线计算实现要点</a></li>
+<li><a href="#12-python">基于 Python/SymPy 的离线计算路径</a></li>
+<li><a href="#12-mujoco-geometry">MuJoCo 辅助几何参数提取</a></li>
+<li><a href="#12-c-2d">二维增益表的 C 语言导出</a></li>
+<li><a href="#12-c-format">实机中的 C 数据格式</a></li>
 </ul>
 <ol start="13">
-<li><a href="#13">实机调试方法</a></li>
+<li><a href="#13">C 语言嵌入式移植</a></li>
 </ol>
 <ul>
-<li><a href="#13.1">13.1 分阶段调试流程</a></li>
-<li><a href="#13.2">13.2 调试工具链</a></li>
-<li><a href="#13.3">13.3 失败防护</a></li>
+<li><a href="#13.1">13.1 模块划分原则</a></li>
+<li><a href="#13.2">13.2 移植注意事项</a></li>
+<li><a href="#13.3">13.3 推荐软件架构</a></li>
 </ul>
 <ol start="14">
-<li><a href="#14">RoboMaster 社区资源索引</a></li>
+<li><a href="#14">实机调试方法</a></li>
 </ol>
 <ul>
-<li><a href="#14.1">14.1 2026 赛季</a></li>
-<li><a href="#14.2">14.2 2025 赛季</a></li>
-<li><a href="#14.3">14.3 2024 赛季</a></li>
-<li><a href="#14.4">14.4 2023 赛季及更早 / 跨赛季汇总</a></li>
-<li><a href="#14.5">14.5 仿真项目</a></li>
-<li><a href="#14.6">14.6 社区教程与文档</a></li>
+<li><a href="#14.1">14.1 分阶段调试流程</a></li>
+<li><a href="#14.2">14.2 调试工具链</a></li>
+<li><a href="#14.3">14.3 失败防护</a></li>
 </ul>
 <ol start="15">
-<li><a href="#15">学术论文与参考文献</a></li>
+<li><a href="#15">RoboMaster 社区资源索引</a></li>
+</ol>
+<ul>
+<li><a href="#15.1">15.1 2026 赛季</a></li>
+<li><a href="#15.2">15.2 2025 赛季</a></li>
+<li><a href="#15.3">15.3 2024 赛季</a></li>
+<li><a href="#15.4">15.4 2023 赛季及更早 / 跨赛季汇总</a></li>
+<li><a href="#15.5">15.5 仿真项目</a></li>
+<li><a href="#15.6">15.6 社区教程与文档</a></li>
+</ul>
+<ol start="16">
+<li><a href="#16">学术论文与参考文献</a></li>
 </ol>
 <ul>
 <li><a href="#15-wl">轮腿机器人控制</a></li>
@@ -1767,6 +1785,9 @@ c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v1200 v585 h43z"></path></svg></span>
 <li>同一腿长下，LQR 线性模型的小扰动响应应与非线性模型的响应方向一致</li>
 </ul>
 <p>上述流程比直接粘贴完整符号矩阵更适合作为理论推导路径。完整 10 维 D/C/G/A/B 矩阵展开后可读性很低，且不同机器人的质量、质心、腿长定义和输入映射都会改变矩阵元素；因此应重点说明如何从具体机构参数生成矩阵，而不是给出一套不可直接复用的固定矩阵。</p>
+<p>建模过程中的两个工程要点：</p>
+<p>力矩方向与电机安装关系：列写牛顿-欧拉方程时需注意电机定子/转子的安装位置——轮毂电机的定子装在摆杆上、转子装在轮子上，关节电机的定子装在机体上、转子装在摆杆上。力矩正负号取决于参考系选择（对定子或转子取矩），符号错误会导致 K 矩阵极性反转。</p>
+<p>联立方程的消元策略：多刚体建模得到的联立方程组中，未知约束力数量通常多于广义坐标数量。在通过符号工具做线性化之前，建议先选取方程组的子集消去中间约束力变量——仅保留直接关联状态变量和控制输入的方程，其余方程仅作为中间代换使用。这可以显著简化后续线性化过程中雅可比矩阵的规模，减少符号推导的计算开销和出错概率。</p>
 <p><strong>质心偏移的考虑：</strong></p>
 <p>惯性参数可先由 CAD 或质量属性工具估算，但实机电池、云台、弹舱等模块会导致质心偏移。建模时应引入质心偏移参数 (δx, δz)，并将其纳入 D、G 矩阵。质心偏移会改变最优 K 矩阵中与机体俯仰相关的元素，这解释了不同平台即使腿长相同，K 矩阵仍可能存在显著差异——质心位置是隐含的关键变量。</p>
 <h3 id="a-id33a33-平衡点线性化"><a id="3.3"></a>3.3 平衡点线性化 </h3>
@@ -1833,6 +1854,84 @@ c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v600 v585 h43z"></path></svg></span><
 <p>可控性： 构造可控性矩阵 C_ctrb = [B, AB, A²B, ..., A⁹B]。若 rank(C_ctrb) = 10（满秩），则系统完全可控。4 个控制输入可将 10 个状态从任意初值驱动到任意终值；若秩不足，则说明某些状态通道无法被当前执行器组合有效控制。</p>
 <p>可观测性： 构造可观测性矩阵 O_obs = [C; CA; CA²; ...; CA⁹]。传感器配置（IMU + 电机编码器）通常使系统完全可观测（rank = 10）。Kalman 滤波器即依赖此性质，通过有限传感器测量重构全状态。</p>
 <p>验证工具： MATLAB <code>ctrb(A,B)</code>, <code>obsv(A,C)</code>, <code>rank()</code>；Python <code>scipy.linalg.ctrl_rank</code>, <code>numpy.linalg.matrix_rank</code>。</p>
+<h3 id="a-id35a35-线性化工具链两种工程实现路径"><a id="3.5"></a>3.5 线性化工具链：两种工程实现路径 </h3>
+<p>轮腿机器人 10 维状态空间模型的线性化存在两种工程实现路径，二者在拉格朗日建模框架上一致，但在几何参数获取和数值线性化方法上存在差异。</p>
+<p><strong>路径一：纯解析线性化</strong></p>
+<p>使用 MATLAB Symbolic Math Toolbox 完成全流程符号推导。该路径的核心特征为：</p>
+<ol>
+<li>符号拉格朗日建模：在 MATLAB 中定义符号变量（广义坐标 q、广义速度 q̇、广义加速度 q̈），构造动能 T 和势能 V，由 Euler-Lagrange 方程导出五组运动方程，通过 <code>solve</code> 求解加速度显式表达式。</li>
+<li>解析几何近似：腿部件质心位置和转动惯量通过简化解析公式计算。五连杆腿的质心参数（c_x, c_h, θ_p）由大腿杆长 l_b、小腿杆长 l_s 和各自质量 m_b, m_s 通过余弦定理解析导出——这是对实际复杂五连杆质心分布的几何近似。</li>
+<li>平衡点求解：将系统拉格朗日量中的速度项置零，对 θ, θ_L, θ_R 三个角度变量求偏导建立平衡方程，使用 <code>solve</code> 或 <code>vpasolve</code> 求解静态平衡点。</li>
+<li>泰勒线性化：在平衡点处对 10 维状态向量 <code>z = [x, ψ, θ, θ_L, θ_R, ẋ, ψ̇, θ̇, θ̇_L, θ̇_R]</code> 做一阶泰勒展开（<code>taylor(..., 'Order', 2)</code>），通过 <code>equationsToMatrix</code> 提取 A 和 B 矩阵。</li>
+<li>数据导出：将 A, B, C, D 保存为 <code>.mat</code> 文件，供 Python 仿真程序加载和后续离散化。</li>
+</ol>
+<p>该路径的优势在于线性化过程完全独立于物理引擎——A/B 矩阵的生成仅依赖解析几何公式和符号运算，不引入仿真器的数值误差。其局限在于五连杆质心参数依赖简化几何近似（将五连杆等效为两连杆），当腿长在工作范围内大幅变化时，该近似的误差可能累积。</p>
+<p><strong>路径二：混合数值-解析线性化</strong></p>
+<p>使用 Python SymPy 完成拉格朗日量的符号构造，但在几何参数获取阶段引入 MuJoCo 作为辅助几何解算器。该路径的核心特征为：</p>
+<ol>
+<li>符号拉格朗日建模：使用 SymPy 定义与 MATLAB 路径相同结构的拉格朗日量（动能含 sqrt(d² + sin²(θ_l)·L_l²) 等精确项），通过 <code>linear_eq_to_matrix</code> 提取质量矩阵 M(q) 和输入分布矩阵 B_q 的符号表达式，并使用 <code>lambdify</code> 编译为可数值调用的 Python 函数。</li>
+<li>MuJoCo 辅助几何提取：这是该路径与路径一的关键差异。引入 <code>LegPoseSolver</code> 类——在每一个腿长采样点，使用 MuJoCo 的 <code>least_squares</code> 优化求解五连杆闭环约束（四个 equality connect 约束），找到当前腿长对应的实际五连杆姿态。然后从 MuJoCo 模型数据中直接读取各连杆的 <code>body_mass</code> 和 <code>xipos</code>（质心局部坐标），计算腿部质心的径向距离 <code>r_com</code> 和切向偏置 <code>c_x</code>。这两个参数直接传入拉格朗日量的参数向量——等效于用物理引擎的高保真模型替代解析几何近似。</li>
+<li>平衡点求解：使用 <code>scipy.optimize.fsolve</code> 对重力势能 V(q) 的数值梯度 dV/dq 进行寻零，得到静态平衡角度。</li>
+<li>数值线性化：A 矩阵的上半部分为运动学积分器（ẋ₁:₅ = x₆:₁₀），下半部分的动力学部分由 <code>A[5:10, 0:5] = -M⁻¹·K_grav</code> 构造，其中 K_grav（重力劲度矩阵 5×5）通过势能 V 对广义坐标的二阶中心差分（步长 ε = 1e-5，四采样点公式）数值计算；同时构造人工阻尼项 <code>A[5:10, 5:10] = -M⁻¹·D_damp</code> 以补偿被省略的速度相关非线性阻尼。</li>
+<li>数据流：A/B 矩阵直接在 Python 内存中传递给 ZOH 离散化（<code>scipy.linalg.expm</code> 矩阵指数）和 DARE 求解器，无需经过文件 I/O。</li>
+</ol>
+<p><strong>两种路径的技术对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>路径一（MATLAB 纯解析）</th>
+<th>路径二（SymPy + MuJoCo 混合）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>符号引擎</td>
+<td>MATLAB Symbolic Toolbox</td>
+<td>Python SymPy</td>
+</tr>
+<tr>
+<td>几何参数来源</td>
+<td>解析几何近似（两连杆等效质心公式）</td>
+<td>MuJoCo 模型实际质心与惯量数据</td>
+</tr>
+<tr>
+<td>数值线性化方法</td>
+<td>符号泰勒展开 → <code>equationsToMatrix</code></td>
+<td>一阶/二阶有限差分 + 解析质量矩阵</td>
+</tr>
+<tr>
+<td>五连杆质心建模</td>
+<td>由 l_b, l_s, m_b, m_s 解析近似</td>
+<td>从 MuJoCo 各连杆 body 数据直接读取</td>
+</tr>
+<tr>
+<td>阻尼项</td>
+<td>依赖 MuJoCo XML 中的 joint damping</td>
+<td>人工对角阻尼矩阵 D_damp</td>
+</tr>
+<tr>
+<td>数据传递</td>
+<td>.mat 文件 → Python <code>loadmat</code></td>
+<td>Python 内存中直接传递</td>
+</tr>
+<tr>
+<td>对外部工具依赖</td>
+<td>MATLAB + Symbolic Toolbox（商业许可）</td>
+<td>Python + SymPy + SciPy + MuJoCo（全开源）</td>
+</tr>
+<tr>
+<td>几何模型保真度</td>
+<td>受解析近似公式精度限制</td>
+<td>与 MuJoCo 仿真模型一致</td>
+</tr>
+</tbody>
+</table>
+<p><strong>工程建议：</strong></p>
+<p>路径一适合机械设计已定型、需要将线性化流程固化到商业工具链中的团队。其 MATLAB 符号工具箱的交互式调试体验优于 Python 脚本，且 <code>.mat</code> 文件的通用性便于跨平台传递。</p>
+<p>路径二适合需要与实际 MuJoCo 仿真模型几何保持严格一致、且倾向于全开源工具链的团队。MuJoCo 辅助几何提取免去了手工推导五连杆质心解析公式的工作——当机械参数（杆长、质量分布）调整时，仅需更新 XML 模型，线性化管线自动跟随模型几何变化。</p>
+<p>两种路径的拉格朗日量结构（动能含 sqrt 精确项、势能含 atan2 质心偏置角）在数学上等价，差异仅在于几何参数的获取方式。在相同的物理参数和 Q/R 设置下，两种路径生成的 K 矩阵应在同一数量级且具有一致的符号模式——这是交叉验证线性化工具链正确性的有效手段。</p>
+<hr>
 <h2 id="a-id4a4-lqr-最优控制器设计"><a id="4"></a>4. LQR 最优控制器设计 </h2>
 <blockquote>
 <p>概念解释：LQR (Linear Quadratic Regulator) — 线性二次型最优调节器</p>
@@ -2170,6 +2269,51 @@ Horner 重排：<code>p(L) = (...((c₀·L + c₁)·L + c₂)... )·L + cₙ</co
 </ol>
 <p>由于 A、B 矩阵随腿长 L 变化，A、B 矩阵也需要像 K 矩阵一样进行增益调度——对每个 A、B 元素拟合关于 L 的多项式，运行时根据当前腿长实时计算。</p>
 <p>适用条件： 类MPC 补偿主要针对轮毂力矩通道（控制量维度 2 和 3），因为轮端扰动直接反映在轮子的平动动力学中。腿部虚拟力矩通道（维度 0 和 1）的扰动通常通过 LQR 的交叉耦合反馈已能有效处理。</p>
+<h3 id="a-id56a56-二维增益调度左右腿独立伸缩"><a id="5.6"></a>5.6 二维增益调度——左右腿独立伸缩 </h3>
+<p>当系统允许左右腿独立伸缩时，动力学参数同时依赖于左腿长 L_l 和右腿长 L_r 两个变量。此时 K 矩阵和平衡点偏移量需拟合为关于 (L_l, L_r) 的二元函数。</p>
+<p>采样策略：在腿长变化范围内对左右腿长各取 N 个采样点，对 N×N 个组合分别进行动力学建模、线性化和 LQR 求解，得到 N×N 组 (K, θ_eq) 样本。</p>
+<p>拟合方法：对 K 矩阵的 40 个元素和 3 个平衡角偏移（左腿 θ_l^eq、右腿 θ_r^eq、机体俯仰 θ_b^eq），各自拟合为关于 (L_l, L_r) 的二次曲面（poly22）：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><msub><mi>L</mi><mi>l</mi></msub><mo separator="true">,</mo><msub><mi>L</mi><mi>r</mi></msub><mo stretchy="false">)</mo><mo>=</mo><msub><mi>p</mi><mn>00</mn></msub><mo>+</mo><msub><mi>p</mi><mn>10</mn></msub><msub><mi>L</mi><mi>l</mi></msub><mo>+</mo><msub><mi>p</mi><mn>01</mn></msub><msub><mi>L</mi><mi>r</mi></msub><mo>+</mo><msub><mi>p</mi><mn>20</mn></msub><msubsup><mi>L</mi><mi>l</mi><mn>2</mn></msubsup><mo>+</mo><msub><mi>p</mi><mn>11</mn></msub><msub><mi>L</mi><mi>l</mi></msub><msub><mi>L</mi><mi>r</mi></msub><mo>+</mo><msub><mi>p</mi><mn>02</mn></msub><msubsup><mi>L</mi><mi>r</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">f(L_l, L_r) = p_{00} + p_{10} L_l + p_{01} L_r + p_{20} L_l^2 + p_{11} L_l L_r + p_{02} L_r^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">00</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">10</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">01</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1111em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">20</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1111em;vertical-align:-0.247em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">02</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span></span></span></span></span><p>拟合结果存储为两个系数数组：K_Fit_Coefficients（40×6，每个 K 元素的 6 个 poly22 系数）和 Offset_Fit_Coefficients（3×6，3 个平衡角的 poly22 系数）。在线运行时，代入当前左右腿长即可得到当前姿态下的 K 矩阵和平衡点偏移量。</p>
+<p>与一维方案（§5.2-§5.3）的对比：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>一维方案 K(L)</th>
+<th>二维方案 K(L_l, L_r)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>采样点数</td>
+<td>N</td>
+<td>N×N</td>
+</tr>
+<tr>
+<td>系数数量</td>
+<td>40×(n+1)</td>
+<td>40×6（poly22 固定 6 个系数）</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>双腿近似等长</td>
+<td>非对称站姿、单腿跨越、台阶地形</td>
+</tr>
+<tr>
+<td>拟合阶数</td>
+<td>n 阶可调</td>
+<td>二阶（曲面）</td>
+</tr>
+<tr>
+<td>离线计算量</td>
+<td>N 次线性化+LQR</td>
+<td>N×N 次线性化+LQR</td>
+</tr>
+</tbody>
+</table>
+<p>一维方案足够应对双腿同步伸缩的常规工况；二维方案在左右腿长差异显著的场景下能提供更精确的交叉耦合补偿。工程上应评估左右腿独立伸缩的需求频率和离线计算预算后再选定方案。</p>
+<p>拟合阶数的选择： poly22（6 系数）是最小规模的二维拟合，存储和在线计算开销最低，适合 MCU 资源受限或腿长变化范围较窄的场景。当腿长变化范围较大（如 L ∈ [0.10, 0.37] m）且对增益精度要求较高时，可采用更高阶的二维多项式（如 6 阶，28 项单项式）以降低拟合残差。更高阶的拟合意味着更多的离线采样点（N×N 网格，N ≥ 14）、更大的系数存储（1120 个 float32）和更高的在线计算开销——详见第 12 章的二维增益表 C 语言导出。</p>
+<p>需要额外注意的是：腿长变化不仅改变 K 矩阵，还改变系统的静态平衡姿态。不同腿长组合下，平衡方程 g(q_eq) = 0 的解（θ_l^eq, θ_r^eq, θ_b^eq）通常不为零。将非零平衡角纳入状态偏差计算中（u = -K·(X - X_eq)），是消除稳态角度偏移的关键。这部分内容的数学细节见质心偏移补偿方法文档的第 3-4 章。</p>
 <hr>
 <h2 id="a-id6a6-vmc-虚拟模型控制"><a id="6"></a>6. VMC 虚拟模型控制 </h2>
 <blockquote>
@@ -2426,32 +2570,39 @@ Horner 重排：<code>p(L) = (...((c₀·L + c₁)·L + c₂)... )·L + cₙ</co
 </thead>
 <tbody>
 <tr>
+<td>VQF</td>
+<td>六轴 IMU</td>
+<td>双四元数 + Kalman 在线零偏估计 + 静止检测</td>
+<td>Yaw 漂移极低，抗运动加速度干扰强，pitch/roll 收敛速度适中，综合效果优于 Mahony 和 EKF</td>
+</tr>
+<tr>
 <td>Mahony 互补滤波</td>
 <td>六轴 IMU</td>
-<td>加速度计+陀螺仪融合</td>
-<td>轻量，无矩阵运算</td>
+<td>PI 修正器 + 陀螺零偏估计</td>
+<td>轻量，无矩阵运算，pitch/roll 收敛最快，但抗运动干扰能力差、波形噪声大</td>
 </tr>
 <tr>
 <td>Madgwick AHRS</td>
 <td>六轴或九轴 IMU</td>
 <td>梯度下降优化的四元数估计</td>
-<td>比 Mahony 精度更高，计算量相当</td>
+<td>比 Mahony 精度更高，计算量相当，对磁力计融合扩展性好</td>
 </tr>
 <tr>
 <td>EKF 姿态估计</td>
 <td>噪声特性已标定的 IMU</td>
 <td>扩展 Kalman</td>
-<td>精度最高，计算量最大</td>
+<td>依赖精确噪声模型，Yaw 轴可观性弱导致易漂移，需额外配合卡方检测、渐消滤波等手段，调参复杂</td>
 </tr>
 <tr>
 <td>INS 任务解算</td>
 <td>板载或外置 IMU</td>
 <td>加速度/角速度直接积分</td>
-<td>最简单但漂移最快</td>
+<td>最简单但漂移最快，无修正机制</td>
 </tr>
 </tbody>
 </table>
 <p>所有方案共通的任务：从加速度计读数中分离重力分量和运动加速度，作为 Kalman 水平加速度估计的输入（见 7.4）。</p>
+<p>在轮腿控制中的选型建议：VQF 在 Yaw 漂移抑制和抗运动干扰方面优于 Mahony 和 EKF，建议作为主算法。Mahony 可作为计算资源极度受限时的备选。Madgwick 在需要融合磁力计的场景（九轴 IMU）下更有优势，对于仅需六轴 IMU 的轮腿平衡控制，VQF 的运动干扰鲁棒性和低 Yaw 漂移更契合需求。</p>
 <blockquote>
 <p>概念解释：IMU (惯性测量单元) 的基本原理</p>
 <p>IMU 包含三轴加速度计（测量"比力"——单位质量所受的非引力外力，不是已经扣除重力后的坐标加速度）和三轴陀螺仪（测量绕各轴的角速度 ω_x, ω_y, ω_z, 单位 rad/s）。</p>
@@ -2459,7 +2610,7 @@ Horner 重排：<code>p(L) = (...((c₀·L + c₁)·L + c₂)... )·L + cₙ</co
 <ul>
 <li>加速度计（MEMS 电容式）：微机械质量块通过弹性梁悬挂，加速度使质量块相对固定电极产生位移 → 电容变化 → 电压信号。静止水平时，加速度计通常读到与重力大小相同、方向取决于传感器坐标约定的比力，因此可用于估计重力方向。运动时读数同时包含线加速度和重力补偿项，必须结合姿态矩阵得到世界系线加速度。</li>
 <li>陀螺仪（MEMS 振动式）：利用科里奥利效应——旋转坐标系中运动的质点受到垂直于运动方向和旋转轴的惯性力。通过测量振动质量感应的科里奥利力来反推角速度。陀螺仪直接输出角速度，对其积分可获得角度增量，但零偏 b_g（即使静止也输出的残余值）会随时间累积——∫b_g dt 导致角度线性漂移。</li>
-<li>互补特性（频域视角）：加速度计 → 低频有效（重力方向长期准确，但运动加速度是高频干扰）；陀螺仪 → 高频有效（短期角速度积分准确，但零偏在低频累积）。二者的频域互补性（低通+高通 = 全通）是互补滤波器的设计基础。</li>
+<li>互补特性（频域视角）：加速度计 → 低频有效（重力方向长期准确，但运动加速度是高频干扰）；陀螺仪 → 高频有效（短期角速度积分准确，但零偏在低频累积）。二者的频域互补性（低通+高通 = 全通）是所有姿态融合算法的设计基础。</li>
 </ul>
 </blockquote>
 <blockquote>
@@ -2471,7 +2622,7 @@ Horner 重排：<code>p(L) = (...((c₀·L + c₁)·L + c₂)... )·L + cₙ</co
 <li>Mahony（显式互补+PI）：角速度修正项 = K_p · e(q) + K_i · ∫e(q)dt，其中 e(q) 为加速度计测量方向与当前姿态估计的重力方向之间的叉积误差。K_p 对应当前姿态误差的比例修正，K_i 对陀螺零偏进行积分估计和补偿——PI 结构提供了零偏自校准能力。</li>
 <li>Madgwick（梯度下降优化）：将姿态解算转化为最优化问题——寻找四元数 q 使加速度计方向与重力预测方向的误差函数最小化。使用梯度下降法迭代求解，收敛速度快于 Mahony，且对磁力计融合有更好的扩展性。</li>
 </ul>
-<p>在轮腿控制中的选型建议： 对于仅用于平衡控制（不需要准确的 yaw 角）的场景，Mahony 或 Madgwick 均已足够。Madgwick 的优势在于对运动加速度的鲁棒性更好（梯度下降中可以调整步长来限制加速度计对运动加速度的敏感度）。</p>
+<p>在轮腿控制中的选型建议： VQF 为本文档推荐方案。Mahony 可作为计算资源极度受限时的备选（例如在低性能 MCU 上）。Madgwick 的优势在需要融合磁力计的场景（九轴 IMU），对于仅需六轴 IMU 的轮腿平衡控制，VQF 的运动干扰鲁棒性和低 Yaw 漂移更契合需求。</p>
 </blockquote>
 <blockquote>
 <p>概念解释：四元数 (Quaternion) — 为什么不用欧拉角？</p>
@@ -2528,6 +2679,13 @@ Horner 重排：<code>p(L) = (...((c₀·L + c₁)·L + c₂)... )·L + cₙ</co
 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo>=</mo><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center center center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>d</mi><mi>t</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>d</mi><msup><mi>t</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mn>2</mn></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>d</mi><mi>t</mi></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">A = \begin{bmatrix} 1 &amp; dt &amp; dt^2/2 \\ 0 &amp; 1 &amp; dt \\ 0 &amp; 0 &amp; 1 \end{bmatrix}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.6em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.667em" height="3.6em" viewBox="0 0 667 3600"><path d="M403 1759 V84 H666 V0 H319 V1759 v0 v1759 v84 h347 v-84
 H403z M403 1759 V0 H319 V1759 v0 v1759 v84 h84z"></path></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mord mathnormal">t</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord">/2</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mord mathnormal">t</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.6em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.667em" height="3.6em" viewBox="0 0 667 3600"><path d="M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z
 M347 1759 V0 H263 V1759 v0 v1759 h84z"></path></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span></span></span></span></span><p>此时 IMU 加速度作为观测 z_a = a_world_x 融合进更新步，例如 C_acc = [0, 0, 1]；或者把加速度状态视作随机游走，仅通过较大的过程噪声 Q_a 表示未知外部加速度。工程上 3 维方案多估计了一个 LQR 不直接使用的量，调参难度高于 2 维方案。</p>
+<p><strong>2 维速度-加速度模型（备选方案）：</strong></p>
+<p>除上述加速度输入模型外，另一种工程上常用的结构是将状态设为 x_kf = [速度, 加速度]^T，以恒加速度模型作为状态方程（F = [1, dt; 0, 1]），将 IMU 加速度作为观测量而非过程输入（即 B=0, H=I）。此时：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo>=</mo><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>d</mi><mi>t</mi></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow><mo separator="true">,</mo><mspace width="1em"></mspace><mi>z</mi><mo>=</mo><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><msub><mi>v</mi><mrow><mi>w</mi><mi>h</mi><mi>e</mi><mi>e</mi><mi>l</mi></mrow></msub></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><msub><mi>a</mi><mrow><mi>I</mi><mi>M</mi><mi>U</mi></mrow></msub></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow><mo separator="true">,</mo><mspace width="1em"></mspace><mi>H</mi><mo>=</mo><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">A = \begin{bmatrix} 1 &amp; dt \\ 0 &amp; 1 \end{bmatrix},\quad z = \begin{bmatrix} v_{wheel} \\ a_{IMU} \end{bmatrix},\quad H = \begin{bmatrix} 1 &amp; 0 \\ 0 &amp; 1 \end{bmatrix}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mord mathnormal">t</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">ee</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0785em;">I</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">U</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span></span></span></span></span><p>两种结构的数学等价性在理想条件下成立，但在打滑场景下行为不同：</p>
+<ul>
+<li>加速度输入模型（B≠0）：打滑时增大 R 使滤波器更信任模型预测（IMU 加速度积分），但轮速异常仍通过 B 进入预测步</li>
+<li>速度-加速度模型（B=0, H=I）：打滑时将速度观测源从原始轮速切换为上一时刻滤波速度，并大幅增大速度观测噪声 R_vel，形成纯预测模式——滤波器仅靠加速度观测量维持速度估计，与打滑的轮速完全隔离</li>
+</ul>
 <p><strong>噪声参数设计原则：</strong></p>
 <table>
 <thead>
@@ -2567,6 +2725,12 @@ M347 1759 V0 H263 V1759 v0 v1759 h84z"></path></svg></span></span></span><span c
 <td>2</td>
 <td>最低</td>
 <td>估计位移/速度，IMU 加速度作为过程输入；推荐用于 LQR 的 x 和 ẋ</td>
+</tr>
+<tr>
+<td>2 维速度-加速度</td>
+<td>2</td>
+<td>最低</td>
+<td>估计速度/加速度，IMU 加速度作为观测（B=0, H=I）；打滑时速度观测可切换到滤波值以实现纯预测</td>
 </tr>
 <tr>
 <td>3 维恒加速度</td>
@@ -2675,6 +2839,13 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 </ul>
 <p><strong>VMC 映射后再加上 LQR 的轮毂力矩：</strong></p>
 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>U</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><mo>=</mo><mo stretchy="false">[</mo><msub><mi>τ</mi><mrow><mi>h</mi><mi>i</mi><mi>p</mi><mo separator="true">,</mo><mi>L</mi></mrow></msub><mo separator="true">,</mo><mtext>&nbsp;</mtext><msub><mi>τ</mi><mrow><mi>k</mi><mi>n</mi><mi>e</mi><mi>e</mi><mo separator="true">,</mo><mi>L</mi></mrow></msub><mo separator="true">,</mo><mtext>&nbsp;</mtext><msub><mi>τ</mi><mrow><mi>h</mi><mi>i</mi><mi>p</mi><mo separator="true">,</mo><mi>R</mi></mrow></msub><mo separator="true">,</mo><mtext>&nbsp;</mtext><msub><mi>τ</mi><mrow><mi>k</mi><mi>n</mi><mi>e</mi><mi>e</mi><mo separator="true">,</mo><mi>R</mi></mrow></msub><mo separator="true">,</mo><mtext>&nbsp;</mtext><msub><mi>U</mi><mrow><mi>L</mi><mi>Q</mi><mi>R</mi></mrow></msub><mo stretchy="false">[</mo><mn>2</mn><mo stretchy="false">]</mo><mo separator="true">,</mo><mtext>&nbsp;</mtext><msub><mi>U</mi><mrow><mi>L</mi><mi>Q</mi><mi>R</mi></mrow></msub><mo stretchy="false">[</mo><mn>3</mn><mo stretchy="false">]</mo><msup><mo stretchy="false">]</mo><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">U_{out} = [τ_{hip,L},\ τ_{knee,L},\ τ_{hip,R},\ τ_{knee,R},\ U_{LQR}[2],\ U_{LQR}[3]]^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1774em;vertical-align:-0.2861em;"></span><span class="mopen">[</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">hi</span><span class="mord mathnormal mtight">p</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace">&nbsp;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">ee</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace">&nbsp;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">hi</span><span class="mord mathnormal mtight">p</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0077em;">R</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace">&nbsp;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">ee</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0077em;">R</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace">&nbsp;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mord mathnormal mtight" style="margin-right:0.0077em;">QR</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord">2</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace">&nbsp;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mord mathnormal mtight" style="margin-right:0.0077em;">QR</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord">3</span><span class="mclose">]</span><span class="mclose"><span class="mclose">]</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span></span></span></span></span><p>即 4 个腿部关节力矩（VMC 分配）+ 2 个轮毂力矩（LQR 直接输出）。</p>
+<h3 id="a-id84a84-lqr-俯仰方向的附加补偿"><a id="8.4"></a>8.4 LQR 俯仰方向的附加补偿 </h3>
+<p>§8.3 描述的是沿虚拟腿轴向的力控综合（f_l）。在 LQR 的俯仰控制方向（机体俯仰 θ_B、腿摆角 θ_L/θ_R），还需叠加因质心位置变化引起的重力矩补偿。这些补偿量不进入 VMC 的力通道，而是作为状态目标偏移量的修正，合并到 LQR 控制律 u = -K·(X - X_target) 的目标向量 X_target 中。</p>
+<p>常见的附加补偿源包括：</p>
+<p>车体高度补偿：随着腿长变化，机体质心高度改变，重力对各广义坐标的力矩随之改变。将补偿量拟合为当前估算高度 h = (L_l + L_r)/2 的多项式函数，通常用三次多项式即可在腿长范围内获得足够的拟合精度。</p>
+<p>负载变化补偿：机器人在运行过程中载荷可能发生变化（如云台转动导致质心偏移、弹药消耗导致总质量减少），这些变化同样影响重力矩分布。可分别拟合为对应输入变量（云台俯仰角、剩余弹药数等）的多项式补偿函数，乘以方向因子后叠加到俯仰方向补偿量中。</p>
+<p>气弹簧补偿：若腿部安装了物理气弹簧等弹性储能元件，其非线性弹力会随腿长和连杆几何变化。需要在力控通道中单独建立气弹簧的等效轴向力模型（通常为腿长 L 和连杆夹角的非线性函数），作为前馈项注入腿长 PID 输出中。在机器人离地（跳跃空中阶段）时应将该补偿项清零，因为此时气弹簧不再承重，其弹力会成为扰动。</p>
+<p>各补偿源的系数需通过实验标定确定（不同腿长下稳态平衡测试，记录偏差并拟合），标定后固定存入嵌入式端的系数数组中，在线运行时根据当前传感器值计算总补偿量。</p>
 <hr>
 <h2 id="a-id9a9-地面接触检测与悬空控制"><a id="9"></a>9. 地面接触检测与悬空控制 </h2>
 <h3 id="a-id9-principlea原理"><a id="9-principle"></a>原理 </h3>
@@ -2690,37 +2861,33 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 </ul>
 </blockquote>
 <p><strong>通过牛顿第二定律估算地面法向反力：</strong></p>
-<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>F</mi><mrow><mi>n</mi><mo separator="true">,</mo><mi>l</mi></mrow></msub><mo>=</mo><msub><mi>m</mi><mi>l</mi></msub><msub><mover accent="true"><mi>z</mi><mo>¨</mo></mover><mrow><mi>w</mi><mi>h</mi><mi>e</mi><mi>e</mi><mi>l</mi><mo separator="true">,</mo><mi>l</mi></mrow></msub><mo>+</mo><msub><mi>m</mi><mi>l</mi></msub><mi>g</mi><mo>−</mo><msub><mi>F</mi><mrow><mi>l</mi><mi>e</mi><mi>g</mi><mo separator="true">,</mo><mi>z</mi><mo separator="true">,</mo><mi>l</mi></mrow></msub></mrow><annotation encoding="application/x-tex">F_{n,l} = m_l \ddot{z}_{wheel,l} + m_l g - F_{leg,z,l}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.954em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1944em;"><span class="mord">¨</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.044em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">ee</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.044em;">z</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span><p>其中 F_leg,z,l 为腿对左轮施加的竖直向上力，m_l 为等效轮质量，z̈_wheel,l 为轮垂向加速度（通过加速度计 + 运动学关系反算）。若代码中使用向下为正的 P_l，应改用 <code>F_n = m_l z̈ + m_l g + P_l</code>，不要混用两套符号。</p>
+<p>简化模型仅考虑轮端质量在垂直方向的受力平衡：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>F</mi><mrow><mi>n</mi><mo separator="true">,</mo><mi>l</mi></mrow></msub><mo>=</mo><msub><mi>m</mi><mi>l</mi></msub><msub><mover accent="true"><mi>z</mi><mo>¨</mo></mover><mrow><mi>w</mi><mi>h</mi><mi>e</mi><mi>e</mi><mi>l</mi><mo separator="true">,</mo><mi>l</mi></mrow></msub><mo>+</mo><msub><mi>m</mi><mi>l</mi></msub><mi>g</mi><mo>−</mo><msub><mi>F</mi><mrow><mi>l</mi><mi>e</mi><mi>g</mi><mo separator="true">,</mo><mi>z</mi><mo separator="true">,</mo><mi>l</mi></mrow></msub></mrow><annotation encoding="application/x-tex">F_{n,l} = m_l \ddot{z}_{wheel,l} + m_l g - F_{leg,z,l}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.954em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1944em;"><span class="mord">¨</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.044em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">ee</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.044em;">z</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span><p>其中 F_leg,z,l 为腿对左轮施加的竖直向上力，m_l 为等效轮质量，z̈_wheel,l 为轮垂向加速度。</p>
+<p>更完整的力估计模型应纳入腿部运动引入的全部惯性项。将执行器力（F0）、摆杆力矩（Tp）、IMU 加速度和腿运动学量综合，经轮端动力学展开得到：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>F</mi><mi>n</mi></msub><mo>=</mo><mo stretchy="false">(</mo><msub><mi>F</mi><mn>0</mn></msub><mo>−</mo><msub><mi>G</mi><mrow><mi>c</mi><mi>o</mi><mi>m</mi><mi>p</mi></mrow></msub><mo stretchy="false">)</mo><mi>cos</mi><mo>⁡</mo><mi>θ</mi><mo>+</mo><mfrac><mrow><msub><mi>T</mi><mi>p</mi></msub><mi>sin</mi><mo>⁡</mo><mi>θ</mi></mrow><msub><mi>L</mi><mn>0</mn></msub></mfrac><mo>+</mo><msub><mi>m</mi><mrow><mi>e</mi><mi>q</mi></mrow></msub><mo>⋅</mo><msub><mi>a</mi><mrow><mi>z</mi><mo separator="true">,</mo><mi>I</mi><mi>M</mi><mi>U</mi></mrow></msub><mo>−</mo><msub><mi>m</mi><mrow><mi>e</mi><mi>q</mi></mrow></msub><mo>⋅</mo><msub><mover accent="true"><mi>L</mi><mo>¨</mo></mover><mn>0</mn></msub><mi>cos</mi><mo>⁡</mo><mi>θ</mi><mo>+</mo><mn>2</mn><msub><mi>m</mi><mrow><mi>e</mi><mi>q</mi></mrow></msub><mo>⋅</mo><msub><mover accent="true"><mi>L</mi><mo>˙</mo></mover><mn>0</mn></msub><mover accent="true"><mi>θ</mi><mo>˙</mo></mover><mi>sin</mi><mo>⁡</mo><mi>θ</mi><mo>+</mo><msub><mi>m</mi><mrow><mi>e</mi><mi>q</mi></mrow></msub><mo>⋅</mo><msub><mi>L</mi><mn>0</mn></msub><mover accent="true"><mi>θ</mi><mo>¨</mo></mover><mi>sin</mi><mo>⁡</mo><mi>θ</mi><mo>+</mo><msub><mi>m</mi><mrow><mi>e</mi><mi>q</mi></mrow></msub><mo>⋅</mo><msub><mi>L</mi><mn>0</mn></msub><msup><mover accent="true"><mi>θ</mi><mo>˙</mo></mover><mn>2</mn></msup><mi>cos</mi><mo>⁡</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">F_n = (F_0 - G_{comp}) \cos\theta + \frac{T_p \sin\theta}{L_0} + m_{eq} \cdot a_{z,IMU} - m_{eq} \cdot \ddot{L}_0 \cos\theta + 2 m_{eq} \cdot \dot{L}_0 \dot{\theta} \sin\theta + m_{eq} \cdot L_0 \ddot{\theta} \sin\theta + m_{eq} \cdot L_0 \dot{\theta}^2 \cos\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">co</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">p</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.2074em;vertical-align:-0.836em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">sin</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7306em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">q</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.044em;">z</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0785em;">I</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">U</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7306em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">q</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0702em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9202em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">L</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">¨</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9305em;vertical-align:-0.2861em;"></span><span class="mord">2</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">q</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0813em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9202em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">L</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1111em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9313em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0556em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">sin</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7306em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">q</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0813em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9313em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">¨</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">sin</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7306em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">q</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0813em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9313em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0556em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span></span><p>各项物理含义分别为：执行器力垂直分量、摆杆力矩贡献、IMU 测得的垂直加速度、腿伸缩惯性力、科里奥利力、切向惯性力、向心加速度。其中 dd_L0（腿长加速度）和 dd_theta（腿角加速度）由相应速度量经低通滤波后数值微分得到。对计算结果做滑动均值滤波可进一步抑制微分噪声。</p>
 <h3 id="a-id9-airbornea离地检测"><a id="9-airborne"></a>离地检测 </h3>
 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>F</mi><mrow><mi>n</mi><mo separator="true">,</mo><mi>l</mi></mrow></msub><mo>&lt;</mo><msub><mi>F</mi><mrow><mi>t</mi><mi>h</mi><mi>r</mi><mi>e</mi><mi>s</mi><mi>h</mi><mi>o</mi><mi>l</mi><mi>d</mi></mrow></msub><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><mtext>left&nbsp;wheel&nbsp;airborne</mtext></mrow><annotation encoding="application/x-tex">F_{n,l} &lt; F_{threshold} \implies \text{left wheel airborne}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span><span class="mord mathnormal mtight">es</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord">left&nbsp;wheel&nbsp;airborne</span></span></span></span></span></span><p>此时将 K 矩阵中与该轮相关的所有系数清零，相当于切换到悬空控制模式——LQR 不再控制已离地的轮子，避免对空转轮子施加无意义的力矩。</p>
 <p>这是简化但有效的处理方式。更高级的方案（如北理工 MPC+ESO）会设计专门的悬空控制器。</p>
 <h3 id="a-id9-stucka卡腿检测与处理"><a id="9-stuck"></a>卡腿检测与处理 </h3>
-<p>当轮子被障碍物卡住（如台阶棱角、地面突起）时，轮毂电机堵转会导致里程计停滞，同时腿部力矩异常增大。需要在控制层面检测并处理：</p>
-<p><strong>检测方法：</strong></p>
+<p>当轮子被障碍物卡住（如台阶棱角、地面突起）时，轮毂电机堵转会导致里程计停滞，同时腿部力矩异常增大。需要在控制层面检测并处理。</p>
+<p>检测采用时间累积机制以避免瞬态误触发：当轮毂力矩超过阈值且腿摆角绝对值同时超过阈值时，开始累加持续时间计数器；当腿角回落到较小范围时清零计数器。持续时间超过 BST_THRESHOLD 后正式判定为卡腿状态。</p>
+<p>处理采用渐进式补偿策略——卡住时间越长，系统响应越强：</p>
 <ul>
-<li>轮毂电机电流/力矩超过阈值 + 轮速接近零 → 判定为卡轮</li>
-<li>腿部虚拟力矩异常增大 + 腿长/摆角无变化 → 辅助判定</li>
+<li>补偿力随卡住时间线性增长（有上限），叠加到该腿的 VMC 轴向力通道中，辅助将腿推出卡滞位置</li>
+<li>腿长目标随卡住时间线性缩短，通过改变腿部几何降低卡滞力矩</li>
+<li>轮毂电流降低至正常值的约 60%，避免堵转过热</li>
+<li>LQR 层面标记该侧 theta_flag，清零对应侧的偏航增益、加倍该侧的腿-俯仰增益，优先利用姿态恢复帮助脱离卡滞</li>
 </ul>
-<p><strong>处理策略：</strong></p>
-<ol>
-<li>检测到卡腿后，减小该腿的期望虚拟力，避免电机过流</li>
-<li>主动调整腿长或摆角，尝试改变轮子与障碍物的接触几何</li>
-<li>若持续卡住，切换到"抬腿跨越"模式——收缩该腿→前移→伸展</li>
-</ol>
+<p>若上述渐进措施仍无法解除卡滞，应触发更高层级的保护逻辑（如急停或手动遥控辅助）。</p>
 <h3 id="a-id9-slipa打滑检测与动态卡尔曼滤波"><a id="9-slip"></a>打滑检测与动态卡尔曼滤波 </h3>
 <p>轮子打滑（如光滑地面、急加速）时，轮式里程计读数虚高，直接使用会严重破坏 Kalman 状态估计。</p>
-<p><strong>检测方法：</strong></p>
+<p>检测分为预判和确认两个阶段。预判条件为以下任一满足且不在旋转模式下：(a) 估算偏航角速率与 IMU 实测偏航角速率之差超过阈值 DBY_THRESHOLD；(b) 任一侧轮速的绝对值与车体速度估值之差超过阈值 DVB_THRESHOLD。预判通过后，比较轮速变化量 dv_wheel（经滑动均值滤波后的相邻周期轮速差）与加速度积分速度变化 dv_acc = |a_x · dt|：若 dv_wheel - dv_acc ≥ DVW_THRESHOLD，则确认打滑，记录此刻的冻结轮速 f_dv_wheel 作为后续恢复判断的参考值。</p>
+<p>处理策略分两个层面：</p>
 <ul>
-<li>比较轮式里程计速度与 IMU 加速度积分速度的差异</li>
-<li>差异超过阈值 → 判定为打滑状态</li>
+<li>Kalman 滤波器层面：检测到打滑后将速度观测噪声 R_vel 大幅增大（通常增大两个数量级），同时将速度过程噪声 Q_vel 适度降低，使滤波器更信任恒加速度模型的外推。若使用速度-加速度模型（§7.3），还可将速度观测源从原始轮速切换为上一时刻的滤波速度，形成与打滑轮速完全隔离的纯预测模式</li>
+<li>执行器层面：打滑期间轮毂电流降低至正常值的约 60%，避免在低附着地面上过度驱动导致打滑加剧</li>
 </ul>
-<p><strong>处理策略——动态 Kalman：</strong></p>
-<ul>
-<li>正常状态：Kalman 使用常规观测噪声 R</li>
-<li>打滑状态：动态增大 Kalman 的 R 矩阵中对应里程计观测量的元素，使滤波器更信任 IMU 预测而非打滑的里程计读数</li>
-<li>恢复条件：轮速与 IMU 积分速度重新一致后，恢复常规 R</li>
-</ul>
-<p>这与第 7.3 节的策略一致：常态下 R 按轮速噪声标定，打滑时临时增大对应观测噪声，避免把错误的里程计速度强行融合进 x 和 ẋ。</p>
+<p>恢复条件：当前轮速回落到冻结值 f_dv_wheel 以下时，认为打滑结束，恢复常规 R 和正常轮毂电流。无打滑时，可依据左右轮速差估算当前转弯半径 R_turn = L_wheel·(wL+wR)/(2·(wL-wR))，用于离心加速度的前馈补偿。</p>
 <h3 id="a-id9-coma质心偏移补偿"><a id="9-com"></a>质心偏移补偿 </h3>
 <p>机体质心因电池、云台、弹舱等载荷而产生偏移，导致运动学计算的腿摆角与真实质心位置之间存在系统误差。</p>
 <p><strong>问题表现：</strong></p>
@@ -2737,8 +2904,156 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 <li>将此补偿集成到状态估计中，作为 LQR 反馈的 θ_L/θ_R 状态的修正</li>
 </ul>
 <p>质心偏移会改变最优 K 矩阵中与机体俯仰相关的元素，这表明质心位置标定是决定 K 矩阵能否从仿真迁移到实机的关键因素。</p>
+<h3 id="a-id9-self-rescuea倒地自救援一种可行方法"><a id="9-self-rescue"></a>倒地自救援——一种可行方法 </h3>
+<p>当机器人因碰撞、失控等原因翻倒后，需要一套自动化的恢复流程使其重新站立。以下给出一种基于分阶段状态机的可行方案，核心思想是利用腿部的大范围摆动能力，逐步将机体从倒地姿态翻转为竖直姿态。不同平台可根据自身机构的关节运动范围和几何约束设计适合的恢复策略。</p>
+<p>翻倒姿态识别：根据 IMU 的俯仰角和滚转角判断摔倒方向。当 |Pitch| ≥ 90° 时判定为完全翻倒；进一步根据 Roll 的符号区分面朝下/背朝下（Roll ≤ 0）与坐姿摔倒（Roll &gt; 0），不同姿态对应不同的腿部初始摆动方向。</p>
+<p>前翻恢复流程（机体前倾触地场景）：分为两步——步骤 0 将腿角驱动至一个预设的角度窗口内（例如 [-1.0, 1.26] rad），该窗口确保轮端能接触地面产生支撑力；进入窗口后自动切换至步骤 1，将腿角 PID 归中至竖直姿态附近。双腿 abs_leg_theta 均回到预设的小角度范围内（例如 [-0.4, 0.4] rad）后判定恢复完成。</p>
+<p>不对称恢复策略：为避免两侧腿部同时大幅度动作导致的失稳，根据当前绝对偏航角判断哪条腿先启动——偏航角在后半圆的腿优先动作，一侧完成关键步骤后另一侧再跟随。自救援期间强制 Tp = 0、F0 = 0、T_Wheel = 0，腿部完全由摆杆位置 PID 独立控制，不经过 LQR/VMC 链路，避免 LQR 在异常姿态下产生不可预期的输出。</p>
+<p>自救援状态的触发判据通常包括摆杆角度超出安全范围或当前位置与目标位置的偏差过大。由于 LQR 控制器引入 Kalman 观测器后构成 LQG 结构，其幅值/相位裕度理论上可能任意小（Doyle, "Guaranteed margins for LQG regulators", 1978），意味着即使在线性模型下闭环稳定的系统，在实际模型误差或外部扰动下也可能突然失稳。因此失稳检测和自救援机制是必要的安全防线，而非可选的锦上添花。</p>
+<p>自救援状态机的参数（角度窗口边界、切换阈值、恢复判定角度等）需根据机构具体的关节运动范围和几何约束确定，无通用取值。</p>
+<h3 id="a-id9-speed-limita基于腿长的高度分级速度限制"><a id="9-speed-limit"></a>基于腿长的高度分级速度限制 </h3>
+<p>轮腿机器人在不同腿长下的动力学特性差异显著——腿越短、质心越低、系统越稳定但允许的移动速度范围也相应收窄。为防止蹲伏姿态下的高速失稳，可根据当前估算高度 h = (L_l + L_r)/2 将最大平移速度和偏航速率分为多个等级，每级设定不同的上限值。高度越低、限速越严格。分级边界和各级限速值由具体平台的机构参数和实际测试确定。</p>
+<p>转弯速度的额外约束：高速转弯时离心力会产生绕外侧轮的外翻力矩。离心力矩与重力恢复力矩的平衡条件给出转弯角速度上限 ω_max ∝ √(g·d/h)，其中 d 为等效轮距决定的力臂，h 为当前质心高度。该限幅应在偏航控制环的输出端执行，将偏航角速度指令钳制在安全范围内。限幅不仅防止翻倒，也能在功率层面避免转弯消耗过多能量。</p>
+<h3 id="a-id9-yawa偏航方向管理"><a id="9-yaw"></a>偏航方向管理 </h3>
+<p>10 维 LQR 方案将偏航角 ψ 纳入状态反馈，但偏航目标的设定策略同样影响控制效果。在需要双向移动的场景中，不需要物理调头，而是通过改变"前方"的定义实现反向行驶。</p>
+<p>目标偏航角的自动选择：实时计算到预设正前方和正后方的角距离，选取较近的方向作为当前目标偏航，确保机器人总是以最短旋转路径对准最近的合法朝向。当操作手发出反向指令时，仅需切换目标朝向（正前↔正后），控制器自动完成转向。在紧急停止状态下，目标偏航应锁定为当前角度，防止停止瞬间的偏航突变。</p>
+<p>偏航控制可区分两种工作模式——角度环和速度环。角度环以 ψ_des 为状态目标，适用于需要绝对朝向保持的场景；速度环以 ψ̇_des 为状态目标，适用于需要灵活转向的场景。两种模式使用相同的 LQR 反馈结构，仅目标状态的通道不同，可在运行时根据操作指令切换。</p>
 <hr>
-<h2 id="a-id10a10-仿真平台与对比分析"><a id="10"></a>10. 仿真平台与对比分析 </h2>
+<h2 id="a-id10a10-跳跃控制一种基于力控状态机的实现方法"><a id="10"></a>10. 跳跃控制——一种基于力控状态机的实现方法 </h2>
+<p>轮腿机器人的跳跃控制本质上是一个基于虚拟腿力控的有限状态机。其核心思路是：跳跃不是位置轨迹跟踪，而是通过在不同阶段设定不同的虚拟腿长目标 L_des 和虚拟脉冲力 F_jump，利用高增益 PID 力控驱动腿部完成蓄力、起跳、收腿、着陆的动作序列。空中平衡通过将 LQR 状态反馈降维实现——悬空时仅保留姿态角/角速度反馈项，清零位移/速度项和轮毂力矩，避免对不存在的支撑面施加无效控制。</p>
+<p>以下给出一种具体的六阶段状态机设计方案，各阶段的腿长阈值、力脉冲幅值、PID 增益放大系数等参数需根据具体平台的机械尺寸、电机能力、传动比和质量分布重新标定。</p>
+<h3 id="a-id101a101-状态定义与转移逻辑"><a id="10.1"></a>10.1 状态定义与转移逻辑 </h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>名称</th>
+<th>物理含义</th>
+<th>接触状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>READY</td>
+<td>待命，维持站立姿态</td>
+<td>着地</td>
+</tr>
+<tr>
+<td>1</td>
+<td>CROUCH</td>
+<td>蓄力下蹲，降低质心</td>
+<td>着地</td>
+</tr>
+<tr>
+<td>2</td>
+<td>LAUNCH</td>
+<td>爆发伸展，产生起跳加速度</td>
+<td>着地→离地</td>
+</tr>
+<tr>
+<td>3</td>
+<td>TUCK</td>
+<td>空中收腿，减少转动惯量</td>
+<td>离地</td>
+</tr>
+<tr>
+<td>4</td>
+<td>LANDING</td>
+<td>着陆缓冲，吸收冲击</td>
+<td>离地→着地</td>
+</tr>
+<tr>
+<td>5</td>
+<td>RECOVER</td>
+<td>恢复站立姿态</td>
+<td>着地</td>
+</tr>
+</tbody>
+</table>
+<p>阶段零——READY：维持正常站立姿态（L_des = L_stand），施加较小的正向预载力以补偿腿长 PID 的稳态误差。收到跳跃指令（JumpFlag=1）后转入 CROUCH。</p>
+<p>阶段一——CROUCH：将目标腿长瞬间切换为机构允许的最短腿长 L_min，施加向下的脉冲力加速下蹲。增大腿长 PID 的 Kp/Kd 增益（通常提升 2~5 倍），取消积分项以保证快速响应。此阶段仅做参数初始化，立即转移到 LAUNCH 阶段——实际的蓄力到位检测在 LAUNCH 阶段通过腿长阈值完成。</p>
+<p>阶段二——LAUNCH：当双腿实际长度均达到蓄力到位阈值 L_crouch_th（略大于 L_min，留出收敛容差）时，将腿长目标瞬间切换为最长腿长 L_max。由于腿长 PID 具有高增益，实际腿长迅速跟踪目标，产生向上的地面反作用力脉冲——当该脉冲超过重力时，机器人质心获得向上的净加速度实现起跳。起跳瞬间将 FlyFlag 置 1，使后续控制立即禁用依赖地面接触的补偿项。当腿长伸展达到 L_extend_th 时转入 TUCK。</p>
+<p>阶段三——TUCK：将目标腿长切换回 L_min（或更紧凑的 L_tuck），施加向下的辅助力加速收腿。收腿可减小绕髋关节的转动惯量（I_leg ∝ L²），改善空中姿态控制，同时提高越障净空并为着陆缓冲预留行程。当腿长伸展达到 L_extend_th 时转入 LANDING。</p>
+<p>阶段四——LANDING：将腿长预置为半蹲着陆长度 L_land（介于 L_min 和 L_stand 之间），利用腿的剩余行程吸收落地动能。通过计时器确保机器人已在着陆姿态稳定足够长时间后才转入下一阶段，避免收腿过程中腿长短暂经过 L_land 附近的虚假触发。</p>
+<p>阶段五——RECOVER：将腿长目标恢复为正常站立长度 L_stand，脉冲力恢复为正常预载力，清除着陆计时器。无条件立即转移回 READY，FlyFlag 清零、恢复全功能控制。</p>
+<h3 id="a-id102a102-跳跃状态机与力控框架的衔接"><a id="10.2"></a>10.2 跳跃状态机与力控框架的衔接 </h3>
+<p>跳跃状态机的轴向力综合沿用 §8.3 的力控框架（f_l = f_pos + f_vel + F_g ± ΔF_roll + F_jump），跳跃期间的差异仅在于各分量的取值和开关逻辑：</p>
+<ul>
+<li>腿长 PID：Kp/Kd 放大至正常值的 2~5 倍，Ki 清零以保证快速响应。目标腿长 L_des 在各阶段取不同值（L_min → L_max → L_min → L_land → L_stand）</li>
+<li>跳跃脉冲力 F_jump：各阶段取不同值（负向蓄力 → 清零靠 PID 自然起跳 → 负向辅助收腿 → 负向着陆阻尼 → 恢复预载）</li>
+<li>气弹簧补偿 F_gas：见 §8.4。FlyFlag=1 时强制清零，因为空中气弹簧不再承重会成为扰动</li>
+<li>滚转力差 ΔF_roll、离心力补偿等其余分量按正常逻辑运行，不受跳跃状态影响</li>
+</ul>
+<p>摆腿方向的虚拟力矩 t_l 由 LQR 独立计算，不与轴向推力通道混合。</p>
+<h3 id="a-id103a103-空中-lqr-降维"><a id="10.3"></a>10.3 空中 LQR 降维 </h3>
+<p>当机器人离地后，与地面接触相关的控制通道须降级或关闭：</p>
+<ul>
+<li>虚拟腿力矩：仅保留腿摆角和角速度的反馈，清零位移/速度/偏航通道增益</li>
+<li>轮毂力矩：直接清零，避免轮子空转并在着地瞬间造成打滑</li>
+<li>离地判定可采用力观测器（见 §9-principle）或与跳跃飞行标志联合判定</li>
+</ul>
+<h3 id="a-id104a104-跳跃参数与整定原则"><a id="10.4"></a>10.4 跳跃参数与整定原则 </h3>
+<p>以下参数为跳跃状态机特有的参数，机构参数（L_min、L_max、L_stand）的定义见 §2.2 和 §5。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>物理含义</th>
+<th>整定原则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L_land</td>
+<td>着陆缓冲姿态腿长</td>
+<td>介于 L_min 和 L_stand 之间</td>
+</tr>
+<tr>
+<td>F_crouch</td>
+<td>加速下蹲的辅助力</td>
+<td>过大导致冲击，过小蓄力时间过长</td>
+</tr>
+<tr>
+<td>F_tuck</td>
+<td>加速收腿的辅助力</td>
+<td>仅需克服腿部惯性和摩擦力</td>
+</tr>
+<tr>
+<td>F_land</td>
+<td>着陆缓冲的辅助阻尼</td>
+<td>帮助吸收冲击，不宜过大</td>
+</tr>
+<tr>
+<td>β_p</td>
+<td>跳跃时 Kp 放大倍数</td>
+<td>通常 2~5 倍，越大起跳越猛烈</td>
+</tr>
+<tr>
+<td>β_d</td>
+<td>跳跃时 Kd 放大倍数</td>
+<td>通常 1.5~3 倍，抑制伸展过冲</td>
+</tr>
+<tr>
+<td>L_crouch_th</td>
+<td>蓄力到位判定的腿长阈值</td>
+<td>L_min + ε（机械间隙+控制误差）</td>
+</tr>
+<tr>
+<td>L_extend_th</td>
+<td>起跳完成判定的腿长阈值</td>
+<td>通常取 (L_min + L_max)/2 附近</td>
+</tr>
+<tr>
+<td>T_land_min</td>
+<td>着陆稳定最短等待时间</td>
+<td>取决于系统阻尼和冲击大小</td>
+</tr>
+</tbody>
+</table>
+<p>调试建议：从较低起跳强度开始（降低 L_max 或增加 F_crouch 限制起跳冲量），逐步增加至目标高度。先静态验证跳跃 PID 增益下的腿长阶跃响应（快速无超调），再逐步联调全流程。</p>
+<hr>
+<h2 id="a-id11a11-仿真平台与对比分析"><a id="11"></a>11. 仿真平台与对比分析 </h2>
 <p>MuJoCo 是一个可选仿真平台，但并非唯一选择。</p>
 <blockquote>
 <p>概念解释：物理仿真引擎 (Physics Engine)</p>
@@ -2750,7 +3065,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 <li>传感器保真度：仿真 IMU 默认输出完美数据（零噪声、零偏、零延迟）。从仿真迁移到实机前，必须向仿真传感器注入真实噪声模型（高斯白噪声 + 随机游走零偏 + 量化误差），以验证 Kalman 滤波器对传感器非理想特性的鲁棒性。</li>
 </ul>
 </blockquote>
-<h3 id="a-id101a101-mujoco"><a id="10.1"></a>10.1 MuJoCo </h3>
+<h3 id="a-id111a111-mujoco"><a id="11.1"></a>11.1 MuJoCo </h3>
 <p>可作为快速原型验证平台，但不代表唯一或标准的仿真路径。</p>
 <table>
 <thead>
@@ -2786,7 +3101,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 </tr>
 </tbody>
 </table>
-<h3 id="a-id102a102-webots"><a id="10.2"></a>10.2 Webots </h3>
+<h3 id="a-id112a112-webots"><a id="11.2"></a>11.2 Webots </h3>
 <p>RoboMaster 社区最广泛使用的仿真平台。</p>
 <table>
 <thead>
@@ -2824,7 +3139,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 <li><a href="https://github.com/WilliamGwok/RP_Balance">WilliamGwok/RP_Balance</a> —— RM2024 五连杆建模与仿真</li>
 <li><a href="https://github.com/Yueyuanh/RoboMasterGym">Yueyuanh/RoboMasterGym</a> —— IsaacGym 强化学习框架</li>
 </ul>
-<h3 id="a-id103a103-其他仿真平台"><a id="10.3"></a>10.3 其他仿真平台 </h3>
+<h3 id="a-id113a113-其他仿真平台"><a id="11.3"></a>11.3 其他仿真平台 </h3>
 <table>
 <thead>
 <tr>
@@ -2858,7 +3173,8 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 </table>
 <p><strong>推荐策略：</strong></p>
 <ul>
-<li>控制算法原型验证：MuJoCo（快速迭代）→ MATLAB（矩阵导出）</li>
+<li>控制算法原型验证：MuJoCo（快速迭代）</li>
+<li>离线矩阵生成：MATLAB Symbolic Toolbox（商业许可，交互式调试）或 Python/SymPy + MuJoCo（全开源，几何参数自动从仿真模型提取）</li>
 <li>实机迁移前验证：Webots（社区支持最成熟）</li>
 <li>强化学习探索：IsaacGym</li>
 </ul>
@@ -2877,11 +3193,11 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 
  WEBOTS --&gt; RP["参考项目：&lt;br/&gt;RP_Balance (WilliamGwok)&lt;br/&gt;Graduate_Project (刘定川)"]
 </div><blockquote>
-<p>上图说明： 可选路径为 MuJoCo (快速原型) → MATLAB (矩阵导出) → Webots (实机迁移前验证)。MuJoCo 的 Python 开发效率高，Webots 的 RM 社区资料较多。没有"最好"的平台，关键是选与你的开发阶段匹配的平台。</p>
+<p>上图说明： 可选路径为 MuJoCo (快速原型) → MATLAB 或 Python/SymPy (矩阵导出) → Webots (实机迁移前验证)。离线矩阵生成可选择 MATLAB Symbolic Toolbox（商业许可，交互式调试体验好）或 Python/SymPy + MuJoCo（全开源，支持 MuJoCo 辅助几何参数提取）。没有"最好"的平台，关键是选与你的开发阶段匹配的平台。</p>
 </blockquote>
 <hr>
-<h2 id="a-id11a11-matlab-离线计算工具链"><a id="11"></a>11. MATLAB 离线计算工具链 </h2>
-<p>MATLAB 在实机开发中扮演离线计算角色——生成嵌入式端可直接使用的数值表和系数。</p>
+<h2 id="a-id12a12-离线计算工具链"><a id="12"></a>12. 离线计算工具链 </h2>
+<p>离线计算在实机开发中扮演关键角色——将符号推导、数值优化和矩阵分解等重计算任务在开发阶段完成，生成嵌入式端可直接使用的数值表和系数。社区中常见的实现路径包括 MATLAB 符号工具箱方案和 Python/SymPy + MuJoCo 混合方案。</p>
 <blockquote>
 <p>概念解释：离线计算 vs 在线计算 (Offline vs Online Computation)</p>
 <p>离线计算：在开发阶段（MATLAB/Python 在 PC 上）完成所有符号推导、数值优化和矩阵分解——符号线性化产生 A/B 矩阵、Riccati 方程求解产生 K 矩阵、polyfit 产生多项式系数。在线计算：嵌入式运行时仅执行系数已知的代数运算——Horner 多项式求值、矩阵-向量乘法 u = -Kx、VMC 的 J^T 力矩映射。</p>
@@ -2892,7 +3208,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 </ul>
 <p>离线计算量与在线计算量相差多个数量级——离线阶段的符号推导和 Riccati 求解不适合放到嵌入式实时控制端执行，但结果（多项式系数数组）仅占用较小存储空间，在线求值只需少量浮点运算。</p>
 </blockquote>
-<h3 id="a-id11-tasksa核心任务列表"><a id="11-tasks"></a>核心任务列表 </h3>
+<h3 id="a-id12-tasksa核心任务列表"><a id="12-tasks"></a>核心任务列表 </h3>
 <table>
 <thead>
 <tr>
@@ -2953,7 +3269,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 </tr>
 </tbody>
 </table>
-<h3 id="a-id11-offline-notesa离线计算实现要点"><a id="11-offline-notes"></a>离线计算实现要点 </h3>
+<h3 id="a-id12-offline-notesa离线计算实现要点"><a id="12-offline-notes"></a>离线计算实现要点 </h3>
 <p>LQR 求解和多项式拟合等离线计算可在 MATLAB、Python 或其他数值工具中完成。若机械参数或平衡点发生变化，需要重新完成：</p>
 <ol>
 <li>用符号变量表示系统动力学方程</li>
@@ -2961,7 +3277,173 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 <li>求解离散 LQR 得到 K</li>
 <li>拟合增益调度系数</li>
 </ol>
-<h3 id="a-id11-c-formata实机中的-c-数据格式"><a id="11-c-format"></a>实机中的 C 数据格式 </h3>
+<h3 id="a-id12-pythona基于-pythonsympy-的离线计算路径"><a id="12-python"></a>基于 Python/SymPy 的离线计算路径 </h3>
+<p>当需要全开源工具链或与 MuJoCo 仿真深度集成时，可使用 Python/SymPy/NumPy/SciPy 组合替代 MATLAB。该路径的核心流程如下。</p>
+<p><strong>符号拉格朗日建模（SymPy）：</strong></p>
+<p>使用 SymPy 定义与 MATLAB 路径相同结构的拉格朗日量。动能项保留精确的 sqrt 形式（如 <code>sqrt(d² + sin²(θ_l)·L_l²)</code> 的轮距偏航耦合项），势能项保留 atan2 质心偏置角。通过 <code>sp.linear_eq_to_matrix</code> 从 Euler-Lagrange 方程中提取质量矩阵 M(q) 的符号表达式和输入分布矩阵 B_q 的符号表达式。</p>
+<p>关键的工程步骤是使用 <code>sp.lambdify</code> 将符号矩阵编译为 Python 可调用函数：</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code>M_func  <span class="token operator">=</span> sp<span class="token punctuation">.</span>lambdify<span class="token punctuation">(</span>param_vars <span class="token operator">+</span> state_vars<span class="token punctuation">,</span> M_sym<span class="token punctuation">,</span> <span class="token string">'numpy'</span><span class="token punctuation">)</span>
+Bq_func <span class="token operator">=</span> sp<span class="token punctuation">.</span>lambdify<span class="token punctuation">(</span>param_vars <span class="token operator">+</span> state_vars<span class="token punctuation">,</span> Bq_sym<span class="token punctuation">,</span> <span class="token string">'numpy'</span><span class="token punctuation">)</span>
+V_func  <span class="token operator">=</span> sp<span class="token punctuation">.</span>lambdify<span class="token punctuation">(</span>param_vars <span class="token operator">+</span> q_vars<span class="token punctuation">,</span> V<span class="token punctuation">,</span> <span class="token string">'numpy'</span><span class="token punctuation">)</span>
+</code></pre><p><code>lambdify</code> 将 SymPy 符号树转换为 NumPy 数组运算，在线性化循环中避免了重复的符号代换开销。</p>
+<p><strong>数值线性化与离散化：</strong></p>
+<p>对每个腿长采样点，以 <code>scipy.optimize.fsolve</code> 求解静态平衡条件 dV/dq = 0，得到平衡角度 (θ_eq, θ_L_eq, θ_R_eq)。在平衡点附近，以有限差分法计算重力劲度矩阵 K_grav = ∂²V/∂q²（二阶中心差分，步长 1e-5，四采样点公式），然后构造连续时间 A 矩阵：</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>A[0:5, 5:10] = I₅          # 运动学积分器
+A[5:10, 0:5] = -M⁻¹·K_grav  # 重力劲度动力学
+A[5:10, 5:10] = -M⁻¹·D_damp  # 人工阻尼
+B[5:10, :]    = M⁻¹·B_q      # 输入分布
+</code></pre><p>其中 D_damp 为对角人工阻尼矩阵，用于补偿连续时间拉格朗日模型中省略的关节摩擦和速度相关阻尼项——阻尼系数的选取需通过仿真响应对比标定，使线性模型的阶跃响应与 MuJoCo 非线性模型的响应在幅值和衰减时间上一致。</p>
+<p>ZOH 离散化使用 <code>scipy.linalg.expm</code> 矩阵指数直接计算：</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code>n<span class="token punctuation">,</span> m <span class="token operator">=</span> A<span class="token punctuation">.</span>shape<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> B<span class="token punctuation">.</span>shape<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+M_aug <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span>n<span class="token operator">+</span>m<span class="token punctuation">,</span> n<span class="token operator">+</span>m<span class="token punctuation">)</span><span class="token punctuation">)</span>
+M_aug<span class="token punctuation">[</span><span class="token punctuation">:</span>n<span class="token punctuation">,</span> <span class="token punctuation">:</span>n<span class="token punctuation">]</span> <span class="token operator">=</span> A<span class="token punctuation">;</span> M_aug<span class="token punctuation">[</span><span class="token punctuation">:</span>n<span class="token punctuation">,</span> n<span class="token punctuation">:</span><span class="token punctuation">]</span> <span class="token operator">=</span> B
+M_aug <span class="token operator">*=</span> dt
+E <span class="token operator">=</span> expm<span class="token punctuation">(</span>M_aug<span class="token punctuation">)</span>
+Ad<span class="token punctuation">,</span> Bd <span class="token operator">=</span> E<span class="token punctuation">[</span><span class="token punctuation">:</span>n<span class="token punctuation">,</span> <span class="token punctuation">:</span>n<span class="token punctuation">]</span><span class="token punctuation">,</span> E<span class="token punctuation">[</span><span class="token punctuation">:</span>n<span class="token punctuation">,</span> n<span class="token punctuation">:</span><span class="token punctuation">]</span>
+</code></pre><p>该方法利用增广矩阵 <code>[[A, B]; [0, 0]]</code> 的矩阵指数同时计算 A_d = e^{A·dt} 和 B_d = ∫₀^{dt} e^{Aτ} dτ · B，避免了分别计算矩阵指数和积分的数值误差不匹配问题。</p>
+<p><strong>DARE 求解与收敛验证：</strong></p>
+<p>使用迭代反向求解 DARE，初始 P_0 取为 Q，每步更新：</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code>F <span class="token operator">=</span> inv<span class="token punctuation">(</span>Bdᵀ·P·Bd <span class="token operator">+</span> R<span class="token punctuation">)</span> · <span class="token punctuation">(</span>Bdᵀ·P·Ad<span class="token punctuation">)</span>
+P_next <span class="token operator">=</span> <span class="token punctuation">(</span>Ad <span class="token operator">-</span> Bd·F<span class="token punctuation">)</span>ᵀ·P·<span class="token punctuation">(</span>Ad <span class="token operator">-</span> Bd·F<span class="token punctuation">)</span> <span class="token operator">+</span> Fᵀ·R·F <span class="token operator">+</span> Q
+</code></pre><p>迭代至 Frobenius 范数相对变化小于给定容差时收敛。对于多采样点场景，可通过调大容差或使用 <code>scipy.linalg.solve_discrete_are</code> 库函数加速。</p>
+<p><strong>与 MATLAB 路径的对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>MATLAB 符号工具箱路径</th>
+<th>Python/SymPy + SciPy 路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>符号引擎</td>
+<td>Symbolic Math Toolbox（商业许可）</td>
+<td>SymPy（BSD 许可）</td>
+</tr>
+<tr>
+<td>线性化方式</td>
+<td><code>taylor(..., 'Order', 2)</code> 符号截断</td>
+<td>有限差分数值 Hessian + 解析质量矩阵</td>
+</tr>
+<tr>
+<td>离散化</td>
+<td><code>c2d(ss(A,B,C,D), dt, 'zoh')</code></td>
+<td><code>scipy.linalg.expm</code> 增广矩阵法</td>
+</tr>
+<tr>
+<td>Riccati 求解</td>
+<td><code>dlqr(Ad, Bd, Q, R)</code>（内置 Schur 法）</td>
+<td>反向迭代或 <code>solve_discrete_are</code></td>
+</tr>
+<tr>
+<td>多项式拟合</td>
+<td><code>polyfit(L, K_ij, n)</code></td>
+<td><code>numpy.linalg.lstsq(A, K_ij)</code></td>
+</tr>
+<tr>
+<td>与 MuJoCo 集成的便利性</td>
+<td>需要 .mat 文件作为数据桥</td>
+<td>直接在同一 Python 进程中调用 MuJoCo API</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a-id12-mujoco-geometryamujoco-辅助几何参数提取"><a id="12-mujoco-geometry"></a>MuJoCo 辅助几何参数提取 </h3>
+<p>在传统的解析线性化路径中，腿部质心位置和转动惯量依赖手工推导的几何近似公式（如将五连杆简化为等效两连杆计算质心）。当机械设计迭代频繁或五连杆各段质量分布复杂时，手工维护这些解析公式的工作量较大且易出错。</p>
+<p>MuJoCo 辅助几何提取方法的核心思路是：利用 MuJoCo 模型的几何与质量属性作为唯一参数来源，在线性化过程中实时从 XML 模型中读取所需几何参数，免除手工维护解析几何公式。</p>
+<p><strong>LegPoseSolver 技术方案：</strong></p>
+<p>对于给定的目标腿长 h，通过 MuJoCo 正向运动学求解该腿长对应的五连杆闭环姿态：</p>
+<ol>
+<li>构造初始猜测：根据经验公式（前腿角度与腿长的单调关系）通过 <code>brentq</code> 一维寻根确定前杆近似角度，设置为 <code>qpos0</code> 的初值。</li>
+<li>使用 <code>scipy.optimize.least_squares</code> 求解闭环约束：残差向量包含 4 个 equality connect site 的位置偏差（缩放因子 100）和 2 个轮子接地点高度约束（缩放因子 20）。优化变量为机体高度和 8 个关节角度（左右各 4 个被动关节 + 2 个前驱动关节），其余角度由闭环关系固定。</li>
+<li>收敛后，从 MuJoCo 数据中读取腿部各连杆的质量（<code>model.body_mass[bid]</code>）和质心世界坐标（<code>data.xpos[bid] + data.xipos[bid]</code>），计算等效腿部质心的极坐标参数 (r_com, c_x)：
+<ul>
+<li>r_com：髋关节到腿部总质心的径向距离</li>
+<li>c_x：腿部总质心沿切线方向（x 轴）的偏置</li>
+</ul>
+</li>
+</ol>
+<p>这两个参数替代了 MATLAB 路径中的解析质心近似公式（c_h1, c_x1, θ_p1 等），使线性化模型中的几何参数与 MuJoCo 仿真模型中的质量分布一致。</p>
+<p><strong>适用条件与限制：</strong></p>
+<p>该方法要求线性化阶段能够启动 MuJoCo 模型和求解器——即增加了对 <code>mujoco</code> Python 包和 XML 模型文件的依赖。对于仅需要 A/B 矩阵而不运行 MuJoCo 仿真的场景（如向 Simulink 或独立 C 代码传递矩阵），可在首次运行后缓存质心参数表，后续线性化直接查表。</p>
+<h3 id="a-id12-c-2da二维增益表的-c-语言导出"><a id="12-c-2d"></a>二维增益表的 C 语言导出 </h3>
+<p>当采用二维增益调度方案 K(L_l, L_r) 时，若拟合阶数较高（如 6 阶），单变量的 Horner 四阶多项式格式不再适用。此时需将二维多项式系数以平面数组形式导出为 C 头文件，并附带运行时求值函数。</p>
+<p><strong>系数存储格式：</strong></p>
+<p>对于 n_o 个输出维度（4，对应 u 的四通道）× n_s 个状态维度（10）× n_terms 个单项式（6 阶二维多项式共 28 项），系数以三维数组的扁平化形式存储：</p>
+<pre data-role="codeBlock" data-info="c" class="language-c c"><code><span class="token comment">// Auto-generated 6th-order 2D LQR gain table for asymmetric leg lengths.</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">K2D_ORDER</span> <span class="token expression"><span class="token number">6</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">K2D_N_TERMS</span> <span class="token expression"><span class="token number">28</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">K2D_N_OUTPUTS</span> <span class="token expression"><span class="token number">4</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">K2D_N_STATES</span>  <span class="token expression"><span class="token number">10</span></span></span>
+
+<span class="token keyword keyword-static">static</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-float">float</span> k_table_2d<span class="token punctuation">[</span><span class="token number">4</span> <span class="token operator">*</span> <span class="token number">10</span> <span class="token operator">*</span> <span class="token number">28</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token comment">/* 1120 个 float32 系数 */</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p>4×10×28 = 1120 个 float32 系数，总计约 4.375 KB。</p>
+<p><strong>运行时在线求值函数：</strong></p>
+<p>嵌入式端通过预计算腿长幂次和双循环乘积累加实现 K 矩阵的在线计算：</p>
+<pre data-role="codeBlock" data-info="c" class="language-c c"><code><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">k_table_2d_eval</span><span class="token punctuation">(</span><span class="token keyword keyword-float">float</span> L_left<span class="token punctuation">,</span> <span class="token keyword keyword-float">float</span> L_right<span class="token punctuation">,</span> <span class="token keyword keyword-float">float</span> <span class="token operator">*</span>k_out<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 预计算幂次 Ll[i] = L_left^i, Lr[i] = L_right^i  (i=0..6)</span>
+    <span class="token keyword keyword-float">float</span> Ll<span class="token punctuation">[</span><span class="token number">7</span><span class="token punctuation">]</span><span class="token punctuation">,</span> Lr<span class="token punctuation">[</span><span class="token number">7</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    Ll<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">1.0f</span><span class="token punctuation">;</span> Lr<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">1.0f</span><span class="token punctuation">;</span>
+    Ll<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> L_left<span class="token punctuation">;</span> Lr<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> L_right<span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> <span class="token number">6</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        Ll<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> Ll<span class="token punctuation">[</span>i<span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">*</span> L_left<span class="token punctuation">;</span>
+        Lr<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> Lr<span class="token punctuation">[</span>i<span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">*</span> L_right<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// 构造 28 个单项式: Ll[d-a] * Lr[a] for d=0..6, a=0..d</span>
+    <span class="token keyword keyword-float">float</span> terms<span class="token punctuation">[</span><span class="token number">28</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-int">int</span> idx <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> d <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> d <span class="token operator">&lt;=</span> <span class="token number">6</span><span class="token punctuation">;</span> d<span class="token operator">++</span><span class="token punctuation">)</span>
+        <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> a <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> a <span class="token operator">&lt;=</span> d<span class="token punctuation">;</span> a<span class="token operator">++</span><span class="token punctuation">)</span>
+            terms<span class="token punctuation">[</span>idx<span class="token operator">++</span><span class="token punctuation">]</span> <span class="token operator">=</span> Ll<span class="token punctuation">[</span>d<span class="token operator">-</span>a<span class="token punctuation">]</span> <span class="token operator">*</span> Lr<span class="token punctuation">[</span>a<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token comment">// 双循环乘累加: K[i][j] = Σ coeff[i][j][t] * terms[t]</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">4</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
+        <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-float">float</span> sum <span class="token operator">=</span> <span class="token number">0.0f</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-int">int</span> base <span class="token operator">=</span> <span class="token punctuation">(</span>i <span class="token operator">*</span> <span class="token number">10</span> <span class="token operator">+</span> j<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">28</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> t <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> t <span class="token operator">&lt;</span> <span class="token number">28</span><span class="token punctuation">;</span> t<span class="token operator">++</span><span class="token punctuation">)</span>
+                sum <span class="token operator">+=</span> k_table_2d<span class="token punctuation">[</span>base <span class="token operator">+</span> t<span class="token punctuation">]</span> <span class="token operator">*</span> terms<span class="token punctuation">[</span>t<span class="token punctuation">]</span><span class="token punctuation">;</span>
+            k_out<span class="token punctuation">[</span>i <span class="token operator">*</span> <span class="token number">10</span> <span class="token operator">+</span> j<span class="token punctuation">]</span> <span class="token operator">=</span> sum<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><p>与一维方案的对比：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>一维 4 阶多项式</th>
+<th>二维 6 阶多项式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系数存储</td>
+<td>4×10×5 = 200 个 float（0.78 KB）</td>
+<td>4×10×28 = 1120 个 float（4.375 KB）</td>
+</tr>
+<tr>
+<td>在线计算量</td>
+<td>40×(4mul+4add) ≈ 320 FLOPs</td>
+<td>28 项 + 1120 MAC ≈ 1155 FLOPs</td>
+</tr>
+<tr>
+<td>适用工况</td>
+<td>双腿近似等长（</td>
+<td>L_l - L_r</td>
+</tr>
+<tr>
+<td>离线计算量</td>
+<td>N 次线性化+LQR</td>
+<td>N×N 次线性化+LQR（例如14×14 = 196 次）</td>
+</tr>
+<tr>
+<td>拟合精度</td>
+<td>一维插值误差 &lt; 1%</td>
+<td>二维拟合 RMS 误差通常 &lt; 5%</td>
+</tr>
+</tbody>
+</table>
+<p>工程上，一维方案可满足双腿同步伸缩的常规工况；二维方案在单腿跨越台阶、非对称斜坡站立、转弯侧倾等左右腿长差异显著的场景下提供更精确的交叉耦合增益。建议先以一维方案完成基础调试，确认 LQR 架构和控制管线正确后，再生成二维增益表用于复杂地形场景。</p>
+<h3 id="a-id12-c-formata实机中的-c-数据格式"><a id="12-c-format"></a>实机中的 C 数据格式 </h3>
 <p><strong>多项式系数以 const 数组形式存入只读存储区：</strong></p>
 <pre data-role="codeBlock" data-info="c" class="language-c c"><code><span class="token comment">// 4x10x5 的三维数组</span>
 <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-float">float</span> K_coeff<span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">10</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">5</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token comment">/* MATLAB polyfit 输出 */</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
@@ -2976,7 +3458,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">(</span>c<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">*</span> L <span class="token operator">+</span> c<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">*</span> L <span class="token operator">+</span> c<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">*</span> L <span class="token operator">+</span> c<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">*</span> L <span class="token operator">+</span> c<span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre><hr>
-<h2 id="a-id12a12-c-语言嵌入式移植"><a id="12"></a>12. C 语言嵌入式移植 </h2>
+<h2 id="a-id13a13-c-语言嵌入式移植"><a id="13"></a>13. C 语言嵌入式移植 </h2>
 <blockquote>
 <p>概念解释：FreeRTOS (实时操作系统)</p>
 <p>FreeRTOS 是面向微控制器的抢占式实时内核，核心机制包括任务调度器、软件定时器、队列和信号量。在轮腿控制中，实时任务设计的重点是保证控制闭环的确定周期和低抖动。</p>
@@ -3051,6 +3533,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 </tr>
 </tbody>
 </table>
+<p>观测器的数据分组建议采用分层结构，按数据来源和计算层级组织为三个子结构体：轮端状态（轮毂编码器直接读取的转速和力矩）、腿端状态（关节编码器→运动学导出的 L0/phi0 及其微分→动力学导出的雅可比元素和地面支持力）、机体状态（IMU→姿态解算→EKF/Kalman 融合后得到的位置和速度）。分层组织便于分模块调试和状态一致性维护。对于运动学导出量的微分（如 dL0、dphi0），若机构几何参数已知且可精确标定，解析微分（利用雅可比链式求导）的结果比数值差分加低通滤波更平滑。</p>
 <h3 id="a-id122a122-移植注意事项"><a id="12.2"></a>12.2 移植注意事项 </h3>
 <ol>
 <li>四元数顺序：常见的四元数顺序为 [w, x, y, z] 或 [x, y, z, w]，需与 IMU 驱动一致</li>
@@ -3104,7 +3587,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 <p>上图说明： 三层架构——驱动层（HAL）提供传感器/执行器访问；算法层（纯 C 函数无 RTOS 依赖）提供数学运算；任务层（FreeRTOS）编排调用。核心时序：chassis_task 按控制周期完成一次完整的"读取状态→增益调度→LQR 计算→VMC 映射→力矩下发"循环。</p>
 </blockquote>
 <hr>
-<h2 id="a-id13a13-实机调试方法"><a id="13"></a>13. 实机调试方法 </h2>
+<h2 id="a-id14a14-实机调试方法"><a id="14"></a>14. 实机调试方法 </h2>
 <h3 id="a-id131a131-分阶段调试流程"><a id="13.1"></a>13.1 分阶段调试流程 </h3>
 <blockquote>
 <p>概念解释：实机调试的核心风险 — 极性验证与逐层隔离</p>
@@ -3263,7 +3746,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 <li>首次测试从较小比例的额定增益开始</li>
 </ul>
 <hr>
-<h2 id="a-id14a14-robomaster-社区资源索引"><a id="14"></a>14. RoboMaster 社区资源索引 </h2>
+<h2 id="a-id15a15-robomaster-社区资源索引"><a id="15"></a>15. RoboMaster 社区资源索引 </h2>
 <p>以下资源按赛季分组。电控资料通常托管于 GitHub/Gitee/Gitea，机械结构通常以论坛帖+网盘形式发布，仿真资料以 GitHub/Gitee 为主。</p>
 <h3 id="a-id141a141-2026-赛季"><a id="14.1"></a>14.1 2026 赛季 </h3>
 <table>
@@ -3742,7 +4225,7 @@ t_L = U_{LQR}[0],\quad t_R = U_{LQR}[1]
 <p>学习路径建议： 先读理论推导理解基本模型，再看实现讲解和仿真验证控制流程，最后结合完整工程实现学习实机调试和模块划分。</p>
 </blockquote>
 <hr>
-<h2 id="a-id15a15-学术论文-专利与-rm-award-参考文献"><a id="15"></a>15. 学术论文、专利与 RM Award 参考文献 </h2>
+<h2 id="a-id16a16-学术论文-专利与-rm-award-参考文献"><a id="16"></a>16. 学术论文、专利与 RM Award 参考文献 </h2>
 <p><strong>学术论文与社区项目知识图谱：</strong></p>
 <div class="mermaid">flowchart TB
  subgraph FOUNDATION["理论基础"]
