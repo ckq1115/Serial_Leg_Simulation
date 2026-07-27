@@ -8,7 +8,7 @@ from utils import (sensor_value, quat_to_euler, clip_symmetric,
 from change_length_fit import ChangeLengthFit
 from leg import FiveLinkLeg
 from pid import PID
-from odometry import WheelOdometry
+from kalman import KalmanOdometry
 from lqr_governor import LqrReferenceGovernor
 
 # ---------- ContinuousAngle 合并 ----------
@@ -51,11 +51,14 @@ class StandController:
 
         self.left_leg = FiveLinkLeg("left", self.geometry["five_link"], self.dt)
         self.right_leg = FiveLinkLeg("right", self.geometry["five_link"], self.dt)
-        self.odometry = WheelOdometry(self.geometry["wheel"]["radius_m"], self.dt)
+        # World-frame Kalman for odometry logging
+        self.odometry = KalmanOdometry(self.geometry["wheel"]["radius_m"], self.dt)
+        # Body-frame Kalman for LQR state (sagittal-plane model)
+        self.body_odom = KalmanOdometry(self.geometry["wheel"]["radius_m"], self.dt)
         self.yaw_unwrapper = ContinuousAngle()
 
-        self.left_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
-        self.right_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
+        self.left_length_pos = PID(kp=2000.0, ki=0.0, kd=10000.0)
+        self.right_length_pos = PID(kp=2000.0, ki=0.0, kd=10000.0)
         self.left_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.right_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.roll_pid = PID(kp=2000.0, ki=0.0, kd=1000.0)
@@ -142,6 +145,7 @@ class StandController:
         self.left_leg.reset_dynamic_state()
         self.right_leg.reset_dynamic_state()
         self.odometry.reset()
+        self.body_odom.reset()
         self.left_length_pos.reset()
         self.right_length_pos.reset()
         self.left_length_vel.reset()
@@ -201,17 +205,36 @@ class StandController:
         return state
 
     def build_lqr_state(self, state):
-        x, x_dot = self.odometry.update(state["left_wheel_vel"], state["right_wheel_vel"])
+        yaw_w = state["euler"][2]
+        acc_b = state["accel"]
+
+        # World-frame Kalman (yaw-aware, for logging/UDP)
+        world_acc_x = acc_b[0] * np.cos(yaw_w) - acc_b[1] * np.sin(yaw_w)
+        self.odometry.update(
+            state["left_wheel_vel"], state["right_wheel_vel"],
+            world_acc_x,
+            body_vx=state["base_linvel"][0])
+
+        # Body-frame Kalman for LQR (sagittal-plane model).
+        # Process input: body-x acceleration (IMU, no yaw rotation needed).
+        # Measurement: world velocity projected onto body-forward direction.
+        body_vx_meas = (state["base_linvel"][0] * np.cos(yaw_w)
+                        + state["base_linvel"][1] * np.sin(yaw_w))
+        body_x, body_vx = self.body_odom.update(
+            state["left_wheel_vel"], state["right_wheel_vel"],
+            acc_b[0],
+            body_vx=body_vx_meas)
+
         pitch = state["euler"][1]
         yaw = state["yaw_continuous"]
         gyro = state["gyro"]
         return np.array([
-            [x],
+            [body_x],
             [yaw],
             [pitch],
             [self.left_leg.theta],
             [self.right_leg.theta],
-            [x_dot],
+            [body_vx],
             [gyro[2]],
             [gyro[1]],
             [self.left_leg.theta_dot.value],
@@ -279,13 +302,13 @@ class StandController:
                 self.reference_governor.update(speed_axis, yaw_axis)
 
         self.target_leg_length += hight_axis
-        self.target_leg_length = np.clip(self.target_leg_length, 0.12, 0.35)
+        self.target_leg_length = np.clip(self.target_leg_length, 0.10, 0.366)
 
         if jump_pressed and self.jump_flag == 0:
             self.jump_l = 5000.0
             self.jump_r = 5000.0
             self.jump_flag = 1
-        elif self.jump_flag == 1 and (self.left_leg.length >= 0.35 or self.right_leg.length >= 0.35):
+        elif self.jump_flag == 1 and (self.left_leg.length >= 0.366 or self.right_leg.length >= 0.366):
             self.jump_l = 0.0
             self.jump_r = 0.0
             self.jump_flag = 0
@@ -324,14 +347,19 @@ class StandController:
         Fn_l, Fn_r = self.compute_foot_forces(state)
 
         K_adj = K_raw.copy()
+        e3_l_adj = e3_l
+        e3_r_adj = e3_r
         if Fn_l < 20.0:
             K_adj[0, :] = 0.0
             K_adj[2, :] = 0.0
+            e3_l_adj = -e3_l
         if Fn_r < 20.0:
             K_adj[1, :] = 0.0
             K_adj[3, :] = 0.0
+            e3_r_adj = -e3_r
 
-        U = -K_adj @ (x_lqr - target)
+        target_adj = self.build_lqr_target(e2, e3_l_adj, e3_r_adj)
+        U = -K_adj @ (x_lqr - target_adj)
 
         left_front, left_back = self.left_leg.vmc(F_l, U[0,0], state["left_front_pos"], state["left_back_pos"])
         right_front, right_back = self.right_leg.vmc(F_r, U[1,0], state["right_front_pos"], state["right_back_pos"])
@@ -397,7 +425,9 @@ class StandController:
             print(
                 f"t={self.data.time:6.3f} "
                 f"roll={roll:+.4f} pitch={pitch:+.4f} yaw={yaw:+.4f} "
-                f"x={x_lqr[0,0]:+.3f} xdot={x_lqr[5,0]:+.3f} yawdot={x_lqr[6,0]:+.3f} "
+                f"bx={x_lqr[0,0]:+.3f} bv={x_lqr[5,0]:+.3f} "
+                f"w_x={self.odometry.position:+.3f} "
+                f"yawdot={x_lqr[6,0]:+.3f} "
                 f"target=[{self.target_x:+.2f},{self.target_x_dot:+.2f},{self.target_yaw:+.2f},{self.target_yaw_dot:+.2f}] "
                 f"L={self.left_leg.length:.4f}/{self.right_leg.length:.4f} "
                 f"Fn_l={Fn_l:.1f} Fn_r={Fn_r:.1f} "

@@ -146,7 +146,7 @@ contact:
 
 # 初始控制参数。这里只用于仿真启动，不代表最终实机参数。
 control_initial:
-  lqr_gain_table: data/lqr_gain_table.txt
+  lqr_gain_table: data/lqr_gain_table_analytic.txt
   leg_length_pid:
     position_kp: 2000.0
     position_ki: 0.0
@@ -170,11 +170,19 @@ control_initial:
   keyboard_command:
     max_speed_mps: 1.50
     max_yaw_rate_radps: 5.00
-    speed_accel_mps2: 0.80
-    speed_release_accel_mps2: 1.20
+    speed_accel_mps2: 3.00
+    speed_release_accel_mps2: 4.00
     yaw_rate_accel_radps2: 1.50
     yaw_rate_release_accel_radps2: 2.50
     instant_stop_on_release: true
     speed_axis_sign: 1.0
     yaw_axis_sign: 1.0
   fall_angle_rad: 1.0
+  # Kalman filter noise parameters (2-D: position, velocity)
+  # From control theory manual section 7.3
+  kalman:
+    q_pos: 0.0001   # position process noise
+    q_vel: 0.01     # velocity process noise
+    r_pos: 1.0      # odometry position measurement noise
+    r_vel: 0.5      # odometry velocity measurement noise
+

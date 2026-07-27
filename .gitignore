@@ -1,0 +1,40 @@
+# === Python 缓存 ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# === 虚拟环境 ===
+venv/
+.venv/
+env/
+.env/
+
+# === IDE / 编辑器 ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === Claude Code / AI 辅助工具残留 ===
+.claude/
+.agent/
+.mcp/
+.codebuddy/
+.cursor/
+
+# === 操作系统残留 ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === 仿真运行时产物 ===
+*.log
+*.npz
+
+# === Jupyter ===
+.ipynb_checkpoints/
