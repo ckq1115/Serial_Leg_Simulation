@@ -41,6 +41,7 @@ class StandController:
         if self.push_body_id < 0:
             raise ValueError(f"Unknown push body: {args.push_body}")
 
+        # 轮子刚体 ID，用于着地检测（跳过不可靠的 Fn 估计）
         self.sensor_names = cfg["mujoco"]["sensors"]
         self.geometry = cfg["geometry"]
         self.gravity = cfg["simulation"]["gravity_mps2"]
@@ -90,10 +91,6 @@ class StandController:
         self.target_leg_length = args.target_leg_length
         self.last_log_time = -1.0
         self.last_sim_time = data.time
-
-        self.jump_l = 0
-        self.jump_r = 0
-        self.jump_flag = 0
 
         self.refresh_kinematics()
         if self.target_leg_length is None:
@@ -167,9 +164,6 @@ class StandController:
         self.refresh_kinematics()
         if self.args.target_leg_length is None:
             self.target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
-        self.jump_l = 0
-        self.jump_r = 0
-        self.jump_flag = 0
 
     def read_state(self):
         s = self.sensor_names
@@ -302,17 +296,7 @@ class StandController:
                 self.reference_governor.update(speed_axis, yaw_axis)
 
         self.target_leg_length += hight_axis
-        self.target_leg_length = np.clip(self.target_leg_length, 0.10, 0.366)
-
-        if jump_pressed and self.jump_flag == 0:
-            self.jump_l = 5000.0
-            self.jump_r = 5000.0
-            self.jump_flag = 1
-        elif self.jump_flag == 1 and (self.left_leg.length >= 0.366 or self.right_leg.length >= 0.366):
-            self.jump_l = 0.0
-            self.jump_r = 0.0
-            self.jump_flag = 0
-            self.target_leg_length = 0.12
+        self.target_leg_length = np.clip(self.target_leg_length, 0.12, 0.35)
 
         x_lqr = self.build_lqr_state(state)
         avg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
@@ -338,8 +322,8 @@ class StandController:
         roll_force = clip_symmetric(roll_force, self.args.roll_force_limit)
 
         G_m = 104
-        F_l = left_vel_force + roll_force + left_pos_force + G_m * np.cos(self.left_leg.theta) + self.jump_l
-        F_r = right_vel_force - roll_force + right_pos_force + G_m * np.cos(self.right_leg.theta) + self.jump_r
+        F_l = left_vel_force + roll_force + left_pos_force + G_m * np.cos(self.left_leg.theta)
+        F_r = right_vel_force - roll_force + right_pos_force + G_m * np.cos(self.right_leg.theta)
 
         U = -K_raw @ (x_lqr - target)
         self.U_lqr = U
@@ -349,11 +333,11 @@ class StandController:
         K_adj = K_raw.copy()
         e3_l_adj = e3_l
         e3_r_adj = e3_r
-        if Fn_l < 20.0:
+        if Fn_l < 10.0:
             K_adj[0, :] = 0.0
             K_adj[2, :] = 0.0
             e3_l_adj = -e3_l
-        if Fn_r < 20.0:
+        if Fn_r < 10.0:
             K_adj[1, :] = 0.0
             K_adj[3, :] = 0.0
             e3_r_adj = -e3_r

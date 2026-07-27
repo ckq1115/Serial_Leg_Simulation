@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument("--length-velocity-force-limit", type=float, default=1000.0)
     parser.add_argument("--roll-force-limit", type=float, default=1000.0)
     parser.add_argument("--fall-angle", type=float, default=None)
-    parser.add_argument("--log-every", type=float, default=0.5)
+    parser.add_argument("--log-every", type=float, default=0.1)
     return parser.parse_args()
 
 def apply_initial_disturbance(data, args):
