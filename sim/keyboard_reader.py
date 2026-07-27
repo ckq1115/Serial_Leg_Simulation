@@ -56,7 +56,7 @@ class KeyboardHoldReader:
 
     def read_axes(self):
         with self.lock:
-            return self.speed_axis, self.yaw_axis, self.hight_axis, self.jump_pressed
+            return (self.speed_axis, self.yaw_axis, self.hight_axis, self.jump_pressed)
 
     def stop(self):
         self.listener.stop()

@@ -10,6 +10,7 @@ from leg import FiveLinkLeg
 from pid import PID
 from kalman import KalmanOdometry
 from lqr_governor import LqrReferenceGovernor
+from jump_state_machine import JumpStateMachine
 
 # ---------- ContinuousAngle 合并 ----------
 class ContinuousAngle:
@@ -58,8 +59,8 @@ class StandController:
         self.body_odom = KalmanOdometry(self.geometry["wheel"]["radius_m"], self.dt)
         self.yaw_unwrapper = ContinuousAngle()
 
-        self.left_length_pos = PID(kp=2000.0, ki=0.0, kd=10000.0)
-        self.right_length_pos = PID(kp=2000.0, ki=0.0, kd=10000.0)
+        self.left_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
+        self.right_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
         self.left_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.right_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.roll_pid = PID(kp=2000.0, ki=0.0, kd=1000.0)
@@ -87,6 +88,9 @@ class StandController:
         self.reference_governor = None
         if self.control_mode == "keyboard":
             self.reference_governor = LqrReferenceGovernor(self.dt, control_cfg, args)
+
+        self.jump_sm = JumpStateMachine(self.dt, cfg)
+        self._last_jump_pressed = False  # edge detection for jump trigger
 
         self.target_leg_length = args.target_leg_length
         self.last_log_time = -1.0
@@ -164,6 +168,8 @@ class StandController:
         self.refresh_kinematics()
         if self.args.target_leg_length is None:
             self.target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
+
+        self.jump_sm = JumpStateMachine(self.dt, self.cfg)
 
     def read_state(self):
         s = self.sensor_names
@@ -291,12 +297,37 @@ class StandController:
         else:
             speed_axis, yaw_axis, hight_axis, jump_pressed = keyboard_axes
 
+        # ---- jump: tap space → trigger PID-driven extension ----
+        if jump_pressed and not self._last_jump_pressed:
+            self.jump_sm.trigger(pitch=state["euler"][1], roll=state["euler"][0])
+        self._last_jump_pressed = jump_pressed
+        self.jump_sm.update(self.left_leg.length, self.right_leg.length)
+
         if self.reference_governor is not None:
             self.target_x, self.target_yaw, self.target_x_dot, self.target_yaw_dot = \
                 self.reference_governor.update(speed_axis, yaw_axis)
 
         self.target_leg_length += hight_axis
         self.target_leg_length = np.clip(self.target_leg_length, 0.12, 0.35)
+
+        # ---- jump overrides: match legwheel's max1/max2/max3/G_m per phase ----
+        if self.jump_sm.jump_active:
+            effective_target_length = self.jump_sm.get_target_leg_length(self.target_leg_length)
+            F_jump = self.jump_sm.get_jump_force()
+            bypass_pos = self.jump_sm.bypass_pos_pid()
+            bypass_vel = self.jump_sm.bypass_vel_pid()
+            bypass_roll = self.jump_sm.bypass_roll_pid()
+            if self.jump_sm.zero_gravity_comp():
+                G_m = 0.0
+            else:
+                G_m = 104.0
+        else:
+            effective_target_length = self.target_leg_length
+            F_jump = 0.0
+            bypass_pos = False
+            bypass_vel = False
+            bypass_roll = False
+            G_m = 104.0
 
         x_lqr = self.build_lqr_state(state)
         avg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
@@ -309,21 +340,35 @@ class StandController:
 
         target = self.build_lqr_target(e2, e3_l, e3_r)
 
-        left_pos_force = self.left_length_pos.update(self.target_leg_length, self.left_leg.length)
-        right_pos_force = self.right_length_pos.update(self.target_leg_length, self.right_leg.length)
-        left_vel_force = self.left_length_vel.update(0.0, self.left_leg.length_dot.value)
-        right_vel_force = self.right_length_vel.update(0.0, self.right_leg.length_dot.value)
-        roll_force = self.roll_pid.update(0.0, state["euler"][0])
+        # Position PID (legwheel: max1=0 during extension)
+        if bypass_pos:
+            left_pos_force = 0.0
+            right_pos_force = 0.0
+        else:
+            left_pos_force = self.left_length_pos.update(effective_target_length, self.left_leg.length)
+            right_pos_force = self.right_length_pos.update(effective_target_length, self.right_leg.length)
+            left_pos_force = clip_symmetric(left_pos_force, self.args.length_position_force_limit)
+            right_pos_force = clip_symmetric(right_pos_force, self.args.length_position_force_limit)
 
-        left_pos_force = clip_symmetric(left_pos_force, self.args.length_position_force_limit)
-        right_pos_force = clip_symmetric(right_pos_force, self.args.length_position_force_limit)
-        left_vel_force = clip_symmetric(left_vel_force, self.args.length_velocity_force_limit)
-        right_vel_force = clip_symmetric(right_vel_force, self.args.length_velocity_force_limit)
-        roll_force = clip_symmetric(roll_force, self.args.roll_force_limit)
+        # Velocity PID (legwheel: max2=0 during extension AND retraction)
+        if bypass_vel:
+            left_vel_force = 0.0
+            right_vel_force = 0.0
+        else:
+            left_vel_force = self.left_length_vel.update(0.0, self.left_leg.length_dot.value)
+            right_vel_force = self.right_length_vel.update(0.0, self.right_leg.length_dot.value)
+            left_vel_force = clip_symmetric(left_vel_force, self.args.length_velocity_force_limit)
+            right_vel_force = clip_symmetric(right_vel_force, self.args.length_velocity_force_limit)
 
-        G_m = 104
-        F_l = left_vel_force + roll_force + left_pos_force + G_m * np.cos(self.left_leg.theta)
-        F_r = right_vel_force - roll_force + right_pos_force + G_m * np.cos(self.right_leg.theta)
+        # Roll PID (legwheel: max3=0 during retraction)
+        if bypass_roll:
+            roll_force = 0.0
+        else:
+            roll_force = self.roll_pid.update(0.0, state["euler"][0])
+            roll_force = clip_symmetric(roll_force, self.args.roll_force_limit)
+
+        F_l = left_vel_force + roll_force + left_pos_force + G_m * np.cos(self.left_leg.theta) + F_jump
+        F_r = right_vel_force - roll_force + right_pos_force + G_m * np.cos(self.right_leg.theta) + F_jump
 
         U = -K_raw @ (x_lqr - target)
         self.U_lqr = U
@@ -333,6 +378,8 @@ class StandController:
         K_adj = K_raw.copy()
         e3_l_adj = e3_l
         e3_r_adj = e3_r
+
+        # Foot-force-based per-leg K suppression
         if Fn_l < 10.0:
             K_adj[0, :] = 0.0
             K_adj[2, :] = 0.0
@@ -361,10 +408,6 @@ class StandController:
 
         roll, pitch, yaw_wrapped = state["euler"]
         yaw = state["yaw_continuous"]
-        fallen = abs(roll) > self.args.fall_angle or abs(pitch) > self.args.fall_angle
-        if fallen:
-            ctrl[:] = 0.0
-
         # 外部扰动
         self.data.xfrc_applied[:] = 0.0
         if self.args.push_duration > 0.0:
@@ -406,6 +449,7 @@ class StandController:
         # ---------- 可选日志打印 ----------
         if self.args.log_every > 0.0 and self.data.time - self.last_log_time >= self.args.log_every:
             self.last_log_time = self.data.time
+            jump_info = f" jump={self.jump_sm.state_name}" if self.jump_sm.jump_active else ""
             print(
                 f"t={self.data.time:6.3f} "
                 f"roll={roll:+.4f} pitch={pitch:+.4f} yaw={yaw:+.4f} "
@@ -416,6 +460,7 @@ class StandController:
                 f"L={self.left_leg.length:.4f}/{self.right_leg.length:.4f} "
                 f"Fn_l={Fn_l:.1f} Fn_r={Fn_r:.1f} "
                 f"u=[{ctrl[0]:+.2f}, {ctrl[1]:+.2f}, {ctrl[2]:+.2f}, {ctrl[3]:+.2f}, {ctrl[4]:+.2f}, {ctrl[5]:+.2f}]"
+                + jump_info
             )
 
-        return not fallen
+        return True

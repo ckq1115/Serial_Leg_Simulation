@@ -40,7 +40,7 @@ Q_DIAG = np.array([
     4000,  # theta_R
     250,   # x_dot
     1,     # yaw_dot
-    1,     # pitch_dot
+    5,     # pitch_dot
     1,     # theta_L_dot
     1,     # theta_R_dot
 ])
@@ -48,8 +48,8 @@ Q_DIAG = np.array([
 # LQR 控制权重 R（4×4 对角）
 # 控制:    tau_L  tau_R  T_wL   T_wR
 R_MAT  = np.diag([
-    0.3,  # tau_L
-    0.3,  # tau_R
+    0.5,  # tau_L
+    0.5,  # tau_R
     0.5,  # T_wL
     0.5,  # T_wR
 ])

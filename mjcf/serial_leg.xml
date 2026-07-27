@@ -4,7 +4,7 @@
 
     <default>
         <joint axis="0 1 0" damping="0.01"/>
-        <geom rgba="0.25 0.28 0.30 1" contype="0" conaffinity="0"/>
+        <geom rgba="0.25 0.28 0.30 1" contype="1" conaffinity="1"/>
         <default class="leg_link">
             <geom type="box" rgba="0.05 0.05 0.05 1"/>
         </default>

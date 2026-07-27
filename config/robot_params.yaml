@@ -168,7 +168,7 @@ control_initial:
     x_dot_mps: 0.0
     yaw_dot_radps: 0.0
   keyboard_command:
-    max_speed_mps: 2.00
+    max_speed_mps: 1.49
     max_yaw_rate_radps: 5.00
     speed_accel_mps2: 3.00
     speed_release_accel_mps2: 4.00
@@ -178,6 +178,11 @@ control_initial:
     speed_axis_sign: 1.0
     yaw_axis_sign: 1.0
   fall_angle_rad: 1.0
+  # Jump control parameters — pulse-driven launch from standing.
+  jump:
+    jump_force_N: 2000.0              # extension pulse force
+    extend_time_s: 0.20               # max duration of extension phase
+    cooldown_s: 0.5                    # minimum time between jumps (lets robot settle)
   # Kalman filter noise parameters (2-D: position, velocity)
   # From control theory manual section 7.3
   kalman:
