@@ -18,7 +18,7 @@ import struct
 import numpy as np
 import mujoco as mj
 from utils import (sensor_value, quat_to_euler, clip_symmetric,
-                   normalize_angle, ContinuousAngle)
+                   normalize_angle, ContinuousAngle, approach_value)
 
 # Import Chebyshev-based LQR gain module (手册 §5.6, §12)
 _proj_root = Path(__file__).resolve().parents[1]
@@ -104,6 +104,23 @@ class StandController:
         self.initial_target_yaw_dot = args.target_yaw_dot if args.target_yaw_dot is not None else target_cfg.get("yaw_dot_radps", 0.0)
         self.target_x_dot = self.initial_target_x_dot
         self.target_yaw_dot = self.initial_target_yaw_dot
+        leg_traj_cfg = control_cfg.get("leg_length_trajectory", {})
+        five_link_cfg = self.geometry["five_link"]
+        self.leg_length_min = float(leg_traj_cfg.get("min_length_m", five_link_cfg["min_length_m"]))
+        self.leg_length_max = float(leg_traj_cfg.get("max_length_m", five_link_cfg["max_length_m"]))
+        self.leg_length_rate = abs(float(leg_traj_cfg.get("max_rate_mps", 0.20)))
+        ff_cfg = control_cfg.get("lqr_feedforward", {})
+        self.lqr_ff_enabled = bool(ff_cfg.get("enabled", True))
+        self.x_position_preview_s = float(ff_cfg.get("x_position_preview_s", 0.06))
+        self.x_velocity_preview_s = float(ff_cfg.get("x_velocity_preview_s", 0.04))
+        self.x_accel_to_wheel_torque = float(ff_cfg.get("x_accel_to_wheel_torque_Nm_per_mps2", 0.2))
+        self.x_decel_to_wheel_torque = float(ff_cfg.get("x_decel_to_wheel_torque_Nm_per_mps2", self.x_accel_to_wheel_torque))
+        self.x_velocity_error_to_wheel_torque = float(ff_cfg.get("x_velocity_error_to_wheel_torque_Nm_per_mps", 0.5))
+        self.x_brake_velocity_error_to_wheel_torque = float(ff_cfg.get("x_brake_velocity_error_to_wheel_torque_Nm_per_mps", self.x_velocity_error_to_wheel_torque))
+        self.max_wheel_torque_ff = abs(float(ff_cfg.get("max_wheel_torque_ff_Nm", 1.0)))
+        self.max_brake_wheel_torque_ff = abs(float(ff_cfg.get("max_brake_wheel_torque_ff_Nm", self.max_wheel_torque_ff)))
+        self.target_x_ddot = 0.0
+        self.U_ff = np.zeros((4, 1))
         self.reference_governor = None
         if self.control_mode == "keyboard":
             self.reference_governor = LqrReferenceGovernor(self.dt, control_cfg, args)
@@ -122,8 +139,7 @@ class StandController:
         self.last_sim_time = data.time
 
         self.refresh_kinematics()
-        if self.target_leg_length is None:
-            self.target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
+        self._reset_leg_length_targets()
 
         # ── UDP 遥测 ──
         self.udp_ip = "127.0.0.1"
@@ -152,6 +168,8 @@ class StandController:
         self.target_yaw = self.initial_target_yaw
         self.target_x_dot = self.initial_target_x_dot
         self.target_yaw_dot = self.initial_target_yaw_dot
+        self.target_x_ddot = 0.0
+        self.U_ff[:] = 0.0
         if self.reference_governor is not None:
             self.reference_governor.reset()
             self.target_x = self.reference_governor.x
@@ -159,11 +177,22 @@ class StandController:
             self.target_x_dot = self.reference_governor.x_dot
             self.target_yaw_dot = self.reference_governor.yaw_dot
         self.refresh_kinematics()
-        if self.args.target_leg_length is None:
-            self.target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
+        self._reset_leg_length_targets()
 
         self.jump_sm = JumpStateMachine(self.dt, self.cfg)
         self.gc.reset()
+
+    def _reset_leg_length_targets(self):
+        """Reset the requested leg-length endpoint and its smoothed trajectory."""
+        if self.args.target_leg_length is None:
+            target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
+        else:
+            target_leg_length = self.args.target_leg_length
+        target_leg_length = float(np.clip(target_leg_length,
+                                          self.leg_length_min,
+                                          self.leg_length_max))
+        self.target_leg_length_command = target_leg_length
+        self.target_leg_length = target_leg_length
 
     # ══════════════════════════════════════════════════════════════════
     #  传感器读取 + 运动学（手册 §2）
@@ -246,13 +275,20 @@ class StandController:
 
     def build_lqr_target(self, e2, e3_l, e3_r):
         """构造 LQR 目标状态向量（含平衡偏移量，手册 §5.4）。"""
+        x_ref = self.target_x
+        x_dot_ref = self.target_x_dot
+        if self.lqr_ff_enabled:
+            x_ref = self.target_x \
+                + self.x_position_preview_s * self.target_x_dot \
+                + 0.5 * self.x_position_preview_s ** 2 * self.target_x_ddot
+            x_dot_ref = self.target_x_dot + self.x_velocity_preview_s * self.target_x_ddot
         return np.array([
-            [self.target_x],
+            [x_ref],
             [self.target_yaw],
             [self.target_pitch - e2],
             [self.target_left_leg_theta - e3_l],
             [self.target_right_leg_theta - e3_r],
-            [self.target_x_dot],
+            [x_dot_ref],
             [self.target_yaw_dot],
             [0.0],
             [0.0],
@@ -275,7 +311,7 @@ class StandController:
         x_lqr = self.build_lqr_state(state)
 
         # ── Stage 2: 规划（§4-5, §10）──
-        self._update_navigation(keyboard_axes)
+        self._update_navigation(keyboard_axes, state["yaw_continuous"])
         jump = self._evaluate_jump(state)
         K_raw = get_K(self.left_leg.length, self.right_leg.length)  # 2D Chebyshev
         e2 = get_e2(self.left_leg.length, self.right_leg.length)
@@ -325,7 +361,7 @@ class StandController:
     #  Stage 2 私有方法
     # ══════════════════════════════════════════════════════════════════
 
-    def _update_navigation(self, keyboard_axes):
+    def _update_navigation(self, keyboard_axes, current_yaw=None):
         """键盘→参考调速器 + 腿长伸缩限幅（手册 §4-5）。"""
         if keyboard_axes is None:
             speed_axis, yaw_axis, hight_axis = (0.0, 0.0, 0.0)
@@ -334,10 +370,25 @@ class StandController:
 
         if self.reference_governor is not None:
             self.target_x, self.target_yaw, self.target_x_dot, self.target_yaw_dot = \
-                self.reference_governor.update(speed_axis, yaw_axis)
+                self.reference_governor.update(speed_axis, yaw_axis, current_yaw=current_yaw)
+            self.target_x_ddot = self.reference_governor.x_ddot
+        else:
+            self.target_x_ddot = 0.0
 
-        self.target_leg_length += hight_axis
-        self.target_leg_length = np.clip(self.target_leg_length, 0.12, 0.35)
+        # Keyboard height input changes the requested endpoint; the actual
+        # leg-length setpoint follows it through a slew-limited trajectory.
+        self.target_leg_length_command = float(np.clip(
+            self.target_leg_length_command + hight_axis,
+            self.leg_length_min,
+            self.leg_length_max,
+        ))
+        self.target_leg_length = float(np.clip(
+            approach_value(self.target_leg_length,
+                           self.target_leg_length_command,
+                           self.leg_length_rate * self.dt),
+            self.leg_length_min,
+            self.leg_length_max,
+        ))
 
     def _evaluate_jump(self, state):
         """跳跃状态机更新（手册 §10）→ 返回力控覆盖参数。"""
@@ -403,13 +454,33 @@ class StandController:
             roll_force = clip_symmetric(roll_force, self.args.roll_force_limit)
 
         # ── 力控综合（手册 §8.3）──
+        # Manual §8.1: gravity feedforward in the leg axis is scaled by 1/cos(theta).
+        left_cos = float(np.clip(np.cos(self.left_leg.theta), 1e-3, 1.0))
+        right_cos = float(np.clip(np.cos(self.right_leg.theta), 1e-3, 1.0))
         F_l = left_vel_force + roll_force + left_pos_force \
-            + jump.G_m * np.cos(self.left_leg.theta) + jump.F_jump
+            + jump.G_m / left_cos + jump.F_jump
         F_r = right_vel_force - roll_force + right_pos_force \
-            + jump.G_m * np.cos(self.right_leg.theta) + jump.F_jump
+            + jump.G_m / right_cos + jump.F_jump
 
         # ── LQR（手册 §4）──
-        U = -K_raw @ (x_lqr - target)
+        U_ff = np.zeros((4, 1))
+        if self.lqr_ff_enabled:
+            body_vx = float(x_lqr[5, 0])
+            velocity_error = self.target_x_dot - body_vx
+            accel_is_braking = body_vx * self.target_x_ddot < 0.0
+            velocity_is_braking = abs(self.target_x_dot) < abs(body_vx) and body_vx * velocity_error < 0.0
+            brake_ff = accel_is_braking or velocity_is_braking
+            wheel_accel_gain = self.x_decel_to_wheel_torque if brake_ff else self.x_accel_to_wheel_torque
+            wheel_velocity_gain = self.x_brake_velocity_error_to_wheel_torque if brake_ff else self.x_velocity_error_to_wheel_torque
+            wheel_ff_limit = self.max_brake_wheel_torque_ff if brake_ff else self.max_wheel_torque_ff
+            wheel_ff = clip_symmetric(wheel_accel_gain * self.target_x_ddot, wheel_ff_limit)
+            wheel_ff += wheel_velocity_gain * velocity_error
+            wheel_ff = clip_symmetric(wheel_ff, wheel_ff_limit)
+            U_ff[2, 0] = wheel_ff
+            U_ff[3, 0] = wheel_ff
+
+        U = U_ff - K_raw @ (x_lqr - target)
+        self.U_ff = U_ff
         self.U_lqr = U
         return U, F_l, F_r
 
@@ -469,7 +540,13 @@ class StandController:
         if zlR: K_adj[1, :] = 0.0; e3_r_adj = -e3_r
 
         target_adj = self.build_lqr_target(e2, e3_l_adj, e3_r_adj)
-        U_adj = -K_adj @ (x_lqr - target_adj)
+        U_ff_adj = self.U_ff.copy()
+        if zwL: U_ff_adj[2, 0] = 0.0
+        if zwR: U_ff_adj[3, 0] = 0.0
+        if zlL: U_ff_adj[0, 0] = 0.0
+        if zlR: U_ff_adj[1, 0] = 0.0
+        U_adj = U_ff_adj - K_adj @ (x_lqr - target_adj)
+        self.U_lqr = U_adj
 
         # ── VMC 力矩映射（手册 §6）──
         left_front, left_back = self.left_leg.vmc(

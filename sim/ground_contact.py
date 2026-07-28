@@ -89,22 +89,16 @@ class GroundContactDetector:
             self._fn_filt[i] = (self._fn_alpha * raw
                                 + (1.0 - self._fn_alpha) * self._fn_filt[i])
 
-        # ── 2. free-fall detection ──
-        # MuJoCo accelerometer = body_acc - gravity → reads ≈0 in free fall
-        in_free_fall = abs(z_acc) < 5.0
-
         for side in (0, 1):
             fn = self._fn_filt[side]
-            fn_raw = self._fn_raw[side]
             wv = (left_wheel_vel if side == 0 else right_wheel_vel)
             jt = (left_joint_torques if side == 0 else right_joint_torques)
             wt = (left_wheel_torque if side == 0 else right_wheel_torque)
             wr = 0.05  # wheel radius
 
-            # ── 3. liftoff / touchdown (raw Fn + free-fall, hysteresis + debounce) ──
-            likely_air = (fn_raw < self.liftoff_Fn) or (in_free_fall and fn_raw < 50.0)
+            # ── 2. liftoff / touchdown (manual §9: Fn threshold + hysteresis + debounce) ──
             if self.contact_state[side] == "grounded":
-                if likely_air:
+                if fn < self.liftoff_Fn:
                     self._debounce_counter[side] += 1
                     if self._debounce_counter[side] >= self.debounce_n:
                         self.contact_state[side] = "airborne"
@@ -112,7 +106,7 @@ class GroundContactDetector:
                 else:
                     self._debounce_counter[side] = 0
             else:  # airborne
-                if fn > self.touchdown_Fn and not in_free_fall:
+                if fn > self.touchdown_Fn:
                     self._debounce_counter[side] += 1
                     if self._debounce_counter[side] >= self.debounce_n:
                         self.contact_state[side] = "grounded"

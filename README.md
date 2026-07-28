@@ -129,21 +129,22 @@ python sim/main.py --initial-pitch 0.1 --initial-x-velocity 1.0
 
 默认模式（`--control-mode keyboard`）。键盘输入经过 **LqrReferenceGovernor** 处理：
 
-- 速度/偏航指令以配置的加速度平滑斜坡变化（`speed_accel_mps2` / `yaw_rate_accel_radps2`）
-- 松开按键时以释放减速度（release accel）快速停止
-- 支持 `instant_stop_on_release` 瞬时刹车
+- 速度指令以配置的加速度平滑斜坡变化（`speed_accel_mps2` / `speed_release_accel_mps2`）
+- 偏航指令积分为累积 yaw 角度目标，并保留 yaw 角速度目标
+- 松开速度键时以释放减速度（release accel）快速停止
+- 支持 `instant_stop_on_release` 让速度瞬时刹车
 
-键盘指令转换为 LQR 的目标状态（x、yaw 及其导数），LQR 控制器跟踪该目标。
+键盘指令转换为 LQR 的位置/yaw 角目标，并叠加位置预览、速度误差和轮端前馈。
 
 ### LQR 自主平衡模式
 
 （`--control-mode lqr`）机器人维持在初始位置和姿态。可通过命令行参数设置目标偏置：
 
 ```bash
-python sim/main.py --control-mode lqr --target-x 1.0 --target-x-dot 0.5
+python sim/main.py --control-mode lqr --target-x 1.0
 ```
 
-让机器人以 0.5 m/s 速度向前移动 1 米后停下。
+让机器人向前移动 1 米后停下。
 
 ---
 
@@ -253,7 +254,7 @@ Serial_Leg_Simulation/
 python tools/linearize.py
 
 # 更细网格
-
+python tools/linearize.py --grid-size 27
 ```
 
 **输出文件：**

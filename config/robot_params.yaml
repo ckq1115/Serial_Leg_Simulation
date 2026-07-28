@@ -166,14 +166,23 @@ control_initial:
     right_leg_theta_rad: 0.0
     x_dot_mps: 0.0
     yaw_dot_radps: 0.0
+  lqr_feedforward:
+    enabled: true
+    x_position_preview_s: 0.1
+    x_velocity_preview_s: 0.5
+    x_accel_to_wheel_torque_Nm_per_mps2: 2.0
+    x_decel_to_wheel_torque_Nm_per_mps2: 2.0
+    x_velocity_error_to_wheel_torque_Nm_per_mps: 0.5
+    x_brake_velocity_error_to_wheel_torque_Nm_per_mps: 0.5
+    max_wheel_torque_ff_Nm: 2.0
+    max_brake_wheel_torque_ff_Nm: 2.0
   keyboard_command:
-    max_speed_mps: 1.49
-    max_yaw_rate_radps: 5.00
-    speed_accel_mps2: 3.00
-    speed_release_accel_mps2: 4.00
-    yaw_rate_accel_radps2: 3.00
-    yaw_rate_release_accel_radps2: 4.50
-    instant_stop_on_release: true
+    max_speed_mps: 2.0
+    max_yaw_rate_radps: 2.50
+    speed_accel_mps2: 5.00
+    speed_release_accel_mps2: 5.00
+    instant_stop_on_release: false
+    instant_yaw_rate_command: true
     speed_axis_sign: 1.0
     yaw_axis_sign: 1.0
   fall_angle_rad: 1.0

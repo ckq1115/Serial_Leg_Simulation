@@ -23,6 +23,7 @@ env/
 # === Claude Code / AI 辅助工具残留 ===
 .claude/
 .agent/
+.agents/
 .mcp/
 .codebuddy/
 .cursor/
