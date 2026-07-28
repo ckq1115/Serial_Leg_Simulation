@@ -1,12 +1,30 @@
-"""Jump state machine — pulse-driven jump from standing, no crouch."""
+"""跳跃控制状态机（手册 §10）——基于力控的脉冲驱动跳跃。
+
+手册定义的六阶段模型（§10.1）：
+  READY → CROUCH → LAUNCH → TUCK → LANDING → RECOVER
+
+当前实现为简化三阶段版本：
+  ready → extending（合并 CROUCH+LAUNCH）→ landing → ready
+
+空中 LQR 降维（§10.3）和完整六阶段迁移留待后续迭代。
+"""
+
 import numpy as np
 
 
 class JumpStateMachine:
-    """Two-phase jump:
-    - extending: pulse force + G_m, pos+vel PID bypassed.
-      Torque-limited sustained force launches the robot. Roll PID + LQR active.
-    - landing: PID resumes, target=L_stand, settle to standing.
+    """基于力控的脉冲驱动跳跃状态机（手册 §10）。
+
+    States (simplified from manual §10.1 six-phase model):
+      ready     — 待命站立  (manual: READY)
+      extending — 爆发伸展  (manual: CROUCH + LAUNCH, 合并)
+      landing   — 着陆缓冲  (manual: LANDING + RECOVER, 合并)
+
+    Public API:
+      trigger(pitch, roll)  — 尝试从 ready 触发跳跃
+      update(L_l, L_r)      — 每控制步推进状态机
+      get_jump_force()       — 返回当前阶段脉冲力
+      get_target_leg_length(L_stand) — 返回当前阶段目标腿长
     """
 
     def __init__(self, dt, cfg=None):

@@ -1,38 +1,60 @@
-import re
+"""轮腿机器人站立控制器（手册 §8 控制管线编排器）。
+
+每控制步管线（对应手册 §13 chassis_task 顺序）：
+  Stage 0: 感知（§2） — 传感器读取 + 运动学正解
+  Stage 1: 估计（§7） — 10 维 LQR 状态向量构建 + Kalman 融合
+  Stage 2: 规划（§4-5, §10）— 键盘调速器 + 增益调度 + 跳跃状态机
+  Stage 3: 控制（§4, §8） — LQR 反馈 + PID 腿长/Roll + 重力前馈
+  Stage 4: 映射（§6, §9） — VMC 力矩映射 + K 矩阵抑制（离地检测）
+  Stage 5: 执行          — 力矩限幅 + 外力施加 + mj_step
+  Stage 6: 遥测          — UDP 发送 + 控制台日志
+"""
+
+import sys
+from pathlib import Path
+from dataclasses import dataclass
 import socket
 import struct
 import numpy as np
 import mujoco as mj
-from utils import (sensor_value, quat_to_euler, clip_symmetric, 
-                   resolve_project_path, normalize_angle)
-from change_length_fit import ChangeLengthFit
-from leg import FiveLinkLeg
-from pid import PID
-from kalman import KalmanOdometry
-from lqr_governor import LqrReferenceGovernor
-from jump_state_machine import JumpStateMachine
+from utils import (sensor_value, quat_to_euler, clip_symmetric,
+                   normalize_angle, ContinuousAngle)
 
-# ---------- ContinuousAngle 合并 ----------
-class ContinuousAngle:
-    def __init__(self):
-        self.last_wrapped = None
-        self.value = 0.0
+# Import Chebyshev-based LQR gain module (手册 §5.6, §12)
+_proj_root = Path(__file__).resolve().parents[1]
+if str(_proj_root) not in sys.path:
+    sys.path.insert(0, str(_proj_root))
+from data.lqr_gain_fit import get_K, get_e2, get_e3
 
-    def reset(self, wrapped_angle=0.0):
-        self.last_wrapped = normalize_angle(wrapped_angle)
-        self.value = self.last_wrapped
+from kinematics import FiveLinkLeg       # 手册 §2: 五连杆运动学
+from pid import PID                       # 手册 §8: PID 控制器
+from kalman import KalmanOdometry         # 手册 §7: Kalman 状态估计
+from lqr_governor import LqrReferenceGovernor  # 手册 §4-5: 参考调速器
+from jump_state_machine import JumpStateMachine  # 手册 §10: 跳跃状态机
+from ground_contact import GroundContactDetector  # 手册 §9: 地面接触检测
 
-    def update(self, wrapped_angle):
-        wrapped_angle = normalize_angle(wrapped_angle)
-        if self.last_wrapped is None:
-            self.reset(wrapped_angle)
-            return self.value
-        self.value += normalize_angle(wrapped_angle - self.last_wrapped)
-        self.last_wrapped = wrapped_angle
-        return self.value
+
+@dataclass
+class JumpOverrides:
+    """跳跃状态机对力控的覆盖参数（手册 §10.2）。"""
+    effective_target_length: float
+    F_jump: float
+    bypass_pos: bool
+    bypass_vel: bool
+    bypass_roll: bool
+    G_m: float
+
 
 class StandController:
+    """轮腿站立控制器，编排 6 阶段控制管线。
+
+    Public API:
+      __init__(model, data, cfg, args)
+      step(keyboard_axes=None) -> bool
+    """
+
     def __init__(self, model, data, cfg, args):
+        # ── MuJoCo 句柄 ──
         self.model = model
         self.data = data
         self.cfg = cfg
@@ -42,7 +64,7 @@ class StandController:
         if self.push_body_id < 0:
             raise ValueError(f"Unknown push body: {args.push_body}")
 
-        # 轮子刚体 ID，用于着地检测（跳过不可靠的 Fn 估计）
+        # ── 配置读取 ──
         self.sensor_names = cfg["mujoco"]["sensors"]
         self.geometry = cfg["geometry"]
         self.gravity = cfg["simulation"]["gravity_mps2"]
@@ -51,26 +73,23 @@ class StandController:
         if self.support_force is None:
             self.support_force = 0.5 * self.total_mass * self.gravity
 
+        # ── 运动学模块（手册 §2）──
         self.left_leg = FiveLinkLeg("left", self.geometry["five_link"], self.dt)
         self.right_leg = FiveLinkLeg("right", self.geometry["five_link"], self.dt)
-        # World-frame Kalman for odometry logging
+
+        # ── 状态估计模块（手册 §7）──
         self.odometry = KalmanOdometry(self.geometry["wheel"]["radius_m"], self.dt)
-        # Body-frame Kalman for LQR state (sagittal-plane model)
         self.body_odom = KalmanOdometry(self.geometry["wheel"]["radius_m"], self.dt)
         self.yaw_unwrapper = ContinuousAngle()
 
+        # ── PID 模块（手册 §8.1-8.2）──
         self.left_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
         self.right_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
         self.left_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.right_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.roll_pid = PID(kp=2000.0, ki=0.0, kd=1000.0)
 
-        lqr_table = args.lqr_gain_table if args.lqr_gain_table is not None else cfg["control_initial"]["lqr_gain_table"]
-        lqr_path = resolve_project_path(lqr_table)
-        self.lqr_lengths, self.lqr_gains = self.load_lqr_table(lqr_path)
-
-        self.change_length = ChangeLengthFit()
-
+        # ── 规划模块（手册 §4-5, §10）──
         control_cfg = cfg["control_initial"]
         target_cfg = control_cfg.get("lqr_target", {})
         self.control_mode = args.control_mode
@@ -90,9 +109,15 @@ class StandController:
             self.reference_governor = LqrReferenceGovernor(self.dt, control_cfg, args)
 
         self.jump_sm = JumpStateMachine(self.dt, cfg)
-        self._last_jump_pressed = False  # edge detection for jump trigger
-
+        self._last_jump_pressed = False
         self.target_leg_length = args.target_leg_length
+
+        # ── 地面接触检测（手册 §9）──
+        self.gc = GroundContactDetector(self.dt, args.joint_torque_limit,
+                                        args.wheel_torque_limit)
+
+        # ── 初始状态 ──
+        self.U_lqr = np.zeros((4, 1))
         self.last_log_time = -1.0
         self.last_sim_time = data.time
 
@@ -100,47 +125,15 @@ class StandController:
         if self.target_leg_length is None:
             self.target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
 
-        self.U_lqr = np.zeros((4,1))
-
-        # ---------- UDP 发送初始化 ----------
+        # ── UDP 遥测 ──
         self.udp_ip = "127.0.0.1"
         self.udp_port = 12345
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.vofa_tail = b'\x00\x00\x80\x7f'
 
-    def load_lqr_table(self, path):
-        text = path.read_text(encoding="utf-8")
-        pattern = re.compile(
-            r"(?ms)^\s*(0\.\d+)\s*\n"
-            r"\s*theta_balance\s*=\s*[-+0-9.eE]+\s*\n"
-            r"\s*F_convergence:\s*\n"
-            r"\s*(\[\[.*?\]\])"
-        )
-        samples = []
-        for match in pattern.finditer(text):
-            leg_length = float(match.group(1))
-            matrix_text = match.group(2).replace("[", " ").replace("]", " ")
-            values = np.fromstring(matrix_text, sep=" ")
-            if values.size != 40:
-                raise ValueError(f"Invalid LQR block at leg_length={leg_length}: {values.size} values")
-            samples.append((leg_length, values.reshape(4, 10)))
-        if not samples:
-            raise ValueError(f"No LQR gain blocks found in {path}")
-        samples.sort(key=lambda item: item[0])
-        lengths = np.array([item[0] for item in samples])
-        gains = np.stack([item[1] for item in samples], axis=0)
-        return lengths, gains
-
-    def interpolate_lqr_gain(self, leg_length):
-        leg_length = float(np.clip(leg_length, self.lqr_lengths[0], self.lqr_lengths[-1]))
-        right = int(np.searchsorted(self.lqr_lengths, leg_length, side="right"))
-        if right <= 1:
-            return self.lqr_gains[0].copy()
-        if right >= len(self.lqr_lengths):
-            return self.lqr_gains[-1].copy()
-        left = right - 1
-        ratio = (leg_length - self.lqr_lengths[left]) / (self.lqr_lengths[right] - self.lqr_lengths[left])
-        return self.lqr_gains[left] * (1.0 - ratio) + self.lqr_gains[right] * ratio
+    # ══════════════════════════════════════════════════════════════════
+    #  状态重置
+    # ══════════════════════════════════════════════════════════════════
 
     def reset_internal_state(self):
         self.left_leg.reset_dynamic_state()
@@ -170,8 +163,14 @@ class StandController:
             self.target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
 
         self.jump_sm = JumpStateMachine(self.dt, self.cfg)
+        self.gc.reset()
+
+    # ══════════════════════════════════════════════════════════════════
+    #  传感器读取 + 运动学（手册 §2）
+    # ══════════════════════════════════════════════════════════════════
 
     def read_state(self):
+        """读取所有 MuJoCo 传感器数据。"""
         s = self.sensor_names
         quat = sensor_value(self.data, s["quat"])
         euler = quat_to_euler(quat)
@@ -197,6 +196,7 @@ class StandController:
         }
 
     def refresh_kinematics(self):
+        """传感器 → 五连杆 FK → (L, θ) 及其微分。"""
         state = self.read_state()
         state["yaw_continuous"] = self.yaw_unwrapper.update(state["euler"][2])
         pitch = state["euler"][1]
@@ -204,20 +204,25 @@ class StandController:
         self.right_leg.forward(state["right_front_pos"], state["right_back_pos"], pitch)
         return state
 
+    # ══════════════════════════════════════════════════════════════════
+    #  状态估计（手册 §7）
+    # ══════════════════════════════════════════════════════════════════
+
     def build_lqr_state(self, state):
+        """构造 10 维 LQR 状态向量 x ∈ ℝ¹⁰（手册 §3.1）。"""
         yaw_w = state["euler"][2]
         acc_b = state["accel"]
+        gyro = state["gyro"]
+        yaw = state["yaw_continuous"]
 
-        # World-frame Kalman (yaw-aware, for logging/UDP)
+        # World-frame Kalman (for odometry logging)
         world_acc_x = acc_b[0] * np.cos(yaw_w) - acc_b[1] * np.sin(yaw_w)
         self.odometry.update(
             state["left_wheel_vel"], state["right_wheel_vel"],
             world_acc_x,
             body_vx=state["base_linvel"][0])
 
-        # Body-frame Kalman for LQR (sagittal-plane model).
-        # Process input: body-x acceleration (IMU, no yaw rotation needed).
-        # Measurement: world velocity projected onto body-forward direction.
+        # Body-frame Kalman for LQR (sagittal-plane model)
         body_vx_meas = (state["base_linvel"][0] * np.cos(yaw_w)
                         + state["base_linvel"][1] * np.sin(yaw_w))
         body_x, body_vx = self.body_odom.update(
@@ -226,22 +231,21 @@ class StandController:
             body_vx=body_vx_meas)
 
         pitch = state["euler"][1]
-        yaw = state["yaw_continuous"]
-        gyro = state["gyro"]
         return np.array([
-            [body_x],
-            [yaw],
-            [pitch],
-            [self.left_leg.theta],
-            [self.right_leg.theta],
-            [body_vx],
-            [gyro[2]],
-            [gyro[1]],
-            [self.left_leg.theta_dot.value],
-            [self.right_leg.theta_dot.value]
+            [body_x],                       # x[0]: x
+            [yaw],                          # x[1]: ψ
+            [pitch],                        # x[2]: θ
+            [self.left_leg.theta],          # x[3]: θ_L
+            [self.right_leg.theta],         # x[4]: θ_R
+            [body_vx],                      # x[5]: ẋ
+            [gyro[2]],                      # x[6]: ψ̇
+            [gyro[1]],                      # x[7]: θ̇
+            [self.left_leg.theta_dot.value],  # x[8]: θ̇_L
+            [self.right_leg.theta_dot.value], # x[9]: θ̇_R
         ], dtype=float)
 
     def build_lqr_target(self, e2, e3_l, e3_r):
+        """构造 LQR 目标状态向量（含平衡偏移量，手册 §5.4）。"""
         return np.array([
             [self.target_x],
             [self.target_yaw],
@@ -255,7 +259,162 @@ class StandController:
             [0.0]
         ], dtype=float)
 
+    # ══════════════════════════════════════════════════════════════════
+    #  主控制步（手册 §13 chassis_task 管线编排）
+    # ══════════════════════════════════════════════════════════════════
+
+    def step(self, keyboard_axes=None):
+        """单控制步：感知 → 估计 → 规划 → 控制 → 映射 → 执行（手册 §13）。"""
+        if self.data.time + 0.5 * self.dt < self.last_sim_time:
+            self.reset_internal_state()
+
+        # ── Stage 0: 感知（§2）──
+        state = self._read_sensors(keyboard_axes)
+
+        # ── Stage 1: 估计（§7）──
+        x_lqr = self.build_lqr_state(state)
+
+        # ── Stage 2: 规划（§4-5, §10）──
+        self._update_navigation(keyboard_axes)
+        jump = self._evaluate_jump(state)
+        K_raw = get_K(self.left_leg.length, self.right_leg.length)  # 2D Chebyshev
+        e2 = get_e2(self.left_leg.length, self.right_leg.length)
+        e3_l, e3_r = get_e3(self.left_leg.length, self.right_leg.length)
+        target = self.build_lqr_target(e2, e3_l, e3_r)
+
+        # ── Stage 3: 控制（§4, §8）──
+        U, F_l, F_r = self._compute_forces(x_lqr, target, K_raw, state, jump)
+
+        # ── Stage 4: 映射（§6, §9）──
+        ctrl = self._map_to_actuators(F_l, F_r, U, x_lqr, K_raw,
+                                      e2, e3_l, e3_r, state)
+
+        # ── Stage 5: 执行 ──
+        self._apply_control(ctrl, state, x_lqr)
+
+        # ── Stage 6: 遥测 ──
+        self._send_telemetry(x_lqr, target, state, ctrl)
+
+        return True
+
+    # ══════════════════════════════════════════════════════════════════
+    #  Stage 0 私有方法
+    # ══════════════════════════════════════════════════════════════════
+
+    def _read_sensors(self, keyboard_axes):
+        """传感器读取 + FK + jump 边沿检测触发。"""
+        state = self.refresh_kinematics()
+
+        if keyboard_axes is None:
+            speed_axis, yaw_axis, hight_axis, jump_pressed = (0.0, 0.0, 0.0, False)
+        else:
+            speed_axis, yaw_axis, hight_axis, jump_pressed = keyboard_axes
+
+        # Jump edge detection: space tap → trigger state machine
+        if jump_pressed and not self._last_jump_pressed:
+            self.jump_sm.trigger(pitch=state["euler"][1], roll=state["euler"][0])
+        self._last_jump_pressed = jump_pressed
+
+        # Store axes for later pipeline stages
+        state["_speed_axis"] = speed_axis
+        state["_yaw_axis"] = yaw_axis
+        state["_hight_axis"] = hight_axis
+        return state
+
+    # ══════════════════════════════════════════════════════════════════
+    #  Stage 2 私有方法
+    # ══════════════════════════════════════════════════════════════════
+
+    def _update_navigation(self, keyboard_axes):
+        """键盘→参考调速器 + 腿长伸缩限幅（手册 §4-5）。"""
+        if keyboard_axes is None:
+            speed_axis, yaw_axis, hight_axis = (0.0, 0.0, 0.0)
+        else:
+            speed_axis, yaw_axis, hight_axis, _ = keyboard_axes
+
+        if self.reference_governor is not None:
+            self.target_x, self.target_yaw, self.target_x_dot, self.target_yaw_dot = \
+                self.reference_governor.update(speed_axis, yaw_axis)
+
+        self.target_leg_length += hight_axis
+        self.target_leg_length = np.clip(self.target_leg_length, 0.12, 0.35)
+
+    def _evaluate_jump(self, state):
+        """跳跃状态机更新（手册 §10）→ 返回力控覆盖参数。"""
+        self.jump_sm.update(self.left_leg.length, self.right_leg.length)
+        if self.jump_sm.jump_active:
+            return JumpOverrides(
+                effective_target_length=self.jump_sm.get_target_leg_length(self.target_leg_length),
+                F_jump=self.jump_sm.get_jump_force(),
+                bypass_pos=self.jump_sm.bypass_pos_pid(),
+                bypass_vel=self.jump_sm.bypass_vel_pid(),
+                bypass_roll=self.jump_sm.bypass_roll_pid(),
+                G_m=0.0 if self.jump_sm.zero_gravity_comp() else self.total_mass * self.gravity / 2.0,
+            )
+        else:
+            return JumpOverrides(
+                effective_target_length=self.target_leg_length,
+                F_jump=0.0,
+                bypass_pos=False,
+                bypass_vel=False,
+                bypass_roll=False,
+                G_m=self.total_mass * self.gravity / 2.0,
+            )
+
+    # ══════════════════════════════════════════════════════════════════
+    #  Stage 3 私有方法
+    # ══════════════════════════════════════════════════════════════════
+
+    def _compute_forces(self, x_lqr, target, K_raw, state, jump):
+        """LQR + PID 力控综合（手册 §4, §8）。
+
+        Returns
+        -------
+        U : (4,1) ndarray   — LQR 虚拟力矩 [τ_L, τ_R, T_wL, T_wR]
+        F_l, F_r : float    — 左右腿轴向力
+        """
+        # ── PID 位置环（手册 §8.1）──
+        if jump.bypass_pos:
+            left_pos_force = 0.0
+            right_pos_force = 0.0
+        else:
+            left_pos_force = self.left_length_pos.update(
+                jump.effective_target_length, self.left_leg.length)
+            right_pos_force = self.right_length_pos.update(
+                jump.effective_target_length, self.right_leg.length)
+            left_pos_force = clip_symmetric(left_pos_force, self.args.length_position_force_limit)
+            right_pos_force = clip_symmetric(right_pos_force, self.args.length_position_force_limit)
+
+        # ── PID 速度环（阻尼，手册 §8.1）──
+        if jump.bypass_vel:
+            left_vel_force = 0.0
+            right_vel_force = 0.0
+        else:
+            left_vel_force = self.left_length_vel.update(0.0, self.left_leg.length_dot.value)
+            right_vel_force = self.right_length_vel.update(0.0, self.right_leg.length_dot.value)
+            left_vel_force = clip_symmetric(left_vel_force, self.args.length_velocity_force_limit)
+            right_vel_force = clip_symmetric(right_vel_force, self.args.length_velocity_force_limit)
+
+        # ── Roll 稳定（手册 §8.2）──
+        if jump.bypass_roll:
+            roll_force = 0.0
+        else:
+            roll_force = self.roll_pid.update(0.0, state["euler"][0])
+            roll_force = clip_symmetric(roll_force, self.args.roll_force_limit)
+
+        # ── 力控综合（手册 §8.3）──
+        F_l = left_vel_force + roll_force + left_pos_force \
+            + jump.G_m * np.cos(self.left_leg.theta) + jump.F_jump
+        F_r = right_vel_force - roll_force + right_pos_force \
+            + jump.G_m * np.cos(self.right_leg.theta) + jump.F_jump
+
+        # ── LQR（手册 §4）──
+        U = -K_raw @ (x_lqr - target)
+        self.U_lqr = U
+        return U, F_l, F_r
+
     def compute_foot_forces(self, state):
+        """地面法向力估计（手册 §9-principle）。"""
         z_acc = state["accel"][2]
         m_leg = 0.353
         g = self.gravity
@@ -268,8 +427,7 @@ class StandController:
         theta_ddot = self.left_leg.theta_ddot.value
         z_wheel_l = (z_acc - l_ddot * np.cos(theta) + 2*l_dot*theta_dot*np.sin(theta)
                      + l*theta_ddot*np.sin(theta) + l*theta_dot**2*np.cos(theta))
-        F_l = self.left_leg.force
-        P_l = F_l * np.cos(theta) + self.U_lqr[0,0] * np.sin(theta) / l if l > 1e-6 else 0.0
+        P_l = self.left_leg.force * np.cos(theta) + self.U_lqr[0, 0] * np.sin(theta) / l if l > 1e-6 else 0.0
         Fn_l = P_l + m_leg * (g + z_wheel_l)
 
         l = self.right_leg.length
@@ -280,187 +438,120 @@ class StandController:
         theta_ddot = self.right_leg.theta_ddot.value
         z_wheel_r = (z_acc - l_ddot * np.cos(theta) + 2*l_dot*theta_dot*np.sin(theta)
                      + l*theta_ddot*np.sin(theta) + l*theta_dot**2*np.cos(theta))
-        F_r = self.right_leg.force
-        P_r = F_r * np.cos(theta) + self.U_lqr[1,0] * np.sin(theta) / l if l > 1e-6 else 0.0
+        P_r = self.right_leg.force * np.cos(theta) + self.U_lqr[1, 0] * np.sin(theta) / l if l > 1e-6 else 0.0
         Fn_r = P_r + m_leg * (g + z_wheel_r)
 
         return Fn_l, Fn_r
 
-    def step(self, keyboard_axes=None):
-        if self.data.time + 0.5 * self.dt < self.last_sim_time:
-            self.reset_internal_state()
+    # ══════════════════════════════════════════════════════════════════
+    #  Stage 4 私有方法
+    # ══════════════════════════════════════════════════════════════════
 
-        state = self.refresh_kinematics()
+    def _map_to_actuators(self, F_l, F_r, U, x_lqr, K_raw,
+                          e2, e3_l, e3_r, state):
+        """VMC 力矩映射 + 离地 K 抑制 + 力矩限幅（手册 §6, §9）。
 
-        if keyboard_axes is None:
-            speed_axis, yaw_axis, hight_axis, jump_pressed = (0.0, 0.0, 0.0, False)
-        else:
-            speed_axis, yaw_axis, hight_axis, jump_pressed = keyboard_axes
-
-        # ---- jump: tap space → trigger PID-driven extension ----
-        if jump_pressed and not self._last_jump_pressed:
-            self.jump_sm.trigger(pitch=state["euler"][1], roll=state["euler"][0])
-        self._last_jump_pressed = jump_pressed
-        self.jump_sm.update(self.left_leg.length, self.right_leg.length)
-
-        if self.reference_governor is not None:
-            self.target_x, self.target_yaw, self.target_x_dot, self.target_yaw_dot = \
-                self.reference_governor.update(speed_axis, yaw_axis)
-
-        self.target_leg_length += hight_axis
-        self.target_leg_length = np.clip(self.target_leg_length, 0.12, 0.35)
-
-        # ---- jump overrides: match legwheel's max1/max2/max3/G_m per phase ----
-        if self.jump_sm.jump_active:
-            effective_target_length = self.jump_sm.get_target_leg_length(self.target_leg_length)
-            F_jump = self.jump_sm.get_jump_force()
-            bypass_pos = self.jump_sm.bypass_pos_pid()
-            bypass_vel = self.jump_sm.bypass_vel_pid()
-            bypass_roll = self.jump_sm.bypass_roll_pid()
-            if self.jump_sm.zero_gravity_comp():
-                G_m = 0.0
-            else:
-                G_m = 104.0
-        else:
-            effective_target_length = self.target_leg_length
-            F_jump = 0.0
-            bypass_pos = False
-            bypass_vel = False
-            bypass_roll = False
-            G_m = 104.0
-
-        x_lqr = self.build_lqr_state(state)
-        avg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
-        K_raw = self.interpolate_lqr_gain(avg_length)
-
-        e1 = self.change_length.get_e1(avg_length)
-        e2 = self.change_length.get_e2(avg_length)
-        e3_l = self.change_length.get_e3(avg_length)
-        e3_r = self.change_length.get_e3(avg_length)
-
-        target = self.build_lqr_target(e2, e3_l, e3_r)
-
-        # Position PID (legwheel: max1=0 during extension)
-        if bypass_pos:
-            left_pos_force = 0.0
-            right_pos_force = 0.0
-        else:
-            left_pos_force = self.left_length_pos.update(effective_target_length, self.left_leg.length)
-            right_pos_force = self.right_length_pos.update(effective_target_length, self.right_leg.length)
-            left_pos_force = clip_symmetric(left_pos_force, self.args.length_position_force_limit)
-            right_pos_force = clip_symmetric(right_pos_force, self.args.length_position_force_limit)
-
-        # Velocity PID (legwheel: max2=0 during extension AND retraction)
-        if bypass_vel:
-            left_vel_force = 0.0
-            right_vel_force = 0.0
-        else:
-            left_vel_force = self.left_length_vel.update(0.0, self.left_leg.length_dot.value)
-            right_vel_force = self.right_length_vel.update(0.0, self.right_leg.length_dot.value)
-            left_vel_force = clip_symmetric(left_vel_force, self.args.length_velocity_force_limit)
-            right_vel_force = clip_symmetric(right_vel_force, self.args.length_velocity_force_limit)
-
-        # Roll PID (legwheel: max3=0 during retraction)
-        if bypass_roll:
-            roll_force = 0.0
-        else:
-            roll_force = self.roll_pid.update(0.0, state["euler"][0])
-            roll_force = clip_symmetric(roll_force, self.args.roll_force_limit)
-
-        F_l = left_vel_force + roll_force + left_pos_force + G_m * np.cos(self.left_leg.theta) + F_jump
-        F_r = right_vel_force - roll_force + right_pos_force + G_m * np.cos(self.right_leg.theta) + F_jump
-
-        U = -K_raw @ (x_lqr - target)
-        self.U_lqr = U
-
+        Returns
+        -------
+        ctrl : (6,) ndarray  — [LF, RF, LB, RB, WL, WR]
+        """
+        # ── 地面接触检测 → K 行抑制（手册 §9）──
         Fn_l, Fn_r = self.compute_foot_forces(state)
 
         K_adj = K_raw.copy()
         e3_l_adj = e3_l
         e3_r_adj = e3_r
 
-        # Foot-force-based per-leg K suppression
-        if Fn_l < 10.0:
-            K_adj[0, :] = 0.0
-            K_adj[2, :] = 0.0
-            e3_l_adj = -e3_l
-        if Fn_r < 10.0:
-            K_adj[1, :] = 0.0
-            K_adj[3, :] = 0.0
-            e3_r_adj = -e3_r
+        zwL, zwR, zlL, zlR = self.gc.get_K_suppression_mask()
+        if zwL: K_adj[2, :] = 0.0
+        if zwR: K_adj[3, :] = 0.0
+        if zlL: K_adj[0, :] = 0.0; e3_l_adj = -e3_l
+        if zlR: K_adj[1, :] = 0.0; e3_r_adj = -e3_r
 
         target_adj = self.build_lqr_target(e2, e3_l_adj, e3_r_adj)
-        U = -K_adj @ (x_lqr - target_adj)
+        U_adj = -K_adj @ (x_lqr - target_adj)
 
-        left_front, left_back = self.left_leg.vmc(F_l, U[0,0], state["left_front_pos"], state["left_back_pos"])
-        right_front, right_back = self.right_leg.vmc(F_r, U[1,0], state["right_front_pos"], state["right_back_pos"])
+        # ── VMC 力矩映射（手册 §6）──
+        left_front, left_back = self.left_leg.vmc(
+            F_l, U_adj[0, 0], state["left_front_pos"], state["left_back_pos"])
+        right_front, right_back = self.right_leg.vmc(
+            F_r, U_adj[1, 0], state["right_front_pos"], state["right_back_pos"])
 
-        ctrl = np.array([
-            left_front,
-            right_front,
-            left_back,
-            right_back,
-            U[2,0],
-            U[3,0]
-        ], dtype=float)
+        ctrl = np.array([left_front, right_front,
+                         left_back, right_back,
+                         U_adj[2, 0], U_adj[3, 0]], dtype=float)
         ctrl[:4] = np.clip(ctrl[:4], -self.args.joint_torque_limit, self.args.joint_torque_limit)
         ctrl[4:] = np.clip(ctrl[4:], -self.args.wheel_torque_limit, self.args.wheel_torque_limit)
 
-        roll, pitch, yaw_wrapped = state["euler"]
-        yaw = state["yaw_continuous"]
-        # 外部扰动
+        return ctrl
+
+    # ══════════════════════════════════════════════════════════════════
+    #  Stage 5 私有方法
+    # ══════════════════════════════════════════════════════════════════
+
+    def _apply_control(self, ctrl, state, x_lqr):
+        """地面接触检测更新 + 外力施加 + MuJoCo 物理步进。"""
+        # Ground contact detector update for next step
+        left_jt = np.array([ctrl[0], ctrl[2]])
+        right_jt = np.array([ctrl[1], ctrl[3]])
+        Fn_l, Fn_r = self.compute_foot_forces(state)
+        self.gc.update(Fn_l, Fn_r,
+                       state["left_wheel_vel"], state["right_wheel_vel"],
+                       x_lqr[5, 0], state["accel"][2],
+                       left_jt, right_jt,
+                       ctrl[4], ctrl[5])
+
+        # External push force
         self.data.xfrc_applied[:] = 0.0
         if self.args.push_duration > 0.0:
             push_end = self.args.push_time + self.args.push_duration
             if self.args.push_time <= self.data.time < push_end:
                 self.data.xfrc_applied[self.push_body_id] = np.array([
-                    self.args.push_force_x,
-                    self.args.push_force_y,
-                    self.args.push_force_z,
-                    self.args.push_torque_x,
-                    self.args.push_torque_y,
-                    self.args.push_torque_z
+                    self.args.push_force_x, self.args.push_force_y, self.args.push_force_z,
+                    self.args.push_torque_x, self.args.push_torque_y, self.args.push_torque_z,
                 ], dtype=float)
 
         self.data.ctrl[:] = ctrl
         mj.mj_step(self.model, self.data)
         self.last_sim_time = self.data.time
 
-        # ---------- UDP 发送 ----------
-        # 准备发送数据：状态10 + 目标10 + 左腿长 + 右腿长 + Fn_l + Fn_r = 24 个 float
+    # ══════════════════════════════════════════════════════════════════
+    #  Stage 6 私有方法
+    # ══════════════════════════════════════════════════════════════════
+
+    def _send_telemetry(self, x_lqr, target, state, ctrl):
+        """UDP 发送（24 floats） + 控制台定时日志。"""
+        roll, pitch, yaw_wrapped = state["euler"]
+        yaw = state["yaw_continuous"]
+        Fn_l, Fn_r = self.compute_foot_forces(state)
+
+        # UDP packet: 24 floats
         send_list = [
-            x_lqr[0,0], x_lqr[1,0], x_lqr[2,0], x_lqr[3,0], x_lqr[4,0],
-            x_lqr[5,0], x_lqr[6,0], x_lqr[7,0], x_lqr[8,0], x_lqr[9,0],
-            target[0,0], target[1,0], target[2,0], target[3,0], target[4,0],
-            target[5,0], target[6,0], target[7,0], target[8,0], target[9,0],
-            self.left_leg.length,
-            self.right_leg.length,
-            Fn_l,
-            Fn_r,
+            x_lqr[0, 0], x_lqr[1, 0], x_lqr[2, 0], x_lqr[3, 0], x_lqr[4, 0],
+            x_lqr[5, 0], x_lqr[6, 0], x_lqr[7, 0], x_lqr[8, 0], x_lqr[9, 0],
+            target[0, 0], target[1, 0], target[2, 0], target[3, 0], target[4, 0],
+            target[5, 0], target[6, 0], target[7, 0], target[8, 0], target[9, 0],
+            self.left_leg.length, self.right_leg.length,
+            Fn_l, Fn_r,
         ]
-        # 调试：确保长度 24 且后 4 个非零
         if len(send_list) != 24:
             raise RuntimeError(f"send_list length is {len(send_list)}, expected 24")
-        # 可选：打印后 4 个值，确认非零
-        # print(f"send_list[-4:] = {send_list[-4:]}")
         binary_data = struct.pack('<' + 'f' * len(send_list), *send_list)
         self.sock.sendto(binary_data + self.vofa_tail, (self.udp_ip, self.udp_port))
 
-        # ---------- 可选日志打印 ----------
+        # Console log
         if self.args.log_every > 0.0 and self.data.time - self.last_log_time >= self.args.log_every:
             self.last_log_time = self.data.time
             jump_info = f" jump={self.jump_sm.state_name}" if self.jump_sm.jump_active else ""
             print(
                 f"t={self.data.time:6.3f} "
                 f"roll={roll:+.4f} pitch={pitch:+.4f} yaw={yaw:+.4f} "
-                f"bx={x_lqr[0,0]:+.3f} bv={x_lqr[5,0]:+.3f} "
+                f"bx={x_lqr[0, 0]:+.3f} bv={x_lqr[5, 0]:+.3f} "
                 f"w_x={self.odometry.position:+.3f} "
-                f"yawdot={x_lqr[6,0]:+.3f} "
+                f"yawdot={x_lqr[6, 0]:+.3f} "
                 f"target=[{self.target_x:+.2f},{self.target_x_dot:+.2f},{self.target_yaw:+.2f},{self.target_yaw_dot:+.2f}] "
                 f"L={self.left_leg.length:.4f}/{self.right_leg.length:.4f} "
                 f"Fn_l={Fn_l:.1f} Fn_r={Fn_r:.1f} "
                 f"u=[{ctrl[0]:+.2f}, {ctrl[1]:+.2f}, {ctrl[2]:+.2f}, {ctrl[3]:+.2f}, {ctrl[4]:+.2f}, {ctrl[5]:+.2f}]"
                 + jump_info
             )
-
-        return True

@@ -29,11 +29,11 @@
 ├──────────────────────────────────────────────────┤
 │                StandController                    │
 │  ┌─────────────┬──────────────┬────────────────┐ │
-│  │ KalmanOdometry│  LQR Governor │  FiveLinkLeg  │ │
+│  │ KalmanOdometry│  LQR Governor │ FiveLinkLeg   │ │
 │  │  (状态估计)   │ (键盘→目标值) │  (五连杆运动学) │ │
 │  ├─────────────┼──────────────┼────────────────┤ │
-│  │  ChangeLengthFit│   PID ×5   │  VMC 力矩映射  │ │
-│  │  (增益插值)    │ (腿长/横滚) │ (力→关节力矩)  │ │
+│  │  VmcMapper   │   PID ×5     │ Chebyshev 2D  │ │
+│  │  (力矩映射)   │ (腿长/横滚)   │  (增益调度)    │ │
 │  └─────────────┴──────────────┴────────────────┘ │
 ├──────────────────────────────────────────────────┤
 │              MuJoCo 物理引擎                       │
@@ -41,17 +41,15 @@
 └──────────────────────────────────────────────────┘
 ```
 
-控制流程简述：
+控制流程简述（对应手册 §13 chassis_task 管线）：
 
-1. 从 MuJoCo 读取传感器数据（IMU 四元数/角速度/加速度、关节位置/速度、轮速等）
-2. Kalman 滤波器融合 IMU 加速度与轮式里程计，估计机身 x 方向位置与速度
-3. 五连杆运动学正解，将关节角转换为等效腿长 `L` 和摆角 `θ`
-4. 根据当前腿长插值 LQR 增益矩阵 `K(L_left, L_right)`
-5. 键盘模式：参考调节器（Reference Governor）将键盘输入映射为平滑的 LQR 目标轨迹
-6. LQR 计算虚拟腿力矩 + 轮端力矩；PID 计算腿长力和横滚力
-7. VMC 将虚拟腿力/力矩映射为前后髋关节力矩
-8. 写入 MuJoCo `data.ctrl`，步进仿真
-9. 通过 UDP 发送状态数据（供外部工具如 VOFA+ 可视化）
+1. **感知（§2）**：从 MuJoCo 读取传感器 + 五连杆运动学正解 → 虚拟腿长 L 和摆角 θ
+2. **估计（§7）**：Kalman 滤波器融合 IMU 加速度与轮式里程计 → 水平位移 x 与速度 ẋ
+3. **规划（§4-5, §10）**：Chebyshev 增益调度 K(L_l, L_r) + 键盘参考调速器 + 跳跃状态机
+4. **控制（§4, §8）**：LQR 最优反馈 u=-Kx + PID 腿长/Roll + 重力前馈
+5. **映射（§6, §9）**：VMC 力矩映射 τ=JᵀF + 离地检测 K 矩阵抑制
+6. **执行**：力矩限幅 → MuJoCo `data.ctrl` → `mj_step()`
+7. **遥测**：UDP 发送 24 维状态数据（供 VOFA+ 可视化）
 
 ---
 
@@ -64,7 +62,7 @@
 | NumPy | 数值计算 |
 | SciPy | 线性化工具需要（`fsolve`, `expm`, `least_squares` 等） |
 | PyYAML | 读取配置文件 |
-| SymPy | 符号动力学推导（仅 `derive_linear_model.py` 需要） |
+| SymPy | 符号动力学推导（仅 `tools/linearize.py` 需要） |
 | pynput | 键盘读取（仅键盘遥控模式需要） |
 
 安装依赖：
@@ -163,7 +161,6 @@ python sim/main.py --control-mode lqr --target-x 1.0 --target-x-dot 0.5
 | `--target-pitch` | float | `0.0` | LQR 目标俯仰角（rad） |
 | `--target-x-dot` | float | `0.0` | LQR 目标 x 速度（m/s） |
 | `--target-yaw-dot` | float | `0.0` | LQR 目标偏航角速度（rad/s） |
-| `--lqr-gain-table` | str | 配置文件指定 | LQR 增益表文件路径 |
 | `--max-keyboard-speed` | float | `1.50` | 键盘最大速度（m/s） |
 | `--max-keyboard-yaw-rate` | float | `5.00` | 键盘最大偏航角速度（rad/s） |
 | `--keyboard-speed-accel` | float | `3.00` | 键盘速度加速度（m/s²） |
@@ -201,19 +198,12 @@ python sim/main.py --control-mode lqr --target-x 1.0 --target-x-dot 0.5
 | `mujoco` | MuJoCo 模型文件路径、关节/传感器/执行器命名 |
 | `actuators` | 电机力矩限幅、轮毂电机功率模型参数 |
 | `contact` | 轮地接触摩擦参数、闭环运动学约束求解参数 |
-| `control_initial` | LQR 增益表路径、PID 参数、目标偏置、键盘指令参数、Kalman 噪声参数 |
+| `control_initial` | PID 参数、LQR 目标偏置、键盘指令参数、Kalman 噪声参数 |
 
-### 关键参数
+### 增益调度
 
-```yaml
-control_initial:
-  lqr_gain_table: data/lqr_gain_table_analytic.txt  # 增益表文件
-  kalman:
-    q_pos: 0.0001    # 位置过程噪声
-    q_vel: 0.01      # 速度过程噪声
-    r_pos: 1.0       # 里程计位置测量噪声
-    r_vel: 0.5       # 里程计速度测量噪声
-```
+增益矩阵使用 2D Chebyshev 多项式 `K(L_l, L_r)`，系数存储在 `data/lqr_gain_fit.py`。
+仿真直接调用 `get_K(L_l, L_r)` 实时计算 4×10 增益矩阵，无需查表插值。
 
 ---
 
@@ -224,23 +214,26 @@ Serial_Leg_Simulation/
 ├── config/
 │   └── robot_params.yaml          # 统一参数配置文件
 ├── mjcf/
-│   └── serial_leg.xml             # MuJoCo 机器人模型（XML）
-├── sim/                           # 仿真核心代码
+│   ├── serial_leg.xml             # MuJoCo 五连杆并联腿模型
+│   └── ramp_wedge.stl             # 17° 楔形斜坡 STL
+├── sim/                           # 在线仿真模块（每控制步调用）
 │   ├── main.py                    # 主入口，参数解析与仿真循环
-│   ├── controller.py              # StandController：控制主逻辑
-│   ├── leg.py                     # FiveLinkLeg：五连杆运动学 + VMC 力矩映射
-│   ├── lqr_governor.py            # LqrReferenceGovernor：键盘→LQR目标转换
-│   ├── change_length_fit.py       # ChangeLengthFit：增益多项式插值 + 平衡偏置
-│   ├── kalman.py                  # KalmanOdometry：2 维 Kalman 位置/速度估计
-│   ├── pid.py                     # PID 控制器
-│   ├── keyboard_reader.py         # pynput 键盘读取（支持长按）
-│   └── utils.py                   # 工具函数（配置加载、四元数→欧拉角等）
-├── data/
-│   ├── lqr_gain_table_analytic.txt # 解析 LQR 增益表（1D 对称，27 点）
-│   ├── k_table_2d.h               # C 头文件增益表（6 阶 2D 多项式，MCU 用）
-│   └── change_length_fit_analytic.py # 1D 多项式拟合系数（仿真用）
-├── tools/
-│   └── derive_linear_model.py     # 离线工具：SymPy 拉格朗日建模 + LQR 增益表生成
+│   ├── controller.py              # StandController: 6 阶段控制管线编排器（§8, §13）
+│   ├── kinematics.py              # FiveLinkLeg: FK + IK + Jacobian（§2）
+│   ├── vmc.py                     # VmcMapper: VMC 力矩映射 τ=JᵀF（§6）
+│   ├── pid.py                     # PID 控制器（§8）
+│   ├── kalman.py                  # KalmanOdometry: 2-D Kalman 滤波器（§7）
+│   ├── lqr_governor.py            # LqrReferenceGovernor: 参考调速器（§4-5）
+│   ├── ground_contact.py          # GroundContactDetector: 离地/卡死/打滑检测（§9）
+│   ├── jump_state_machine.py      # JumpStateMachine: 跳跃状态机（§10）
+│   ├── keyboard_reader.py         # 键盘输入读取
+│   ├── utils.py                   # 工具函数 + ContinuousAngle
+│   └── __init__.py                # 包初始化 + 公共 API 导出
+├── data/                          # 预计算数据（离线生成，在线查表）
+│   ├── lqr_gain_fit.py            # Chebyshev 2D 多项式系数 + get_K/get_e2/get_e3
+│   └── k_table_2d.h              # C 头文件: 2D Chebyshev 增益表（MCU 用）
+├── tools/                         # 离线计算（运行一次，生成 data/）
+│   └── linearize.py               # 手册 §3-5, §12: 动力学线性化 → DARE → 2D 拟合 → 导出
 ├── 轮腿机器人控制理论手册.md       # 控制理论参考手册
 └── README.md                      # 本文件
 ```
@@ -249,30 +242,28 @@ Serial_Leg_Simulation/
 
 ## 工具脚本
 
-### LQR 增益表生成
+### 动力学线性化 + LQR 增益表生成
 
-`tools/derive_linear_model.py` 是整个控制方案的"模型源头"——它使用 **SymPy 解析拉格朗日力学**推导五连杆轮腿机器人的非线性动力学模型，在多个腿长工作点进行线性化，并通过离散代数 Riccati 方程（DARE）求解 LQR 最优增益矩阵。
+`tools/linearize.py` 使用 **SymPy 拉格朗日力学**推导五连杆轮腿机器人非线性动力学模型，
+在多个腿长工作点线性化得到 A_d, B_d 矩阵，求解 DARE 得到 K 矩阵，拟合 2D 多项式系数，
+导出到 `data/lqr_gain_fit.py`、`data/k_table_2d.h` 和 `data/AB_sampling_points.npz`。
 
 ```bash
-# 生成 1D 对称表（27 个腿长采样点）+ 4 阶多项式拟合
-python tools/derive_linear_model.py --mode 1d
+# 生成 2D Chebyshev 增益表（14×14 网格）+ C 头文件
+python tools/linearize.py
 
-# 生成 2D 非对称表（14×14 网格）+ 6 阶 2D 多项式拟合 + C 头文件
-python tools/derive_linear_model.py --mode 2d --grid-size 14
+# 更细网格
 
-# 全部生成（1D + 2D）
-python tools/derive_linear_model.py --mode both
 ```
 
 **输出文件：**
 
 | 文件 | 用途 |
 |------|------|
-| `data/lqr_gain_table_analytic.txt` | 1D 对称增益表，仿真中通过线性插值查表 |
-| `data/change_length_fit_analytic.py` | 1D 4 阶多项式拟合系数（Python 类） |
-| `data/k_table_2d.h` | 2D 6 阶多项式增益表 C 头文件，可直接用于 MCU |
+| `data/lqr_gain_fit.py` | 2D Chebyshev 系数 + get_K/get_e2/get_e3（仿真导入） |
+| `data/k_table_2d.h` | 2D Chebyshev 增益表 C 头文件（MCU 移植） |
 
-**2D 增益表**支持左右腿长不同的非对称工况（如转弯、侧倾时），拟合精度通常 < 5% 相对 RMS 误差。
+2D 增益表支持左右腿长不同的非对称工况（转弯、单腿台阶等），拟合精度 < 5% 相对 RMS 误差。
 
 ---
 
@@ -301,20 +292,27 @@ u = [τ_L, τ_R, T_wL, T_wR]ᵀ
 ### 控制管线
 
 ```
-姿态/关节传感器 → 五连杆正运动学(L,θ) → Kalman 状态估计
-    → 增益插值 K(L) → LQR u = -K(x - x_ref)
-    → PID 腿长力 + Roll 力
-    → VMC 力→关节力矩映射
-    → 力矩限幅 → MuJoCo 执行器
+传感器读数 → 五连杆运动学 → (L, θ) → Kalman 状态估计 → 10 维状态
+    ↓
+2D Chebyshev 增益调度 K(L_l, L_r) + e2/e3(L_l, L_r)
+    ↓
+LQR u = -K·(x - x_ref) + PID 腿长力 + Roll 力
+    ↓
+VMC τ = JᵀF → 关节力矩
+    ↓
+离地检测 K 抑制 → 力矩限幅 → MuJoCo 执行
 ```
 
 ### 增益调度
 
-由于腿长变化会显著改变系统动力学，LQR 增益矩阵 `K` 需要在不同腿长下重新计算。仿真中通过预计算的增益表进行线性/多项式插值。
+2D Chebyshev 多项式 `K(L_l, L_r)` 将腿长变化纳入增益计算（手册 §5.6）。
+40 个 K 元素各自为 28 项 Chebyshev 基函数的线性组合，运行时递推求值。
 
 ### 着地检测
 
-通过估算轮端法向接触力 `Fn` 判断轮子是否着地。若 `Fn < 20N`，判定该腿悬空，将其 LQR 虚拟力矩通道清零并翻转摆角偏置，防止悬空腿失控。
+`GroundContactDetector`（手册 §9）提供三级检测：离地（Fn 滞后+去抖）、
+卡腿（力矩饱和+轮速为零）、打滑（轮速与车速失配）。
+检测结果抑制 K 矩阵对应行，防止悬空/卡死腿失控。
 
 ---
 
@@ -322,7 +320,7 @@ u = [τ_L, τ_R, T_wL, T_wR]ᵀ
 
 仿真代码考虑了向嵌入式 MCU 移植的需求：
 
-1. **LQR 增益表**可通过 `derive_linear_model.py --mode 2d` 导出为 C 头文件 `data/k_table_2d.h`，包含完整的运行时插值函数 `k_table_2d_eval(L_l, L_r, k_out)`
+1. **LQR 增益表**通过 `python tools/linearize.py` 导出为 C 头文件 `data/k_table_2d.h`，含 Chebyshev 递推求值函数 `k_table_2d_eval(L_l, L_r, k_out)`
 2. **PID 参数**、**Kalman 噪声参数**、**力限幅值**均在 YAML 配置文件中统一管理
 3. **UDP 遥测**：仿真运行时通过 `127.0.0.1:12345` 发送 24 个 float（10 状态 + 10 目标 + 2 腿长 + 2 法向力），可直接用 VOFA+ 上位机实时观察
 4. 控制频率 **500Hz**（dt = 0.002s）
@@ -346,7 +344,4 @@ python sim/main.py --max-keyboard-speed 2.5 --max-keyboard-yaw-rate 8.0
 
 # 自定义初始状态 + 无头模式
 python sim/main.py --headless --duration 5 --initial-pitch 0.15 --control-mode lqr
-
-# 使用自定义增益表
-python sim/main.py --lqr-gain-table data/lqr_gain_table_analytic.txt --control-mode lqr
 ```

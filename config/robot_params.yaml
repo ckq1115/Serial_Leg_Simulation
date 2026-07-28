@@ -9,7 +9,7 @@ simulation:
   timestep_s: 0.002
   control_period_s: 0.002
   control_frequency_hz: 500
-  integrator: RK4
+  integrator: implicitfast
   gravity_mps2: 9.81
 
 # 坐标系约定。
@@ -59,10 +59,10 @@ geometry:
 
 # 质量和转动惯量参数，单位为 kg、kg*m^2。
 mass_properties:
-  total_robot_mass_kg: 23.430457310509
+  total_robot_mass_kg: 18.155324569280
   body:
-    mass_kg: 20.275132741229
-    inertia_kg_m2: [0.304356536822, 0.156700286822, 0.156098776548]
+    mass_kg: 15.0
+    inertia_kg_m2: [0.22517, 0.11593, 0.115485]
     com_local_m: [0.0, 0.0, 0.0]
   links:
     front_upper_mass_kg: 0.13482
@@ -146,7 +146,6 @@ contact:
 
 # 初始控制参数。这里只用于仿真启动，不代表最终实机参数。
 control_initial:
-  lqr_gain_table: data/lqr_gain_table_analytic.txt
   leg_length_pid:
     position_kp: 2000.0
     position_ki: 0.0

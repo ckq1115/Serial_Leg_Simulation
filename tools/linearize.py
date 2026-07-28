@@ -1,8 +1,12 @@
 """
-Serial-specific SymPy Lagrangian + MuJoCo LegPoseSolver for geometry.
+Serial Lagrangian + MuJoCo geometry → 2D LQR gain table.
 
-Uses Serial_Leg_Simulation physical parameters for correct x-coupling,
-with MuJoCo-measured leg COM geometry replacing the MATLAB 2-link formulas.
+Uses SymPy Lagrangian dynamics + MuJoCo LegPoseSolver for leg COM geometry.
+Outputs 2D Chebyshev gain fits to data/lqr_gain_fit.py and data/k_table_2d.h.
+
+Usage:
+  python tools/linearize.py                    # 2D Chebyshev table (default 14×14)
+  python tools/linearize.py --grid-size 20     # finer grid
 """
 
 import sys, time, argparse
@@ -14,13 +18,13 @@ import mujoco as mj
 import sympy as sp
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "sim"))
-from leg import FiveLinkLeg  # type: ignore[import-untyped]                                                                                 
+from kinematics import FiveLinkLeg  # type: ignore[import-untyped]                                                                                 
 from utils import load_config, resolve_project_path  # type: ignore[import-untyped] 
 
 # ══════════════════════════════════════════════════════════════════════
 #  Serial_Leg_Simulation physical constants
 # ══════════════════════════════════════════════════════════════════════
-M_BODY = 20.275132741229
+M_BODY = 15.0
 M_WHEEL = 0.353429173529
 M_LEG   = 0.13482+0.1554+0.230811+0.11718+0.349772111111+0.23625
 I_BODY_YY = 0.156700286822; I_BODY_ZZ = 0.156098776548
@@ -28,7 +32,7 @@ I_WHEEL_YY = 0.000441786467; I_WHEEL_ZZ = 0.000223838477
 WHEEL_RADIUS = 0.05; HALF_TRACK = 0.165
 GRAVITY = 9.81; L_BODY_COM = 0.0
 DT = 0.002; N_ITER_DARE = 100000
-N_LENGTHS = 27; H_MIN, H_MAX = 0.106, 0.366
+H_MIN, H_MAX = 0.106, 0.366
 
 # LQR 状态权重 Q（10×10 对角）
 # 状态:      x    yaw   pitch  th_L   th_R   x_dot yaw_dot pitch_dot th_L_dot th_R_dot
@@ -40,7 +44,7 @@ Q_DIAG = np.array([
     4000,  # theta_R
     250,   # x_dot
     1,     # yaw_dot
-    5,     # pitch_dot
+    10,     # pitch_dot
     1,     # theta_L_dot
     1,     # theta_R_dot
 ])
@@ -50,8 +54,8 @@ Q_DIAG = np.array([
 R_MAT  = np.diag([
     0.5,  # tau_L
     0.5,  # tau_R
-    0.5,  # T_wL
-    0.5,  # T_wR
+    1.0,  # T_wL
+    1.0,  # T_wR
 ])
 
 # 运行:
@@ -271,16 +275,8 @@ def solve_dare(Ad,Bd,Q,R,S,n_iter=N_ITER_DARE):
         P=Pn
     return np.linalg.inv(Bd.T@P@Bd+R)@(Bd.T@P@Ad),P
 
-def fit_poly_4th(h,K):
-    no,ns=4,10; coeff=np.zeros((no,ns,5))
-    A=np.column_stack([h**4,h**3,h**2,h,np.ones_like(h)])
-    for i in range(no):
-        for j in range(ns): coeff[i,j,:]=np.linalg.lstsq(A,K[:,i,j],rcond=None)[0]
-    return coeff
-
-
 # ══════════════════════════════════════════════════════════════════════
-#  6th-order 2D polynomial fit for asymmetric leg lengths + C export
+#  2D Chebyshev polynomial fit + C header export（手册 §5.6, §12）
 # ══════════════════════════════════════════════════════════════════════
 
 def poly2d_terms(p, L_l, L_r):
@@ -437,15 +433,9 @@ def export_c_header_2d(p, coeff, filepath):
 def main():
     parser = argparse.ArgumentParser(
         description="Serial Lagrangian LQR gain table generator")
-    parser.add_argument("--mode", choices=["1d", "2d", "both"], default="both",
-                        help="1d: symmetric 1D table + 4th-order poly fit  "
-                             "2d: asymmetric 6th-order 2D fit + C header  "
-                             "both: all (default)")
     parser.add_argument("--grid-size", type=int, default=14,
                         help="2D grid N (N x N points). Default: 14")
     args = parser.parse_args()
-    do_1d = args.mode in ("1d", "both")
-    do_2d = args.mode in ("2d", "both")
 
     t0 = time.perf_counter()
     print("Serial Lagrangian + MuJoCo geometry")
@@ -460,106 +450,78 @@ def main():
     solver = LegPoseSolver(model, cfg)
 
     # ════════════════════════════════════════════════════════════════
-    #  1D: symmetric leg length
+    #  2D: asymmetric leg lengths + Chebyshev fit + C header
     # ════════════════════════════════════════════════════════════════
-    if do_1d:
-        h_vec = np.linspace(H_MIN, H_MAX, N_LENGTHS)
-        K_set = np.zeros((N_LENGTHS, 4, 10))
-        e2v = np.zeros(N_LENGTHS); e3v = np.zeros(N_LENGTHS)
+    ORDER_2D = 6
+    N_2D = args.grid_size
+    h_2d = np.linspace(H_MIN, H_MAX, N_2D)
+    L_l_grid, L_r_grid = np.meshgrid(h_2d, h_2d)
+    L_l_flat = L_l_grid.ravel()
+    L_r_flat = L_r_grid.ravel()
+    n_2d = len(L_l_flat)
+    K_2d = np.zeros((n_2d, 4, 10))
+    # Store A_d, B_d, equilibrium offsets at each grid point
+    A_d_set = np.zeros((n_2d, 10, 10))
+    B_d_set = np.zeros((n_2d, 10, 4))
+    e2_set = np.zeros(n_2d)
+    e3_l_set = np.zeros(n_2d)
+    e3_r_set = np.zeros(n_2d)
+    S0 = np.diag(Q_DIAG)
 
-        print(f"\n=== 1D symmetric ===  ({N_LENGTHS} pts, L={H_MIN:.3f}..{H_MAX:.3f})")
-        print(f"{'L':>6s}  {'eq_pitch':>9s}  {'eq_thL':>9s}  {'max|eig(A)|':>11s}  {'max|eig_cl|':>11s}")
-        print("-" * 60)
+    print(f"\n=== 6th-order 2D polynomial fit (asymmetric legs) ===")
+    print(f"  Grid: {N_2D}x{N_2D} = {n_2d} points, order={ORDER_2D}")
+    t_fit = time.perf_counter(); seed_2d = None
+    for k in range(n_2d):
+        L_l, L_r = float(L_l_flat[k]), float(L_r_flat[k])
+        seed_2d = solver.solve(data, 0.5 * (L_l + L_r), seed_2d)
+        r_com, c_x = solver.leg_com(data)
+        A, B, th_eq, thl_eq, thr_eq = linearize_at_length(L_l, L_r, r_com, c_x, M_func, Bq_func, V_func)
+        Ad, Bd = discretize_zoh(A, B, DT)
+        A_d_set[k], B_d_set[k] = Ad, Bd
+        e2_set[k] = th_eq
+        e3_l_set[k] = thl_eq
+        e3_r_set[k] = thr_eq
+        F, _ = solve_dare(Ad, Bd, S0, R_MAT, S0)
+        K_2d[k] = F
+    print(f"  Solved in {time.perf_counter()-t_fit:.1f}s")
 
-        t_loop = time.perf_counter(); seed = None; S0 = np.diag(Q_DIAG)
-        for k in range(N_LENGTHS):
-            h = h_vec[k]; seed = solver.solve(data, h, seed)
-            r_com, c_x = solver.leg_com(data)
-            A, B, th_eq, thl_eq, thr_eq = linearize_at_length(h, h, r_com, c_x, M_func, Bq_func, V_func)
-            max_eig = np.max(np.real(np.linalg.eigvals(A)))
-            Ad, Bd = discretize_zoh(A, B, DT)
-            F, _ = solve_dare(Ad, Bd, S0, R_MAT, S0); K_set[k] = F
-            max_ec = np.max(np.abs(np.linalg.eigvals(Ad - Bd @ F)))
-            st = "OK" if max_ec < 1 else "UNSTABLE!"
-            e2v[k] = th_eq; e3v[k] = thl_eq
-            print(f"{h:6.3f}  {th_eq:+9.6f}  {thl_eq:+9.6f}  {max_eig:11.4f}  {max_ec:11.6f}  {st}")
+    # ── Save A_d, B_d + equilibrium offsets ──
+    ab_path = Path("data/AB_sampling_points.npz")
+    ab_path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(str(ab_path),
+             L_l=L_l_flat, L_r=L_r_flat,
+             A_d=A_d_set, B_d=B_d_set,
+             e2=e2_set, e3_l=e3_l_set, e3_r=e3_r_set,
+             K=K_2d)
+    print(f"  A_d, B_d, K, e2, e3 -> {ab_path}")
 
-        t_loop = time.perf_counter() - t_loop
-        print(f"  {N_LENGTHS}pts in {t_loop:.1f}s ({t_loop/N_LENGTHS*1000:.0f}ms/pt)")
+    coeff_2d = fit_poly_2d(ORDER_2D, L_l_flat, L_r_flat, K_2d)
+    rel_err = assess_2d_fit(ORDER_2D, coeff_2d, L_l_flat, L_r_flat, K_2d)
+    max_err_pct = float(np.max(rel_err)) * 100
+    mean_err_pct = float(np.mean(rel_err)) * 100
+    print(f"  Fit accuracy: max={max_err_pct:.2f}%  mean={mean_err_pct:.2f}%  RMS relative error")
+    if max_err_pct < 5.0:
+        print("  OK: Fit accepted (max error < 5%)")
+    else:
+        print(f"  WARNING: max error = {max_err_pct:.2f}% > 5%")
 
-        tp = Path("data/lqr_gain_table_analytic.txt")
-        tp.parent.mkdir(parents=True, exist_ok=True)
-        with open(tp, "w") as f:
-            for k in range(N_LENGTHS):
-                f.write(f"{h_vec[k]:.2f}\n"); f.write(f"theta_balance = {e2v[k]:.6f}\n")
-                f.write("F_convergence:\n"); K = K_set[k]; f.write("[[")
-                for i in range(4):
-                    row = " ".join(f"{K[i,j]:12.8f}" for j in range(10))
-                    if i == 0:   f.write(f"  {row}\n")
-                    elif i < 3:  f.write(f" [  {row}]\n")
-                    else:        f.write(f" [  {row}]]\n")
-                f.write("\n")
-        print(f"\nGain table -> {tp}")
+    # ── Export C header ──
+    h_path = Path("data/k_table_2d.h")
+    export_c_header_2d(ORDER_2D, coeff_2d, str(h_path))
 
-        coeff = fit_poly_4th(h_vec, K_set)
-        pp = Path("data/change_length_fit_analytic.py")
-        with open(pp, "w") as f:
-            f.write("import numpy as np\n\nclass ChangeLengthFit:\n")
-            f.write("    def __init__(self):\n")
-            f.write(f"        self.k_coeff=np.array({coeff.tolist()})\n")
-            f.write("        self.theta_coeff=np.zeros(5); self.e1_coeff=np.zeros(5)\n")
-            f.write("        self.e2_coeff=np.zeros(5); self.e3_coeff=np.zeros(5)\n\n")
-            f.write("    def _poly5(self,c,L):\n        return c[0]*L**4+c[1]*L**3+c[2]*L**2+c[3]*L+c[4]\n\n")
-            f.write("    def get_K(self,L):\n        K=np.zeros((4,10))\n")
-            f.write("        for i in range(4):\n            for j in range(10):\n")
-            f.write("                K[i,j]=self._poly5(self.k_coeff[i,j,:],L)\n        return K\n")
-        print(f"1D polynomial fit -> {pp}")
+    # ── Fit e2(L) and e3(L) 1D polynomials + save all coefficients ──
+    avg_L = 0.5 * (L_l_flat + L_r_flat)
+    A_e = np.column_stack([avg_L**4, avg_L**3, avg_L**2, avg_L, np.ones_like(avg_L)])
+    E2_COEFF = np.linalg.lstsq(A_e, e2_set, rcond=None)[0]
+    E3_COEFF = np.linalg.lstsq(A_e, 0.5*(e3_l_set + e3_r_set), rcond=None)[0]
 
-    # ════════════════════════════════════════════════════════════════
-    #  2D: asymmetric leg lengths + C header
-    # ════════════════════════════════════════════════════════════════
-    if do_2d:
-        ORDER_2D = 6
-        N_2D = args.grid_size
-        h_2d = np.linspace(H_MIN, H_MAX, N_2D)
-        L_l_grid, L_r_grid = np.meshgrid(h_2d, h_2d)
-        L_l_flat = L_l_grid.ravel()
-        L_r_flat = L_r_grid.ravel()
-        n_2d = len(L_l_flat)
-        K_2d = np.zeros((n_2d, 4, 10))
-        S0 = np.diag(Q_DIAG)
-
-        print(f"\n=== 6th-order 2D polynomial fit (asymmetric legs) ===")
-        print(f"  Grid: {N_2D}x{N_2D} = {n_2d} points, order={ORDER_2D}")
-        t_fit = time.perf_counter(); seed_2d = None
-        for k in range(n_2d):
-            L_l, L_r = float(L_l_flat[k]), float(L_r_flat[k])
-            seed_2d = solver.solve(data, 0.5 * (L_l + L_r), seed_2d)
-            r_com, c_x = solver.leg_com(data)
-            A, B, _, _, _ = linearize_at_length(L_l, L_r, r_com, c_x, M_func, Bq_func, V_func)
-            Ad, Bd = discretize_zoh(A, B, DT)
-            F, _ = solve_dare(Ad, Bd, S0, R_MAT, S0)
-            K_2d[k] = F
-        print(f"  Solved in {time.perf_counter()-t_fit:.1f}s")
-
-        coeff_2d = fit_poly_2d(ORDER_2D, L_l_flat, L_r_flat, K_2d)
-        rel_err = assess_2d_fit(ORDER_2D, coeff_2d, L_l_flat, L_r_flat, K_2d)
-        max_err_pct = float(np.max(rel_err)) * 100
-        mean_err_pct = float(np.mean(rel_err)) * 100
-        print(f"  Fit accuracy: max={max_err_pct:.2f}%  mean={mean_err_pct:.2f}%  RMS relative error")
-        if max_err_pct < 5.0:
-            print("  OK: Fit accepted (max error < 5%)")
-        else:
-            print(f"  WARNING: max error = {max_err_pct:.2f}% > 5%")
-
-        h_path = Path("data/k_table_2d.h")
-        export_c_header_2d(ORDER_2D, coeff_2d, str(h_path))
+    np.save("data/_E2_COEFF.npy", E2_COEFF)
+    np.save("data/_E3_COEFF.npy", E3_COEFF)
+    np.save("data/_K2D_COEFF.npy", coeff_2d)
+    print(f"  .npy coefficients -> data/_*_COEFF.npy")
 
     print(f"\nTotal: {time.perf_counter()-t0:.1f}s")
-    if do_1d:
-        print("Simulation: python -u sim/main.py --lqr-gain-table data/lqr_gain_table_analytic.txt")
-    if do_2d:
-        print('MCU:  #include "data/k_table_2d.h"  ->  k_table_2d_eval(L_l, L_r, k_out)')
+    print('MCU:  #include "data/k_table_2d.h"  ->  k_table_2d_eval(L_l, L_r, k_out)')
 
 
 if __name__ == "__main__":

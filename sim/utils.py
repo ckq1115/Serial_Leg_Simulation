@@ -51,3 +51,24 @@ def require_actuator_order(model, expected):
     if actual != expected:
         raise RuntimeError(f"Unexpected actuator order: expected={expected}, actual={actual}")
     return actual
+
+
+class ContinuousAngle:
+    """角度连续化解包器，用于将从 IMU 读到的 ±π 包裹角度展开为无跳变的连续角度。"""
+
+    def __init__(self):
+        self.last_wrapped = None
+        self.value = 0.0
+
+    def reset(self, wrapped_angle=0.0):
+        self.last_wrapped = normalize_angle(wrapped_angle)
+        self.value = self.last_wrapped
+
+    def update(self, wrapped_angle):
+        wrapped_angle = normalize_angle(wrapped_angle)
+        if self.last_wrapped is None:
+            self.reset(wrapped_angle)
+            return self.value
+        self.value += normalize_angle(wrapped_angle - self.last_wrapped)
+        self.last_wrapped = wrapped_angle
+        return self.value

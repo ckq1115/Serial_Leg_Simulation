@@ -1,6 +1,6 @@
 <mujoco model="serial_five_link_wheel_leg">
     <compiler angle="degree" autolimits="true"/>
-    <option timestep="0.002" integrator="RK4" gravity="0 0 -9.81"/>
+    <option timestep="0.002" integrator="implicitfast" gravity="0 0 -9.81"/>
 
     <default>
         <joint axis="0 1 0" damping="0.01"/>
@@ -18,6 +18,10 @@
         </default>
     </default>
 
+    <asset>
+        <mesh name="ramp_wedge" file="ramp_wedge.stl"/>
+    </asset>
+
     <worldbody>
         <!-- 唯一光源 -->
         <light name="key_light" directional="true" diffuse="0.5 0.5 0.5" pos="0 0 3" dir="0 0 -1"/>
@@ -30,11 +34,19 @@
               rgba="0.6 0.6 0.6 1"
               friction="1.0 0.001 0.0001" condim="6"/>
 
+        <!-- 17° 楔形斜坡，直角三角形截面，底边 1.145m，高 0.6m，宽 2m -->
+        <body name="ramp" pos="2.0 0 0">
+            <geom name="ramp_geom" type="mesh" mesh="ramp_wedge"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.001"
+                  rgba="0.55 0.45 0.35 1"/>
+        </body>
+
         <!-- 基座（车身） -->
         <body name="base" pos="0 0 0.245">
             <freejoint name="base_free"/>
-            <inertial pos="0 0 0" mass="20.275132741229"
-                      diaginertia="0.304356536822 0.156700286822 0.156098776548"/>
+            <inertial pos="0 0 0" mass="15.0"
+                      diaginertia="0.22517 0.11593 0.115485"/>
             <site name="imu" pos="0 0 0" size="0.01" rgba="1 0 0 1"/>
             <geom name="base_body" type="box" size="0.15 0.15 0.025" rgba="0.6 0.6 0.6 1"/>
             <geom name="left_hip_mount" type="box" pos="0 0.155 0" size="0.026 0.005 0.026"
