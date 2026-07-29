@@ -37,12 +37,12 @@ H_MIN, H_MAX = 0.106, 0.366
 # LQR 状态权重 Q（10×10 对角）
 # 状态:      x    yaw   pitch  th_L   th_R   x_dot yaw_dot pitch_dot th_L_dot th_R_dot
 Q_DIAG = np.array([
-    300,   # x
+    10,   # x
     5,     # yaw
     15000, # pitch
     2000,   # theta_L
     2000,   # theta_R
-    300,   # x_dot
+    80,   # x_dot
     10,     # yaw_dot
     8,     # pitch_dot
     10,    # theta_L_dot
@@ -57,12 +57,7 @@ R_MAT  = np.diag([
     1.0,  # T_wL
     1.0,  # T_wR
 ])
-
-# 运行:
-#   python tools/derive_linear_model.py                         # 全部 (1D + 2D)
-#   python tools/derive_linear_model.py --mode 1d               # 仅对称 1D
-#   python tools/derive_linear_model.py --mode 2d               # 仅非对称 2D + C header
-#   python tools/derive_linear_model.py --mode 2d --grid-size 20  # 20x20 网格
+# python tools/linearize.py --grid-size 27
 
 
 # ══════════════════════════════════════════════════════════════════════

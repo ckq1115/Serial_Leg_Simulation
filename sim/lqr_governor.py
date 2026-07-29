@@ -85,7 +85,10 @@ class LqrReferenceGovernor:
                 self.yaw_rate_accel,
             ))
 
-        self.x += self.x_dot * self.dt
+        # 松开方向键时冻结位置目标，避免位置持续积分导致的超调。
+        # 速度目标仍正常 ramp 到零，LQR 会自然产生制动力矩使机器人停在原地。
+        if abs(speed_axis) > 1e-6:
+            self.x += self.x_dot * self.dt
         self.yaw += self.yaw_dot * self.dt
         self.last_speed_axis = speed_axis
         self.last_yaw_axis = yaw_axis
