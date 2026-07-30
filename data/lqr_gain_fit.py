@@ -21,8 +21,10 @@ _K2D_ORDER = int((np.sqrt(8 * _K2D_N_TERMS + 1) - 3) / 2)
 if (_K2D_ORDER + 1) * (_K2D_ORDER + 2) // 2 != _K2D_N_TERMS:
     raise ValueError(f"Invalid triangular K coefficient count: {_K2D_N_TERMS}")
 
-H_MIN = 0.106
-H_MAX = 0.366
+_U_EQ_COEFF = np.load(_data_dir / "_U_EQ_COEFF.npy")  # (4, 1, n_terms)
+
+H_MIN = 0.156
+H_MAX = 0.356
 
 
 def _poly4(c, L):
@@ -74,3 +76,15 @@ def get_K(L_l, L_r):
         for j in range(10):
             K[i, j] = np.dot(c[i, j, :], terms)
     return K
+
+
+def get_u_eq(L_l, L_r):
+    """Return 4-vector of equilibrium control torques [tau_L,tau_R,T_wL,T_wR] at (L_l, L_r).
+    u_eq = pinv(Bq) * G(q_eq) — the control effort that balances gravity at equilibrium.
+    """
+    terms = _poly2d_terms(_K2D_ORDER, L_l, L_r)
+    c = _U_EQ_COEFF  # (4, 1, n_terms)
+    u = np.zeros(4)
+    for i in range(4):
+        u[i] = np.dot(c[i, 0, :], terms)
+    return u

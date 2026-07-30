@@ -5,14 +5,14 @@ Uses SymPy Lagrangian dynamics + MuJoCo LegPoseSolver for leg COM geometry.
 Outputs 2D Chebyshev gain fits to data/lqr_gain_fit.py and data/k_table_2d.h.
 
 Usage:
-  python tools/linearize.py                    # 2D Chebyshev table (default 14×14)
+  python tools/linearize.py                    # 2D Chebyshev table
   python tools/linearize.py --grid-size 27     # finer grid
 """
 
 import sys, time, argparse
 from pathlib import Path
 import numpy as np
-from scipy.linalg import expm
+from scipy.linalg import expm, solve_discrete_are
 from scipy.optimize import fsolve, brentq, least_squares
 import mujoco as mj
 import sympy as sp
@@ -27,33 +27,33 @@ from utils import load_config, resolve_project_path  # type: ignore[import-untyp
 M_BODY = 15.0
 M_WHEEL = 0.353429173529
 M_LEG   = 0.13482+0.1554+0.230811+0.11718+0.349772111111+0.23625
-I_BODY_YY = 0.156700286822; I_BODY_ZZ = 0.156098776548
+I_BODY_YY = 0.11593; I_BODY_ZZ = 0.115485  # from serial_leg.xml diaginertia
 I_WHEEL_YY = 0.000441786467; I_WHEEL_ZZ = 0.000223838477
 WHEEL_RADIUS = 0.05; HALF_TRACK = 0.165
 GRAVITY = 9.81; L_BODY_COM = 0.0
 DT = 0.002; N_ITER_DARE = 100000
-H_MIN, H_MAX = 0.106, 0.366
+H_MIN, H_MAX = 0.156, 0.356
 
 # LQR 状态权重 Q（10×10 对角）
 # 状态:      x    yaw   pitch  th_L   th_R   x_dot yaw_dot pitch_dot th_L_dot th_R_dot
 Q_DIAG = np.array([
     10,   # x
-    5,     # yaw
-    15000, # pitch
-    2000,   # theta_L
-    2000,   # theta_R
-    80,   # x_dot
-    10,     # yaw_dot
-    8,     # pitch_dot
-    10,    # theta_L_dot
-    10,    # theta_R_dot
+    1,   # yaw
+    10000,   # pitch
+    4000,   # th_L
+    4000,   # th_R
+    10,   # x_dot
+    1,   # yaw_dot
+    15,   # pitch_dot
+    3,   # thL_dot
+    3,   # thR_dot
 ])
 
 # LQR 控制权重 R（4×4 对角）
 # 控制:    tau_L  tau_R  T_wL   T_wR
 R_MAT  = np.diag([
-    0.8,  # tau_L
-    0.8,  # tau_R
+    1.0,  # tau_L
+    1.0,  # tau_R
     1.0,  # T_wL
     1.0,  # T_wR
 ])
@@ -267,9 +267,18 @@ def linearize_at_length(L_l, L_r, r_com, c_x, M_func, Bq_func, V_func, eq_stats=
     Mi=np.linalg.inv(M)
     A=np.zeros((10,10)); A[0:5,5:10]=np.eye(5)
     A[5:10,0:5]=-Mi@Kg
-    Dd=np.diag([0.1,0.1,0.15,0.06,0.06]); A[5:10,5:10]=-Mi@Dd
+    Dd=np.zeros(5); A[5:10,5:10]=-Mi@np.diag(Dd)
     B=np.zeros((10,4)); B[5:10,:]=Mi@Bq
-    return A,B,th_eq,thl_eq,thr_eq
+
+    # equilibrium control: G(q_eq) = Bq * u_eq  =>  u_eq = pinv(Bq) * G
+    eps_g = 1e-5
+    G_eq = np.zeros(5)
+    for i in range(5):
+        qp = list(q_eq); qp[i] += eps_g
+        G_eq[i] = (V_func(*p, *qp) - V_func(*p, *q_eq)) / eps_g
+    u_eq = np.linalg.lstsq(Bq, G_eq, rcond=None)[0]  # 4-vector
+
+    return A, B, u_eq, th_eq, thl_eq, thr_eq
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -280,14 +289,27 @@ def discretize_zoh(A,B,dt):
     n,m=A.shape[0],B.shape[1]; M=np.zeros((n+m,n+m)); M[:n,:n]=A; M[:n,n:]=B; M*=dt; E=expm(M)
     return E[:n,:n],E[:n,n:]
 
-def solve_dare(Ad,Bd,Q,R,S,n_iter=N_ITER_DARE):
-    P=S.copy()
-    for _ in range(n_iter):
-        F=np.linalg.inv(Bd.T@P@Bd+R)@(Bd.T@P@Ad)
-        Pn=(Ad-Bd@F).T@P@(Ad-Bd@F)+F.T@R@F+Q
-        if np.linalg.norm(Pn-P,'fro')/max(np.linalg.norm(P,'fro'),1e-15)<1e-8: P=Pn; break
-        P=Pn
-    return np.linalg.inv(Bd.T@P@Bd+R)@(Bd.T@P@Ad),P
+def solve_dare(Ad, Bd, Q, R, S=None, n_iter=N_ITER_DARE):
+    """Solve discrete ARE via Schur decomposition (numerically stable).
+    Falls back to backward iteration if Schur solver fails.
+    """
+    try:
+        P = solve_discrete_are(Ad, Bd, Q, R)
+        K = np.linalg.solve(Bd.T @ P @ Bd + R, Bd.T @ P @ Ad)
+        return K, P
+    except (np.linalg.LinAlgError, ValueError):
+        # fallback: backward iteration with warm start from Q
+        if S is None:
+            S = Q
+        P = S.copy()
+        for _ in range(max(n_iter, 50000)):
+            F = np.linalg.inv(Bd.T @ P @ Bd + R) @ (Bd.T @ P @ Ad)
+            Pn = (Ad - Bd @ F).T @ P @ (Ad - Bd @ F) + F.T @ R @ F + Q
+            if np.linalg.norm(Pn - P, 'fro') / max(np.linalg.norm(P, 'fro'), 1e-15) < 1e-10:
+                P = Pn
+                break
+            P = Pn
+        return np.linalg.inv(Bd.T @ P @ Bd + R) @ (Bd.T @ P @ Ad), P
 
 # ══════════════════════════════════════════════════════════════════════
 #  2D Chebyshev polynomial fit + C header export（手册 §5.6, §12）
@@ -333,12 +355,12 @@ def poly2d_design_matrix(p, L_l_vec, L_r_vec):
 def fit_poly_2d(p, L_l_vec, L_r_vec, K_2d):
     """Fit p-th order triangular 2D Chebyshev basis to each K[i,j].
 
-    K_2d shape: (n_samples, 4, 10)
-    Returns coeff shape: (4, 10, n_terms)
+    K_2d shape: (n_samples, n_out, n_state)
+    Returns coeff shape: (n_out, n_state, n_terms)
     """
     n_samples = len(L_l_vec)
     n_terms = (p + 1) * (p + 2) // 2
-    no, ns = 4, 10
+    no, ns = K_2d.shape[1], K_2d.shape[2]
     coeff = np.zeros((no, ns, n_terms))
     A = poly2d_design_matrix(p, L_l_vec, L_r_vec)
     for i in range(no):
@@ -348,9 +370,9 @@ def fit_poly_2d(p, L_l_vec, L_r_vec, K_2d):
 
 
 def eval_poly_2d(p, coeff, L_l, L_r):
-    """Evaluate 2D Chebyshev fit at (L_l, L_r). coeff shape: (4, 10, n_terms)."""
+    """Evaluate 2D Chebyshev fit at (L_l, L_r). coeff shape: (n_out, n_state, n_terms)."""
     terms = poly2d_terms(p, L_l, L_r)
-    no, ns = 4, 10
+    no, ns = coeff.shape[0], coeff.shape[1]
     K = np.zeros((no, ns))
     for i in range(no):
         for j in range(ns):
@@ -360,7 +382,7 @@ def eval_poly_2d(p, coeff, L_l, L_r):
 
 def assess_2d_fit(p, coeff, L_l_vec, L_r_vec, K_ref):
     """Compute max relative RMS error across all K elements."""
-    no, ns = 4, 10
+    no, ns = coeff.shape[0], coeff.shape[1]
     n_samples = len(L_l_vec)
     errors = np.zeros((no, ns, n_samples))
     rms_ref = np.zeros((no, ns))
@@ -489,6 +511,7 @@ def main():
     L_r_flat = L_r_grid.ravel()
     n_2d = len(L_l_flat)
     K_2d = np.zeros((n_2d, 4, 10))
+    u_eq_set = np.zeros((n_2d, 4))  # equilibrium control at each grid point
     # Store A_d, B_d, equilibrium offsets at each grid point
     A_d_set = np.zeros((n_2d, 10, 10))
     B_d_set = np.zeros((n_2d, 10, 4))
@@ -496,6 +519,8 @@ def main():
     e3_l_set = np.zeros(n_2d)
     e3_r_set = np.zeros(n_2d)
     S0 = np.diag(Q_DIAG)
+    eig_max_track = np.zeros(n_2d)
+    K_abs_max_track = np.zeros(n_2d)
 
     print(f"\n=== {ORDER_2D}th-order 2D Chebyshev fit (asymmetric legs) ===")
     print(f"  Grid: {N_2D}x{N_2D} = {n_2d} points, order={ORDER_2D}")
@@ -511,8 +536,9 @@ def main():
         L_l, L_r = float(L_l_flat[k]), float(L_r_flat[k])
         seed_2d = solver.solve(data, 0.5 * (L_l + L_r), seed_2d)
         r_com, c_x = solver.leg_com(data)
-        A, B, th_eq, thl_eq, thr_eq = linearize_at_length(
+        A, B, u_eq, th_eq, thl_eq, thr_eq = linearize_at_length(
             L_l, L_r, r_com, c_x, M_func, Bq_func, V_func, eq_stats)
+        u_eq_set[k] = u_eq
         Ad, Bd = discretize_zoh(A, B, DT)
         A_d_set[k], B_d_set[k] = Ad, Bd
         e2_set[k] = th_eq
@@ -520,7 +546,57 @@ def main():
         e3_r_set[k] = thr_eq
         F, _ = solve_dare(Ad, Bd, S0, R_MAT, S0)
         K_2d[k] = F
+        eig_max_track[k] = np.max(np.abs(np.linalg.eigvals(Ad - Bd @ F)))
+        K_abs_max_track[k] = np.max(np.abs(F))
     print(f"  Solved in {time.perf_counter()-t_fit:.1f}s")
+    # ── Closed-loop stability + K matrix diagnostics ──
+    eig_worst_idx = int(np.argmax(eig_max_track))
+    # also track max eigenvalue excluding position integrators (x, psi)
+    eig_max_dyn_track = np.zeros(n_2d)
+    for k in range(n_2d):
+        ev = np.linalg.eigvals(A_d_set[k] - B_d_set[k] @ K_2d[k])
+        # exclude states 0 (x) and 1 (psi) — pure integrators, their poles
+        # near 1.0 are expected for velocity-controlled systems
+        ev_abs = np.abs(ev)
+        # zero out the two eigenvalues with eigenvectors most aligned to x/psi
+        ev_sorted = np.sort(ev_abs)
+        eig_max_dyn_track[k] = ev_sorted[-3]  # 3rd-largest, skipping x & psi
+    eig_dyn_worst = int(np.argmax(eig_max_dyn_track))
+    print(f"  Closed-loop max|lambda|: {eig_max_track[eig_worst_idx]:.4f}  "
+          f"(all states, worst at L_l={L_l_flat[eig_worst_idx]:.3f}, L_r={L_r_flat[eig_worst_idx]:.3f})")
+    print(f"  Closed-loop max|lambda| (dynamic): {eig_max_dyn_track[eig_dyn_worst]:.4f}  "
+          f"(excl. x/psi, worst at L_l={L_l_flat[eig_dyn_worst]:.3f}, L_r={L_r_flat[eig_dyn_worst]:.3f})")
+    if eig_max_dyn_track[eig_dyn_worst] >= 1.0:
+        print(f"  ** ERROR: unstable dynamic pole (pitch/leg modes) **")
+    elif eig_max_dyn_track[eig_dyn_worst] > 0.99:
+        print(f"  ** WARNING: dynamic pole near unit circle (max|lambda|_dyn > 0.99) **")
+    if eig_max_track[eig_worst_idx] >= 1.0:
+        print(f"  ** ERROR: unstable closed-loop pole (incl. integrators) **")
+    elif eig_max_track[eig_worst_idx] > 0.99 and eig_max_dyn_track[eig_dyn_worst] < 0.98:
+        print(f"  NOTE: max|lambda| near 1.0 is from x/psi integrators — "
+              f"increase Q[0]/Q[1] for position feedback, or ignore if velocity-only control")
+    K_worst_idx = int(np.argmax(K_abs_max_track))
+    print(f"  K matrix |element| range: "
+          f"min={np.min(K_2d):.3e}  max={np.max(K_2d):.3e}  "
+          f"median={np.median(K_2d):.3e}")
+    if np.max(K_2d) > 5000:
+        print(f"  ** WARNING: K element > 5000 at L_l={L_l_flat[K_worst_idx]:.3f}, "
+              f"L_r={L_r_flat[K_worst_idx]:.3f} — check Q/R scaling **")
+    if np.max(K_2d) > 1e5:
+        print(f"  ** ERROR: K element magnitude explosion — Q/R ratio likely wrong **")
+    # per-point listing of near-unstable DYNAMIC poles (capped at 10)
+    bad_mask = eig_max_dyn_track > 0.99
+    n_bad = int(np.sum(bad_mask))
+    if n_bad > 0:
+        bad_idx = np.where(bad_mask)[0]
+        show_n = min(n_bad, 10)
+        print(f"  Near-unstable dynamic poles (max|lambda|_dyn > 0.99): {n_bad}/{n_2d}"
+              + (f"  (showing first {show_n})" if n_bad > 10 else ""))
+        for idx in bad_idx[:show_n]:
+            print(f"    L_l={L_l_flat[idx]:.4f}  L_r={L_r_flat[idx]:.4f}  "
+                  f"max|lambda|_dyn={eig_max_dyn_track[idx]:.4f}")
+        if n_bad > show_n:
+            print(f"    ... and {n_bad - show_n} more")
     if eq_stats["worst"] is not None:
         Ll_w, Lr_w, ier_w, msg_w, res_w = eq_stats["worst"]
         print(
@@ -537,8 +613,8 @@ def main():
              L_l=L_l_flat, L_r=L_r_flat,
              A_d=A_d_set, B_d=B_d_set,
              e2=e2_set, e3_l=e3_l_set, e3_r=e3_r_set,
-             K=K_2d)
-    print(f"  A_d, B_d, K, e2, e3 -> {ab_path}")
+             u_eq=u_eq_set, K=K_2d)
+    print(f"  A_d, B_d, K, u_eq, e2, e3 -> {ab_path}")
 
     coeff_2d = fit_poly_2d(ORDER_2D, L_l_flat, L_r_flat, K_2d)
     cond_2d = float(np.linalg.cond(poly2d_design_matrix(ORDER_2D, L_l_flat, L_r_flat)))
@@ -556,6 +632,15 @@ def main():
     # ── Export C header ──
     h_path = Path("data/k_table_2d.h")
     export_c_header_2d(ORDER_2D, coeff_2d, str(h_path))
+
+    # ── Fit u_eq 2D Chebyshev ──
+    coeff_u_eq = fit_poly_2d(ORDER_2D, L_l_flat, L_r_flat,
+                              u_eq_set.reshape(n_2d, 4, 1))
+    rel_u = assess_2d_fit(ORDER_2D, coeff_u_eq, L_l_flat, L_r_flat,
+                          u_eq_set.reshape(n_2d, 4, 1))
+    print(f"  u_eq range: [{np.min(u_eq_set):.2f}, {np.max(u_eq_set):.2f}] Nm  "
+          f"fit max err={float(np.max(rel_u))*100:.2f}%")
+    np.save("data/_U_EQ_COEFF.npy", coeff_u_eq)
 
     # ── Fit e2(L) and e3(L) 1D polynomials + save all coefficients ──
     avg_L = 0.5 * (L_l_flat + L_r_flat)

@@ -36,7 +36,6 @@ Desktop.ini
 # === 仿真运行时产物 ===
 *.log
 *.npz
-*.npy
 
 # === Jupyter ===
 .ipynb_checkpoints/

@@ -226,7 +226,6 @@ Serial_Leg_Simulation/
 │   ├── kalman.py                  # KalmanOdometry: 2-D Kalman 滤波器（§7）
 │   ├── lqr_governor.py            # LqrReferenceGovernor: 参考调速器（§4-5）
 │   ├── ground_contact.py          # GroundContactDetector: 离地/卡死/打滑检测（§9）
-│   ├── jump_state_machine.py      # JumpStateMachine: 跳跃状态机（§10）
 │   ├── keyboard_reader.py         # 键盘输入读取
 │   ├── utils.py                   # 工具函数 + ContinuousAngle
 │   └── __init__.py                # 包初始化 + 公共 API 导出

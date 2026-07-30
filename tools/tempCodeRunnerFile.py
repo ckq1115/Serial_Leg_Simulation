@@ -1,0 +1,1 @@
+python tools/linearize.py --grid-size 27

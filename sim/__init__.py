@@ -7,7 +7,6 @@
   kalman.py         — 手册 §7: 2-D Kalman 滤波器
   lqr_governor.py   — 手册 §4-5: 参考调速器 + 增益调度
   ground_contact.py — 手册 §9: 地面接触检测
-  jump_state_machine.py — 手册 §10: 跳跃状态机
   controller.py     — 手册 §8, §13: 控制管线编排器
   keyboard_reader.py — 键盘输入读取
   utils.py          — 工具函数 + ContinuousAngle
@@ -19,8 +18,7 @@ from .pid import PID
 from .kalman import KalmanOdometry
 from .lqr_governor import LqrReferenceGovernor
 from .ground_contact import GroundContactDetector
-from .jump_state_machine import JumpStateMachine
-from .controller import StandController, JumpOverrides
+from .controller import StandController
 from .keyboard_reader import KeyboardHoldReader
 from .utils import (
     load_config, resolve_project_path, sensor_value,

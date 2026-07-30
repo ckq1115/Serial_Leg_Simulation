@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument("--length-velocity-force-limit", type=float, default=1000.0)
     parser.add_argument("--roll-force-limit", type=float, default=1000.0)
     parser.add_argument("--fall-angle", type=float, default=None)
-    parser.add_argument("--log-every", type=float, default=0.1)
+    parser.add_argument("--log-every", type=float, default=0.05)
     return parser.parse_args()
 
 def apply_initial_disturbance(data, args):
@@ -71,7 +71,7 @@ def run_with_viewer(controller, duration):
     keyboard_reader = None
     if controller.control_mode == "keyboard":
         keyboard_reader = KeyboardHoldReader()
-        print("Keyboard controls: Arrow keys for speed/yaw, Shift+Up/Down for leg length, Space for jump.")
+        print("Keyboard controls: Arrow keys for speed/yaw, Shift+Up/Down for leg length.")
     try:
         with mujoco.viewer.launch_passive(controller.model, controller.data) as viewer:
             while viewer.is_running() and (unlimited or controller.data.time < duration):
