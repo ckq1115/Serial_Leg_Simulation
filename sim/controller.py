@@ -70,11 +70,11 @@ class StandController:
         self.yaw_unwrapper = ContinuousAngle()
 
         # ── PID 模块（手册 §8.1-8.2）──
-        self.left_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
-        self.right_length_pos = PID(kp=2000.0, ki=0.0, kd=0.0)
+        self.left_length_pos = PID(kp=1500.0, ki=0.0, kd=4000.0)
+        self.right_length_pos = PID(kp=1500.0, ki=0.0, kd=4000.0)
         self.left_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.right_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
-        self.roll_pid = PID(kp=2000.0, ki=0.0, kd=1000.0)
+        self.roll_pid = PID(kp=2000.0, ki=0.0, kd=0.0)
 
         # ── 规划模块（手册 §4-5, §10）──
         control_cfg = cfg["control_initial"]
@@ -155,7 +155,7 @@ class StandController:
     def _reset_leg_length_targets(self):
         """Reset the requested leg-length endpoint and its smoothed trajectory."""
         if self.args.target_leg_length is None:
-            target_leg_length = 0.5 * (self.left_leg.length + self.right_leg.length)
+            target_leg_length = self.leg_length_min  # start from squat (match legwheel)
         else:
             target_leg_length = self.args.target_leg_length
         target_leg_length = float(np.clip(target_leg_length,
@@ -341,13 +341,7 @@ class StandController:
             self.leg_length_min,
             self.leg_length_max,
         ))
-        self.target_leg_length = float(np.clip(
-            approach_value(self.target_leg_length,
-                           self.target_leg_length_command,
-                           self.leg_length_rate * self.dt),
-            self.leg_length_min,
-            self.leg_length_max,
-        ))
+        self.target_leg_length = self.target_leg_length_command
 
     def _compute_forces(self, x_lqr, target, K_raw, state):
         """PID 力控综合。
@@ -434,7 +428,8 @@ class StandController:
         e3_l_adj = e3_l
         e3_r_adj = e3_r
 
-        zwL, zwR, zlL, zlR = self.gc.get_K_suppression_mask()
+        zwL, zwR, zlL, zlR = False, False, False, False  # TODO: re-enable ground contact detection
+        # self.gc.get_K_suppression_mask()
         if zwL: K_adj[2, :] = 0.0
         if zwR: K_adj[3, :] = 0.0
         if zlL: K_adj[0, :] = 0.0; e3_l_adj = -e3_l

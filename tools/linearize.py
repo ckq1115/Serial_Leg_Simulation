@@ -33,6 +33,7 @@ WHEEL_RADIUS = 0.05; HALF_TRACK = 0.165
 GRAVITY = 9.81; L_BODY_COM = 0.0
 DT = 0.002; N_ITER_DARE = 100000
 H_MIN, H_MAX = 0.156, 0.356
+_DATA_DIR = Path(__file__).resolve().parents[1] / "data"  # always Serial_Leg_Simulation/data/
 
 # LQR 状态权重 Q（10×10 对角）
 # 状态:      x    yaw   pitch  th_L   th_R   x_dot yaw_dot pitch_dot th_L_dot th_R_dot
@@ -40,13 +41,13 @@ Q_DIAG = np.array([
     10,   # x
     1,   # yaw
     10000,   # pitch
-    4000,   # th_L
-    4000,   # th_R
-    10,   # x_dot
+    1000,   # th_L
+    1000,   # th_R
+    5,   # x_dot
     1,   # yaw_dot
-    15,   # pitch_dot
-    3,   # thL_dot
-    3,   # thR_dot
+    1,   # pitch_dot
+    1,   # thL_dot
+    1,   # thR_dot
 ])
 
 # LQR 控制权重 R（4×4 对角）
@@ -159,15 +160,17 @@ def build_serial_model():
          +sp.Rational(1,2)*j_wy*((xd_s+swR*wd_s-sp.cos(thr_s)*L_r*thrd_s)/r)**2
          +sp.Rational(1,2)*j_wz*wd_s**2*2
          +sp.Rational(1,2)*j_ly*thld_s**2
-         +sp.Rational(1,2)*ml*((xd_s-slL*wd_s-sp.cos(thl_s)*(L_l-c_l)*thld_s)**2
+         +sp.Rational(1,2)*ml*((xd_s-slL*wd_s+sp.cos(thl_s)*c_l*thld_s)**2
                                 +(c_l*thld_s*sp.sin(thl_s))**2)
          +sp.Rational(1,2)*j_ry*thrd_s**2
-         +sp.Rational(1,2)*mr*((xd_s+slR*wd_s-sp.cos(thr_s)*(L_r-c_r)*thrd_s)**2
+         +sp.Rational(1,2)*mr*((xd_s+slR*wd_s+sp.cos(thr_s)*c_r*thrd_s)**2
                                 +(c_r*thrd_s*sp.sin(thr_s))**2)
          +sp.Rational(1,2)*j_y*thd_s**2
-         +sp.Rational(1,2)*m*(xd_s**2
-                               +(l_body*thd_s*sp.sin(th_s)
-                                  +(L_l+L_r)/2*(thld_s+thrd_s)/2*sp.sin((thl_s+thr_s)/2))**2)
+         +sp.Rational(1,2)*m*(
+            (xd_s + l_body*thd_s*sp.cos(th_s)
+                    + (L_l+L_r)/2*(thld_s+thrd_s)/2*sp.cos((thl_s+thr_s)/2))**2
+            + (l_body*thd_s*sp.sin(th_s)
+                + (L_l+L_r)/2*(thld_s+thrd_s)/2*sp.sin((thl_s+thr_s)/2))**2)
          +sp.Rational(1,2)*j_z*wd_s**2)
 
     # Potential Energy
@@ -511,7 +514,7 @@ def main():
     L_r_flat = L_r_grid.ravel()
     n_2d = len(L_l_flat)
     K_2d = np.zeros((n_2d, 4, 10))
-    u_eq_set = np.zeros((n_2d, 4))  # equilibrium control at each grid point
+    u_eq_set = np.zeros((n_2d, 4))
     # Store A_d, B_d, equilibrium offsets at each grid point
     A_d_set = np.zeros((n_2d, 10, 10))
     B_d_set = np.zeros((n_2d, 10, 4))
@@ -554,13 +557,18 @@ def main():
     # also track max eigenvalue excluding position integrators (x, psi)
     eig_max_dyn_track = np.zeros(n_2d)
     for k in range(n_2d):
-        ev = np.linalg.eigvals(A_d_set[k] - B_d_set[k] @ K_2d[k])
-        # exclude states 0 (x) and 1 (psi) — pure integrators, their poles
-        # near 1.0 are expected for velocity-controlled systems
-        ev_abs = np.abs(ev)
-        # zero out the two eigenvalues with eigenvectors most aligned to x/psi
-        ev_sorted = np.sort(ev_abs)
-        eig_max_dyn_track[k] = ev_sorted[-3]  # 3rd-largest, skipping x & psi
+        evals, evecs = np.linalg.eig(A_d_set[k] - B_d_set[k] @ K_2d[k])
+        ev_abs = np.abs(evals)
+        # Exclude eigenvalues whose eigenvectors are dominated by x (state 0)
+        # or psi (state 1) — those are pure integrators/near-integrators.
+        integrator_mask = np.zeros(len(evals), dtype=bool)
+        for j in range(len(evals)):
+            w = np.abs(evecs[:, j])
+            # if >50% of eigenvector weight is on x or psi, it's an integrator
+            if w[0] > 0.5 or w[1] > 0.5:
+                integrator_mask[j] = True
+        dyn_ev = ev_abs[~integrator_mask]
+        eig_max_dyn_track[k] = np.max(dyn_ev) if len(dyn_ev) > 0 else 0.0
     eig_dyn_worst = int(np.argmax(eig_max_dyn_track))
     print(f"  Closed-loop max|lambda|: {eig_max_track[eig_worst_idx]:.4f}  "
           f"(all states, worst at L_l={L_l_flat[eig_worst_idx]:.3f}, L_r={L_r_flat[eig_worst_idx]:.3f})")
@@ -607,7 +615,7 @@ def main():
             print(f"    worst message: {msg_w}")
 
     # ── Save A_d, B_d + equilibrium offsets ──
-    ab_path = Path("data/AB_sampling_points.npz")
+    ab_path = _DATA_DIR / "AB_sampling_points.npz"
     ab_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(str(ab_path),
              L_l=L_l_flat, L_r=L_r_flat,
@@ -630,17 +638,13 @@ def main():
         print(f"  WARNING: max error = {max_err_pct:.2f}% > 5%")
 
     # ── Export C header ──
-    h_path = Path("data/k_table_2d.h")
+    h_path = _DATA_DIR / "k_table_2d.h"
     export_c_header_2d(ORDER_2D, coeff_2d, str(h_path))
 
     # ── Fit u_eq 2D Chebyshev ──
     coeff_u_eq = fit_poly_2d(ORDER_2D, L_l_flat, L_r_flat,
                               u_eq_set.reshape(n_2d, 4, 1))
-    rel_u = assess_2d_fit(ORDER_2D, coeff_u_eq, L_l_flat, L_r_flat,
-                          u_eq_set.reshape(n_2d, 4, 1))
-    print(f"  u_eq range: [{np.min(u_eq_set):.2f}, {np.max(u_eq_set):.2f}] Nm  "
-          f"fit max err={float(np.max(rel_u))*100:.2f}%")
-    np.save("data/_U_EQ_COEFF.npy", coeff_u_eq)
+    np.save(str(_DATA_DIR / "_U_EQ_COEFF.npy"), coeff_u_eq)
 
     # ── Fit e2(L) and e3(L) 1D polynomials + save all coefficients ──
     avg_L = 0.5 * (L_l_flat + L_r_flat)
@@ -648,10 +652,10 @@ def main():
     E2_COEFF = np.linalg.lstsq(A_e, e2_set, rcond=None)[0]
     E3_COEFF = np.linalg.lstsq(A_e, 0.5*(e3_l_set + e3_r_set), rcond=None)[0]
 
-    np.save("data/_E2_COEFF.npy", E2_COEFF)
-    np.save("data/_E3_COEFF.npy", E3_COEFF)
-    np.save("data/_K2D_COEFF.npy", coeff_2d)
-    print(f"  .npy coefficients -> data/_*_COEFF.npy")
+    np.save(str(_DATA_DIR / "_E2_COEFF.npy"), E2_COEFF)
+    np.save(str(_DATA_DIR / "_E3_COEFF.npy"), E3_COEFF)
+    np.save(str(_DATA_DIR / "_K2D_COEFF.npy"), coeff_2d)
+    print(f"  .npy coefficients -> {_DATA_DIR}/_*_COEFF.npy")
 
     print(f"\nTotal: {time.perf_counter()-t0:.1f}s")
     print('MCU:  #include "data/k_table_2d.h"  ->  k_table_2d_eval(L_l, L_r, k_out)')

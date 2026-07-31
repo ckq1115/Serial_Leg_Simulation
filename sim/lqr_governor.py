@@ -30,6 +30,7 @@ class LqrReferenceGovernor:
         speed_axis = float(np.clip(speed_axis * self.speed_axis_sign, -1.0, 1.0))
         yaw_axis = float(np.clip(yaw_axis * self.yaw_axis_sign, -1.0, 1.0))
 
+        prev_x_dot = self.x_dot
         # Instant velocity (no ramps — matched to legwheel)
         self.x_dot = speed_axis * self.max_speed
 
@@ -37,6 +38,10 @@ class LqrReferenceGovernor:
             self.yaw_dot = yaw_axis * self.max_yaw_rate
         else:
             self.yaw_dot = yaw_axis * self.max_yaw_rate
+
+        # Snap position target on throttle release to prevent creep-back
+        if abs(self.x_dot) < 1e-6 and abs(prev_x_dot) > 1e-6 and current_x is not None:
+            self.x = current_x
 
         # Always integrate position (matched to legwheel)
         self.x += self.x_dot * self.dt

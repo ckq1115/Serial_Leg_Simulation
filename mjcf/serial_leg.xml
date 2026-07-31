@@ -59,7 +59,7 @@
         <body name="ramp" pos="2.0 0 0">
             <geom name="ramp_geom" type="mesh" mesh="ramp_wedge"
                   contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.001"
+                  friction="1.0 0.001 0.0001"
                   material="ramp_mat"/>
         </body>
 

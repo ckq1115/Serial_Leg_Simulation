@@ -157,6 +157,10 @@ control_initial:
     kp: 2000.0
     ki: 0.0
     kd: 1000.0
+  leg_length_trajectory:
+    min_length_m: 0.156
+    max_length_m: 0.356
+    max_rate_mps: 0.20
   lqr_target:
     # LQR 状态目标偏置。
     x_m: 0.0

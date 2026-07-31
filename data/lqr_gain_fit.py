@@ -16,12 +16,12 @@ _data_dir = Path(__file__).resolve().parent
 E2_COEFF = np.load(_data_dir / "_E2_COEFF.npy")
 E3_COEFF = np.load(_data_dir / "_E3_COEFF.npy")
 _K2D_COEFF = np.load(_data_dir / "_K2D_COEFF.npy")  # (4, 10, n_terms)
+_U_EQ_COEFF = np.load(_data_dir / "_U_EQ_COEFF.npy")  # (4, 1, n_terms)
 _K2D_N_TERMS = _K2D_COEFF.shape[2]
 _K2D_ORDER = int((np.sqrt(8 * _K2D_N_TERMS + 1) - 3) / 2)
 if (_K2D_ORDER + 1) * (_K2D_ORDER + 2) // 2 != _K2D_N_TERMS:
     raise ValueError(f"Invalid triangular K coefficient count: {_K2D_N_TERMS}")
 
-_U_EQ_COEFF = np.load(_data_dir / "_U_EQ_COEFF.npy")  # (4, 1, n_terms)
 
 H_MIN = 0.156
 H_MAX = 0.356
@@ -79,8 +79,9 @@ def get_K(L_l, L_r):
 
 
 def get_u_eq(L_l, L_r):
-    """Return 4-vector of equilibrium control torques [tau_L,tau_R,T_wL,T_wR] at (L_l, L_r).
-    u_eq = pinv(Bq) * G(q_eq) — the control effort that balances gravity at equilibrium.
+    """Return 4-vector equilibrium control [tau_L,tau_R,T_wL,T_wR] at (L_l, L_r).
+    u_eq = pinv(Bq) * G(q_eq) — the feedforward that balances gravity at equilibrium.
+    Non-zero when COM offset ≠ 0 or leg lengths are asymmetric.
     """
     terms = _poly2d_terms(_K2D_ORDER, L_l, L_r)
     c = _U_EQ_COEFF  # (4, 1, n_terms)
