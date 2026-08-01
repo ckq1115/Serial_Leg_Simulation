@@ -9,7 +9,7 @@
         <headlight ambient="0.22 0.22 0.22" diffuse="0.35 0.35 0.35" specular="0.08 0.08 0.08"/>
     </visual>
 
-    <statistic center="1.0 0 0" extent="6.0"/>
+    <statistic center="2.4 0 0.6" extent="5.4"/>
 
     <default>
         <joint axis="0 1 0" damping="0.01"/>
@@ -33,6 +33,8 @@
                  width="512" height="512"/>
         <material name="ground_mat" rgba="0.55 0.56 0.55 1"
                   reflectance="0.00" specular="0.18" shininess="0.25"/>
+        <material name="stair_mat" rgba="0.50 0.43 0.35 1"
+                  reflectance="0.00" specular="0.14" shininess="0.20"/>
         <material name="ramp_mat" rgba="0.50 0.43 0.35 1"
                   reflectance="0.00" specular="0.14" shininess="0.20"/>
         <mesh name="ramp_wedge" file="ramp_wedge.stl"/>
@@ -55,8 +57,52 @@
               material="ground_mat"
               friction="1.0 0.001 0.0001" condim="6"/>
 
-        <!-- 17° 楔形斜坡，直角三角形截面，底边 1.145m，高 0.6m，宽 2m -->
-        <body name="ramp" pos="2.0 0 0">
+        <!-- 十级下行台阶：沿 +x 方向下降；顶层平台 2m x 2m，其余踏步深度 0.20m；每级落差 0.12m。 -->
+        <body name="stairs" pos="0 0 0">
+            <geom name="stair_step_10_top" type="box" pos="0.000 0 0.600" size="1.000 1.0 0.600"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_9" type="box" pos="1.100 0 0.540" size="0.100 1.0 0.540"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_8" type="box" pos="1.300 0 0.480" size="0.100 1.0 0.480"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_7" type="box" pos="1.500 0 0.420" size="0.100 1.0 0.420"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_6" type="box" pos="1.700 0 0.360" size="0.100 1.0 0.360"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_5" type="box" pos="1.900 0 0.300" size="0.100 1.0 0.300"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_4" type="box" pos="2.100 0 0.240" size="0.100 1.0 0.240"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_3" type="box" pos="2.300 0 0.180" size="0.100 1.0 0.180"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_2" type="box" pos="2.500 0 0.120" size="0.100 1.0 0.120"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+            <geom name="stair_step_1_bottom" type="box" pos="2.700 0 0.060" size="0.100 1.0 0.060"
+                  contype="1" conaffinity="1" condim="6"
+                  friction="1.0 0.001 0.0001"
+                  material="stair_mat"/>
+        </body>
+
+        <!-- 飞坡：位于台阶末端前方 2.0m。 -->
+        <body name="ramp" pos="4.8 0 0">
             <geom name="ramp_geom" type="mesh" mesh="ramp_wedge"
                   contype="1" conaffinity="1" condim="6"
                   friction="1.0 0.001 0.0001"
@@ -64,7 +110,7 @@
         </body>
 
         <!-- 基座（车身） -->
-        <body name="base" pos="0 0 0.245">
+        <body name="base" pos="0 0 1.445">
             <freejoint name="base_free"/>
             <inertial pos="0 0 0" mass="15.0"
                       diaginertia="0.22517 0.11593 0.115485"/>

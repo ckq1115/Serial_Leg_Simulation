@@ -38,12 +38,12 @@ _DATA_DIR = Path(__file__).resolve().parents[1] / "data"  # always Serial_Leg_Si
 # LQR 状态权重 Q（10×10 对角）
 # 状态:      x    yaw   pitch  th_L   th_R   x_dot yaw_dot pitch_dot th_L_dot th_R_dot
 Q_DIAG = np.array([
-    10,   # x
-    1,   # yaw
+    500,   # x
+    10,   # yaw
     10000,   # pitch
     1000,   # th_L
     1000,   # th_R
-    5,   # x_dot
+    10,   # x_dot
     1,   # yaw_dot
     1,   # pitch_dot
     1,   # thL_dot
@@ -55,8 +55,8 @@ Q_DIAG = np.array([
 R_MAT  = np.diag([
     1.0,  # tau_L
     1.0,  # tau_R
-    1.0,  # T_wL
-    1.0,  # T_wR
+    0.7,  # T_wL
+    0.7,  # T_wR
 ])
 # python tools/linearize.py --grid-size 27
 

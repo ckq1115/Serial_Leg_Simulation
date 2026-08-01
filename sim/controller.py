@@ -30,6 +30,7 @@ from pid import PID                       # 手册 §8: PID 控制器
 from kalman import KalmanOdometry         # 手册 §7: Kalman 状态估计
 from lqr_governor import LqrReferenceGovernor  # 手册 §4-5: 参考调速器
 from ground_contact import GroundContactDetector  # 手册 §9: 地面接触检测
+from jump_state_machine import JumpCommand, JumpStateMachine  # 手册 §10: 跳跃状态机
 
 
 class StandController:
@@ -70,11 +71,11 @@ class StandController:
         self.yaw_unwrapper = ContinuousAngle()
 
         # ── PID 模块（手册 §8.1-8.2）──
-        self.left_length_pos = PID(kp=1500.0, ki=0.0, kd=4000.0)
-        self.right_length_pos = PID(kp=1500.0, ki=0.0, kd=4000.0)
+        self.left_length_pos = PID(kp=1500.0, ki=0.0, kd=40.0)
+        self.right_length_pos = PID(kp=1500.0, ki=0.0, kd=40.0)
         self.left_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
         self.right_length_vel = PID(kp=100.0, ki=0.0, kd=0.0)
-        self.roll_pid = PID(kp=2000.0, ki=0.0, kd=0.0)
+        self.roll_pid = PID(kp=1000.0, ki=0.0, kd=0.0)
 
         # ── 规划模块（手册 §4-5, §10）──
         control_cfg = cfg["control_initial"]
@@ -96,6 +97,16 @@ class StandController:
         self.leg_length_min = float(leg_traj_cfg.get("min_length_m", five_link_cfg["min_length_m"]))
         self.leg_length_max = float(leg_traj_cfg.get("max_length_m", five_link_cfg["max_length_m"]))
         self.leg_length_rate = abs(float(leg_traj_cfg.get("max_rate_mps", 0.20)))
+        jump_cfg = control_cfg.get("jump", {})
+        self.jump = JumpStateMachine(self.dt, jump_cfg,
+                                     self.leg_length_min, self.leg_length_max)
+        self.jump_target_leg_rate = abs(float(jump_cfg.get("target_leg_rate_mps", 2.0)))
+        self.jump_command = JumpCommand(False, "READY", None, 0.0,
+                                        1.0, 1.0, False, False)
+        self.jump_was_active = False
+        self.jump_leg_length_setpoint = None
+        self.jump_hold_x = None
+        self.jump_hold_yaw = None
         self.reference_governor = None
         if self.control_mode == "keyboard":
             self.reference_governor = LqrReferenceGovernor(self.dt, control_cfg, args)
@@ -147,6 +158,13 @@ class StandController:
             self.target_yaw = self.reference_governor.yaw
             self.target_x_dot = self.reference_governor.x_dot
             self.target_yaw_dot = self.reference_governor.yaw_dot
+        self.jump.reset()
+        self.jump_command = JumpCommand(False, "READY", None, 0.0,
+                                        1.0, 1.0, False, False)
+        self.jump_was_active = False
+        self.jump_leg_length_setpoint = None
+        self.jump_hold_x = None
+        self.jump_hold_yaw = None
         self.refresh_kinematics()
         self._reset_leg_length_targets()
 
@@ -278,6 +296,10 @@ class StandController:
         # ── Stage 2: 规划（§4-5）──
         self._update_navigation(keyboard_axes, state["yaw_continuous"],
                                 current_x=float(x_lqr[0, 0]))
+        Fn_l, Fn_r = self.compute_foot_forces(state)
+        self._update_jump_plan(state, Fn_l, Fn_r,
+                               current_yaw=state["yaw_continuous"],
+                               current_x=float(x_lqr[0, 0]))
         K_raw = get_K(self.left_leg.length, self.right_leg.length)  # 2D Chebyshev
         e2 = get_e2(self.left_leg.length, self.right_leg.length)
         e3_l, e3_r = get_e3(self.left_leg.length, self.right_leg.length)
@@ -302,19 +324,27 @@ class StandController:
     #  Stage 0 私有方法
     # ══════════════════════════════════════════════════════════════════
 
+    @staticmethod
+    def _unpack_keyboard_axes(keyboard_axes):
+        if keyboard_axes is None:
+            return 0.0, 0.0, 0.0, False
+        speed_axis = keyboard_axes[0] if len(keyboard_axes) > 0 else 0.0
+        yaw_axis = keyboard_axes[1] if len(keyboard_axes) > 1 else 0.0
+        hight_axis = keyboard_axes[2] if len(keyboard_axes) > 2 else 0.0
+        jump_pressed = bool(keyboard_axes[3]) if len(keyboard_axes) > 3 else False
+        return speed_axis, yaw_axis, hight_axis, jump_pressed
+
     def _read_sensors(self, keyboard_axes):
         """传感器读取 + FK。"""
         state = self.refresh_kinematics()
 
-        if keyboard_axes is None:
-            speed_axis, yaw_axis, hight_axis = (0.0, 0.0, 0.0)
-        else:
-            speed_axis, yaw_axis, hight_axis = keyboard_axes
+        speed_axis, yaw_axis, hight_axis, jump_pressed = self._unpack_keyboard_axes(keyboard_axes)
 
         # Store axes for later pipeline stages
         state["_speed_axis"] = speed_axis
         state["_yaw_axis"] = yaw_axis
         state["_hight_axis"] = hight_axis
+        state["_jump_pressed"] = jump_pressed
         return state
 
     # ══════════════════════════════════════════════════════════════════
@@ -323,10 +353,7 @@ class StandController:
 
     def _update_navigation(self, keyboard_axes, current_yaw=None, current_x=None):
         """键盘->参考调速器 + 腿长伸缩限幅。"""
-        if keyboard_axes is None:
-            speed_axis, yaw_axis, hight_axis = (0.0, 0.0, 0.0)
-        else:
-            speed_axis, yaw_axis, hight_axis = keyboard_axes
+        speed_axis, yaw_axis, hight_axis, _ = self._unpack_keyboard_axes(keyboard_axes)
 
         if self.reference_governor is not None:
             self.target_x, self.target_yaw, self.target_x_dot, self.target_yaw_dot = \
@@ -343,6 +370,84 @@ class StandController:
         ))
         self.target_leg_length = self.target_leg_length_command
 
+    def _update_jump_plan(self, state, Fn_l, Fn_r, current_yaw=None, current_x=None):
+        """Update jump state and apply its leg-length target override."""
+        self.jump_command = self.jump.update(
+            state["_jump_pressed"],
+            self.target_leg_length_command,
+            self.left_leg.length,
+            self.right_leg.length,
+            Fn_l,
+            Fn_r,
+        )
+
+        jump_started = self.jump_command.active and not self.jump_was_active
+        jump_finished = self.jump_was_active and not self.jump_command.active
+
+        if jump_finished:
+            self.target_leg_length_command = float(np.clip(
+                self.jump.return_length,
+                self.leg_length_min,
+                self.leg_length_max,
+            ))
+            self.jump_leg_length_setpoint = None
+            self.jump_hold_x = None
+            self.jump_hold_yaw = None
+
+        if self.jump_command.active and self.jump_command.target_leg_length is not None:
+            if jump_started:
+                self.jump_leg_length_setpoint = float(np.clip(
+                    0.5 * (self.left_leg.length + self.right_leg.length),
+                    self.leg_length_min,
+                    self.leg_length_max,
+                ))
+                self.jump_hold_x = current_x if current_x is not None else self.target_x
+                self.jump_hold_yaw = current_yaw if current_yaw is not None else self.target_yaw
+
+            self.target_leg_length = self._slew_jump_leg_length(
+                self.jump_command.target_leg_length
+            )
+
+            # Freeze horizontal references once at jump start. The leg-angle and
+            # pitch LQR references remain the configured optimal targets.
+            if self.jump_hold_x is not None:
+                self.target_x = self.jump_hold_x
+            if self.jump_hold_yaw is not None:
+                self.target_yaw = self.jump_hold_yaw
+            if self.reference_governor is not None:
+                self.reference_governor.x = self.target_x
+                self.reference_governor.yaw = self.target_yaw
+                self.reference_governor.x_dot = 0.0
+                self.reference_governor.yaw_dot = 0.0
+            self.target_x_dot = 0.0
+            self.target_yaw_dot = 0.0
+        else:
+            self.target_leg_length = self.target_leg_length_command
+
+        self.jump_was_active = self.jump_command.active
+
+    def _slew_jump_leg_length(self, desired_length):
+        desired_length = float(np.clip(desired_length,
+                                       self.leg_length_min,
+                                       self.leg_length_max))
+        if self.jump_leg_length_setpoint is None:
+            self.jump_leg_length_setpoint = desired_length
+
+        if self.jump_target_leg_rate > 0.0:
+            max_delta = self.jump_target_leg_rate * self.dt
+            delta = float(np.clip(desired_length - self.jump_leg_length_setpoint,
+                                  -max_delta, max_delta))
+            self.jump_leg_length_setpoint += delta
+        else:
+            self.jump_leg_length_setpoint = desired_length
+
+        self.jump_leg_length_setpoint = float(np.clip(
+            self.jump_leg_length_setpoint,
+            self.leg_length_min,
+            self.leg_length_max,
+        ))
+        return self.jump_leg_length_setpoint
+
     def _compute_forces(self, x_lqr, target, K_raw, state):
         """PID 力控综合。
 
@@ -357,12 +462,16 @@ class StandController:
             self.target_leg_length, self.left_leg.length)
         right_pos_force = self.right_length_pos.update(
             self.target_leg_length, self.right_leg.length)
+        left_pos_force *= self.jump_command.position_gain_scale
+        right_pos_force *= self.jump_command.position_gain_scale
         left_pos_force = clip_symmetric(left_pos_force, self.args.length_position_force_limit)
         right_pos_force = clip_symmetric(right_pos_force, self.args.length_position_force_limit)
 
         # ── PID 速度环（阻尼，手册 §8.1）──
         left_vel_force = self.left_length_vel.update(0.0, self.left_leg.length_dot.value)
         right_vel_force = self.right_length_vel.update(0.0, self.right_leg.length_dot.value)
+        left_vel_force *= self.jump_command.velocity_gain_scale
+        right_vel_force *= self.jump_command.velocity_gain_scale
         left_vel_force = clip_symmetric(left_vel_force, self.args.length_velocity_force_limit)
         right_vel_force = clip_symmetric(right_vel_force, self.args.length_velocity_force_limit)
 
@@ -374,8 +483,10 @@ class StandController:
         # Gravity feedforward: G_m * cos(theta)  -- matched to legwheel LQR training model
         left_cos = float(np.clip(np.cos(self.left_leg.theta), 1e-3, 1.0))
         right_cos = float(np.clip(np.cos(self.right_leg.theta), 1e-3, 1.0))
-        F_l = left_vel_force + roll_force + left_pos_force + G_m * left_cos
-        F_r = right_vel_force - roll_force + right_pos_force + G_m * right_cos
+        gravity_scale = 0.0 if self.jump_command.force_airborne else 1.0
+        jump_force = self.jump_command.extra_force
+        F_l = left_vel_force + roll_force + left_pos_force + gravity_scale * G_m * left_cos + jump_force
+        F_r = right_vel_force - roll_force + right_pos_force + gravity_scale * G_m * right_cos + jump_force
 
         return F_l, F_r
 
@@ -428,8 +539,11 @@ class StandController:
         e3_l_adj = e3_l
         e3_r_adj = e3_r
 
-        zwL, zwR, zlL, zlR = False, False, False, False  # TODO: re-enable ground contact detection
-        # self.gc.get_K_suppression_mask()
+        zwL, zwR, zlL, zlR = self.gc.get_K_suppression_mask()
+        if self.jump_command.zero_wheels:
+            # In flight, keep leg LQR rows intact so theta_L/theta_R stay regulated;
+            # only suppress wheel torque to avoid airborne wheel spin.
+            zwL, zwR = True, True
         if zwL: K_adj[2, :] = 0.0
         if zwR: K_adj[3, :] = 0.0
         if zlL: K_adj[0, :] = 0.0; e3_l_adj = -e3_l
@@ -437,6 +551,8 @@ class StandController:
 
         target_adj = self.build_lqr_target(e2, e3_l_adj, e3_r_adj)
         U_adj = -K_adj @ (x_lqr - target_adj)
+        if self.jump_command.zero_wheels:
+            U_adj[2:4, 0] = 0.0
         self.U_lqr = U_adj
 
         # ── VMC 力矩映射（手册 §6）──
@@ -520,5 +636,6 @@ class StandController:
                 f"target=[{self.target_x:+.2f},{self.target_x_dot:+.2f},{self.target_yaw:+.2f},{self.target_yaw_dot:+.2f}] "
                 f"L={self.left_leg.length:.4f}/{self.right_leg.length:.4f} "
                 f"Fn_l={Fn_l:.1f} Fn_r={Fn_r:.1f} "
+                f"jump={self.jump_command.state} Fj={self.jump_command.extra_force:+.1f} "
                 f"u=[{ctrl[0]:+.2f}, {ctrl[1]:+.2f}, {ctrl[2]:+.2f}, {ctrl[3]:+.2f}, {ctrl[4]:+.2f}, {ctrl[5]:+.2f}]"
             )

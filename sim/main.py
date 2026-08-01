@@ -71,7 +71,7 @@ def run_with_viewer(controller, duration):
     keyboard_reader = None
     if controller.control_mode == "keyboard":
         keyboard_reader = KeyboardHoldReader()
-        print("Keyboard controls: Arrow keys for speed/yaw, Shift+Up/Down for leg length.")
+        print("Keyboard controls: Arrow keys for speed/yaw, left/right Shift for leg length, Space for jump.")
     try:
         with mujoco.viewer.launch_passive(controller.model, controller.data) as viewer:
             while viewer.is_running() and (unlimited or controller.data.time < duration):

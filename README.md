@@ -89,7 +89,7 @@ python sim/main.py
 | `↑` / `↓` | 前进 / 后退 |
 | `←` / `→` | 左转 / 右转 |
 | `Shift`（左/右） | 升高 / 降低车身 |
-| `Space` | 跳跃（现在会疯） |
+| `Space` | 原地跳跃状态机 |
 
 ### 2. LQR 自主平衡模式
 
@@ -182,6 +182,10 @@ python sim/main.py --control-mode lqr --target-x 1.0
 | `--roll-force-limit` | float | `1000.0` | 横滚力限制（N） |
 | `--fall-angle` | float | `1.0` | 摔倒判定角（rad），超出此角度停止仿真 |
 | `--log-every` | float | `0.5` | 日志打印间隔（s） |
+
+跳跃参数在 `config/robot_params.yaml` 的 `control_initial.jump` 下配置。第一版按保守原地跳设置：
+下蹲 `l_crouch_m`、起跳伸展 `l_launch_m`、空中收腿 `l_tuck_m`、着陆缓冲 `l_land_m`，
+并通过 `position_gain_scale` / `velocity_gain_scale` 临时放大腿长控制输出。
 
 ---
 
