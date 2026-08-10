@@ -7,6 +7,7 @@ from controller import StandController
 from keyboard_reader import KeyboardHoldReader
 
 DEFAULT_VIEWER_CAMERA = "base_follow_camera"
+CAMERA_TOGGLE_KEY = ord("C")
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Serial five-link wheel-leg standing simulation (upgraded).")
@@ -15,6 +16,8 @@ def parse_args():
     viewer_group.add_argument("--viewer", dest="viewer", action="store_true", help="Launch MuJoCo passive viewer.")
     viewer_group.add_argument("--headless", dest="viewer", action="store_false", help="Run without viewer.")
     parser.set_defaults(viewer=True)
+    parser.add_argument("--camera-mode", choices=["base", "free"], default="base",
+                        help="Initial viewer camera. 'base' follows the robot body; 'free' uses MuJoCo free camera.")
     parser.add_argument("--control-mode", choices=["lqr", "keyboard"], default="keyboard")
     parser.add_argument("--target-leg-length", type=float, default=None)
     parser.add_argument("--support-force", type=float, default=None)
@@ -67,21 +70,48 @@ def run_headless(controller, duration):
             return False
     return True
 
-def run_with_viewer(controller, duration):
+def set_viewer_camera(viewer, model, mode, announce=True):
+    if mode == "free":
+        viewer.cam.type = mj.mjtCamera.mjCAMERA_FREE
+        viewer.cam.fixedcamid = -1
+        if announce:
+            print("Viewer camera: free MuJoCo view. Drag/zoom with the mouse; press C to switch to base camera.")
+        return "free"
+
+    camera_id = mj.mj_name2id(model, mj.mjtObj.mjOBJ_CAMERA, DEFAULT_VIEWER_CAMERA)
+    if camera_id < 0:
+        print(f"Viewer camera not found: {DEFAULT_VIEWER_CAMERA}; falling back to free MuJoCo view.")
+        return set_viewer_camera(viewer, model, "free", announce)
+
+    viewer.cam.type = mj.mjtCamera.mjCAMERA_FIXED
+    viewer.cam.fixedcamid = camera_id
+    if announce:
+        print("Viewer camera: base first-person view. Press C to switch to free MuJoCo view.")
+    return "base"
+
+def run_with_viewer(controller, duration, camera_mode):
     import mujoco.viewer
     unlimited = duration <= 0.0
     keyboard_reader = None
+    viewer_state = {"viewer": None, "camera_mode": camera_mode}
+
+    def key_callback(key):
+        if key != CAMERA_TOGGLE_KEY or viewer_state["viewer"] is None:
+            return
+        next_mode = "free" if viewer_state["camera_mode"] == "base" else "base"
+        viewer_state["camera_mode"] = set_viewer_camera(
+            viewer_state["viewer"], controller.model, next_mode
+        )
+
     if controller.control_mode == "keyboard":
         keyboard_reader = KeyboardHoldReader()
         print("Keyboard controls: Arrow keys for speed/yaw, left/right Shift for leg length, Space for jump.")
     try:
-        with mujoco.viewer.launch_passive(controller.model, controller.data) as viewer:
-            camera_id = mj.mj_name2id(controller.model, mj.mjtObj.mjOBJ_CAMERA, DEFAULT_VIEWER_CAMERA)
-            if camera_id >= 0:
-                viewer.cam.type = mj.mjtCamera.mjCAMERA_FIXED
-                viewer.cam.fixedcamid = camera_id
-            else:
-                print(f"Viewer camera not found: {DEFAULT_VIEWER_CAMERA}")
+        with mujoco.viewer.launch_passive(
+            controller.model, controller.data, key_callback=key_callback
+        ) as viewer:
+            viewer_state["viewer"] = viewer
+            viewer_state["camera_mode"] = set_viewer_camera(viewer, controller.model, camera_mode)
 
             while viewer.is_running() and (unlimited or controller.data.time < duration):
                 step_start = time.time()
@@ -94,6 +124,7 @@ def run_with_viewer(controller, duration):
                 if sleep_time > 0.0:
                     time.sleep(sleep_time)
     finally:
+        viewer_state["viewer"] = None
         if keyboard_reader is not None:
             keyboard_reader.stop()
 
@@ -124,7 +155,7 @@ def main():
     print(f"support_force_per_leg={controller.support_force:.3f} N")
 
     if args.viewer:
-        ok = run_with_viewer(controller, args.duration)
+        ok = run_with_viewer(controller, args.duration, args.camera_mode)
     else:
         ok = run_headless(controller, args.duration)
 

@@ -55,6 +55,8 @@ class StandController:
         # ── 配置读取 ──
         self.sensor_names = cfg["mujoco"]["sensors"]
         self.geometry = cfg["geometry"]
+        self.wheel_radius = self.geometry["wheel"]["radius_m"]
+        self.half_track = self.geometry["chassis"]["half_track_m"]
         self.gravity = cfg["simulation"]["gravity_mps2"]
         self.total_mass = cfg["mass_properties"]["total_robot_mass_kg"]
         self.support_force = args.support_force
@@ -66,8 +68,8 @@ class StandController:
         self.right_leg = FiveLinkLeg("right", self.geometry["five_link"], self.dt)
 
         # ── 状态估计模块（手册 §7）──
-        self.odometry = KalmanOdometry(self.geometry["wheel"]["radius_m"], self.dt)
-        self.body_odom = KalmanOdometry(self.geometry["wheel"]["radius_m"], self.dt)
+        self.odometry = KalmanOdometry(self.wheel_radius, self.dt)
+        self.body_odom = KalmanOdometry(self.wheel_radius, self.dt)
         self.yaw_unwrapper = ContinuousAngle()
 
         # ── PID 模块（手册 §8.1-8.2）──
@@ -115,7 +117,8 @@ class StandController:
 
         # ── 地面接触检测（手册 §9）──
         self.gc = GroundContactDetector(self.dt, args.joint_torque_limit,
-                                        args.wheel_torque_limit)
+                                        args.wheel_torque_limit,
+                                        self.wheel_radius, self.half_track)
 
         # ── 初始状态 ──
         self.U_lqr = np.zeros((4, 1))
@@ -231,17 +234,18 @@ class StandController:
         acc_b = state["accel"]
         gyro = state["gyro"]
         yaw = state["yaw_continuous"]
+        wheel_body_vx = self.wheel_forward_velocity(state)
+        state["wheel_body_vx"] = wheel_body_vx
 
-        # World-frame Kalman (for odometry logging)
-        world_acc_x = acc_b[0] * np.cos(yaw_w) - acc_b[1] * np.sin(yaw_w)
+        # Wheel-only odometry for diagnostics.  It will show slip/airborne bias.
         self.odometry.update(
             state["left_wheel_vel"], state["right_wheel_vel"],
-            world_acc_x,
-            body_vx=state["base_linvel"][0])
+            acc_b[0])
 
         # Body-frame Kalman for LQR (sagittal-plane model)
         body_vx_meas = (state["base_linvel"][0] * np.cos(yaw_w)
                         + state["base_linvel"][1] * np.sin(yaw_w))
+        state["body_vx_meas"] = body_vx_meas
         body_x, body_vx = self.body_odom.update(
             state["left_wheel_vel"], state["right_wheel_vel"],
             acc_b[0],
@@ -260,6 +264,12 @@ class StandController:
             [self.left_leg.theta_dot.value],  # x[8]: θ̇_L
             [self.right_leg.theta_dot.value], # x[9]: θ̇_R
         ], dtype=float)
+
+    def wheel_forward_velocity(self, state):
+        """Wheel-joint forward velocity in the body sagittal direction."""
+        return 0.5 * self.wheel_radius * (
+            state["left_wheel_vel"] + state["right_wheel_vel"]
+        )
 
     def build_lqr_target(self, e2, e3_l, e3_r):
         """构造 LQR 目标状态向量（含平衡偏移量，手册 §5.4）。"""
@@ -584,7 +594,8 @@ class StandController:
                        state["left_wheel_vel"], state["right_wheel_vel"],
                        x_lqr[5, 0], state["accel"][2],
                        left_jt, right_jt,
-                       ctrl[4], ctrl[5])
+                       ctrl[4], ctrl[5],
+                       yaw_rate=x_lqr[6, 0])
 
         # External push force
         self.data.xfrc_applied[:] = 0.0
@@ -627,11 +638,15 @@ class StandController:
         # Console log
         if self.args.log_every > 0.0 and self.data.time - self.last_log_time >= self.args.log_every:
             self.last_log_time = self.data.time
+            wheel_body_vx = state.get("wheel_body_vx", self.wheel_forward_velocity(state))
+            body_vx_meas = state.get("body_vx_meas", x_lqr[5, 0])
+            slip_vx = wheel_body_vx - body_vx_meas
             print(
                 f"t={self.data.time:6.3f} "
                 f"roll={roll:+.4f} pitch={pitch:+.4f} yaw={yaw:+.4f} "
                 f"bx={x_lqr[0, 0]:+.3f} bv={x_lqr[5, 0]:+.3f} "
-                f"w_x={self.odometry.position:+.3f} "
+                f"wv={wheel_body_vx:+.3f} slip={slip_vx:+.3f} "
+                f"odo_x={self.odometry.position:+.3f} "
                 f"yawdot={x_lqr[6, 0]:+.3f} "
                 f"target=[{self.target_x:+.2f},{self.target_x_dot:+.2f},{self.target_yaw:+.2f},{self.target_yaw_dot:+.2f}] "
                 f"L={self.left_leg.length:.4f}/{self.right_leg.length:.4f} "

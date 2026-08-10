@@ -12,8 +12,11 @@ import numpy as np
 
 
 class GroundContactDetector:
-    def __init__(self, dt, joint_torque_limit=30.0, wheel_torque_limit=5.0):
+    def __init__(self, dt, joint_torque_limit=30.0, wheel_torque_limit=5.0,
+                 wheel_radius=0.05, half_track=0.0):
         self.dt = dt
+        self.wheel_radius = wheel_radius
+        self.half_track = half_track
 
         # ── thresholds ────────────────────────────────────────────
         self.liftoff_Fn   = 8.0    # [N]  below this → airborne
@@ -81,7 +84,8 @@ class GroundContactDetector:
                left_wheel_vel, right_wheel_vel,
                body_vx, z_acc,
                left_joint_torques, right_joint_torques,
-               left_wheel_torque, right_wheel_torque):
+               left_wheel_torque, right_wheel_torque,
+               yaw_rate=0.0):
         """Advance detector state.  Call once per control step."""
         # ── 1. low-pass filter Fn ──
         for i, raw in enumerate((fn_l_raw, fn_r_raw)):
@@ -94,7 +98,6 @@ class GroundContactDetector:
             wv = (left_wheel_vel if side == 0 else right_wheel_vel)
             jt = (left_joint_torques if side == 0 else right_joint_torques)
             wt = (left_wheel_torque if side == 0 else right_wheel_torque)
-            wr = 0.05  # wheel radius
 
             # ── 2. liftoff / touchdown (manual §9: Fn threshold + hysteresis + debounce) ──
             if self.contact_state[side] == "grounded":
@@ -130,8 +133,10 @@ class GroundContactDetector:
                     self.stuck_active[side] = False
 
             # ── 4. slip detection ──
-            wheel_vx = wv * wr
-            slip_magnitude = abs(wheel_vx - body_vx)
+            wheel_vx = wv * self.wheel_radius
+            side_y = self.half_track if side == 0 else -self.half_track
+            expected_vx = body_vx - yaw_rate * side_y
+            slip_magnitude = abs(wheel_vx - expected_vx)
             if slip_magnitude > self.slip_dv_threshold:
                 self._slip_counter[side] += 1
                 if self._slip_counter[side] >= self.slip_n:

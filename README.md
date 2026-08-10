@@ -90,6 +90,7 @@ python sim/main.py
 | `←` / `→` | 左转 / 右转 |
 | `Shift`（左/右） | 升高 / 降低车身 |
 | `Space` | 原地跳跃状态机 |
+| `C` | 切换 MuJoCo 自由视角 / 机体第一人称相机 |
 
 ### 2. LQR 自主平衡模式
 
@@ -154,6 +155,7 @@ python sim/main.py --control-mode lqr --target-x 1.0
 |------|------|--------|------|
 | `--duration` | float | `0.0` | 运行时长（秒），0 表示无限运行 |
 | `--viewer` / `--headless` | flag | `--viewer` | 是否显示 MuJoCo 可视化窗口 |
+| `--camera-mode` | str | `base` | 初始相机视角：`base` 机体第一人称，`free` MuJoCo 自由视角 |
 | `--control-mode` | str | `keyboard` | 控制模式：`keyboard` 或 `lqr` |
 | `--target-leg-length` | float | 自动 | 目标腿长（m），默认从初始姿态读取 |
 | `--support-force` | float | `0.5*m*g` | 单腿支撑力（N） |
