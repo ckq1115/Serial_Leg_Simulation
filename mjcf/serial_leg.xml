@@ -2,14 +2,16 @@
     <compiler angle="degree" autolimits="true"/>
     <option timestep="0.002" integrator="implicitfast" gravity="0 0 -9.81"/>
 
+    <!-- ===== 照搬 scene_rmuc.xml 的视觉设置 ===== -->
     <visual>
-        <global offwidth="1920" offheight="1080"/>
+        <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+        <rgba haze="0.15 0.25 0.35 1"/>
+        <global azimuth="120" elevation="-20" offwidth="1920" offheight="1080"/>
         <quality shadowsize="8192" offsamples="8" numslices="32" numstacks="32"/>
-        <map znear="0.01" zfar="50" shadowclip="2.0" shadowscale="0.5"/>
-        <headlight ambient="0.22 0.22 0.22" diffuse="0.35 0.35 0.35" specular="0.08 0.08 0.08"/>
+        <map znear="0.01" zfar="50"/>
     </visual>
 
-    <statistic center="2.4 0 0.6" extent="5.4"/>
+    <statistic center="14.9 8.0 0.5" extent="18"/>
 
     <default>
         <joint axis="0 1 0" damping="0.01"/>
@@ -27,90 +29,51 @@
         </default>
     </default>
 
+    <!-- ===== 照搬 scene_rmuc.xml 的资源 ===== -->
     <asset>
-        <texture name="skybox" type="skybox" builtin="gradient"
-                 rgb1="0.78 0.84 0.90" rgb2="0.96 0.98 1.00"
-                 width="512" height="512"/>
-        <material name="ground_mat" rgba="0.55 0.56 0.55 1"
-                  reflectance="0.00" specular="0.18" shininess="0.25"/>
-        <material name="stair_mat" rgba="0.50 0.43 0.35 1"
-                  reflectance="0.00" specular="0.14" shininess="0.20"/>
-        <material name="ramp_mat" rgba="0.50 0.43 0.35 1"
-                  reflectance="0.00" specular="0.14" shininess="0.20"/>
-        <mesh name="ramp_wedge" file="ramp_wedge.stl"/>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+          markrgb="0.8 0.8 0.8" width="300" height="300"/>
+        <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+        <material name="rmuc_floor_mat" rgba="0.75 0.75 0.75 1.0"/>
+        <material name="rmuc_building_mat" rgba="0.7 0.65 0.55 1.0"/>
+
+        <hfield name="rmuc_hfield" file="../RMUC2026/heightmap_rect_295x165.png" size="14.725 8.225 1.8 0.001"/>
+        <mesh name="rmuc_floor" file="../RMUC2026/RMUC20261-floor.obj"/>
+        <mesh name="rmuc_building" file="../RMUC2026/RMUC20261-building_vis.obj"/>
     </asset>
 
     <worldbody>
-        <!-- 斜向主光负责投影，补光只提亮暗部，避免默认单顶灯的块状阴影观感 -->
-        <light name="key_light" directional="true" castshadow="true"
-               ambient="0.06 0.06 0.06" diffuse="0.78 0.76 0.72" specular="0.18 0.18 0.18"
-               pos="-2.5 -3.0 4.0" dir="0.45 0.60 -1"/>
-        <light name="fill_light" directional="true" castshadow="false"
-               ambient="0.03 0.04 0.05" diffuse="0.22 0.24 0.27" specular="0 0 0"
-               pos="3.0 4.0 3.0" dir="-0.50 -0.55 -1"/>
+        <!-- ===== 照搬 scene_rmuc.xml 的灯光和地形 ===== -->
+        <light pos="0 0 3.0" dir="0 0 -1" directional="true"/>
 
-        <!-- 相机 -->
-        <camera name="overview" pos="1.6 -2.4 1.1" xyaxes="0.832 0.555 0 -0.210 0.315 0.925"/>
+        <!-- 浅灰色地面 plane -->
+        <geom name="ground" type="plane" size="200 200 0.1"
+              rgba="0.35 0.35 0.35 1"
+              contype="1" conaffinity="1" condim="6"
+              friction="1.0 0.001 0.0001"/>
 
-        <!-- 地面 -->
-        <geom name="ground" type="plane" size="200 200 0.1" contype="1" conaffinity="1"
-              material="ground_mat"
-              friction="1.0 0.001 0.0001" condim="6"/>
+        <!-- 碰撞：hfield（不可见） -->
+        <geom name="floor" type="hfield" hfield="rmuc_hfield"
+              pos="14.901 8.025 -0.15"
+              contype="1" conaffinity="1"
+              friction="1.0 0.005 0.0001"
+              rgba="0 0 0 0"/>
 
-        <!-- 十级下行台阶：沿 +x 方向下降；顶层平台 2m x 2m，其余踏步深度 0.20m；每级落差 0.12m。 -->
-        <body name="stairs" pos="0 0 0">
-            <geom name="stair_step_10_top" type="box" pos="0.000 0 0.600" size="1.000 1.0 0.600"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_9" type="box" pos="1.100 0 0.540" size="0.100 1.0 0.540"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_8" type="box" pos="1.300 0 0.480" size="0.100 1.0 0.480"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_7" type="box" pos="1.500 0 0.420" size="0.100 1.0 0.420"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_6" type="box" pos="1.700 0 0.360" size="0.100 1.0 0.360"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_5" type="box" pos="1.900 0 0.300" size="0.100 1.0 0.300"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_4" type="box" pos="2.100 0 0.240" size="0.100 1.0 0.240"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_3" type="box" pos="2.300 0 0.180" size="0.100 1.0 0.180"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_2" type="box" pos="2.500 0 0.120" size="0.100 1.0 0.120"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-            <geom name="stair_step_1_bottom" type="box" pos="2.700 0 0.060" size="0.100 1.0 0.060"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="stair_mat"/>
-        </body>
+        <!-- 视觉：OBJ 地板 -->
+        <geom name="rmuc_floor" type="mesh" mesh="rmuc_floor"
+              material="rmuc_floor_mat"
+              pos="0 0 -0.15" quat="0.707107 0.707107 0 0"
+              contype="0" conaffinity="0"/>
 
-        <!-- 飞坡：位于台阶末端前方 2.0m。 -->
-        <body name="ramp" pos="4.8 0 0">
-            <geom name="ramp_geom" type="mesh" mesh="ramp_wedge"
-                  contype="1" conaffinity="1" condim="6"
-                  friction="1.0 0.001 0.0001"
-                  material="ramp_mat"/>
-        </body>
+        <!-- 视觉：OBJ 建筑 -->
+        <geom name="rmuc_building" type="mesh" mesh="rmuc_building"
+              material="rmuc_building_mat"
+              pos="0 0 -0.15" quat="0.707107 0.707107 0 0"
+              contype="0" conaffinity="0"/>
 
-        <!-- 基座（车身） -->
-        <body name="base" pos="0 0 1.445">
+        <!-- ===== 机器人 ===== -->
+        <body name="base" pos="5.084 8.025 0.3">
             <freejoint name="base_free"/>
             <inertial pos="0 0 0" mass="15.0"
                       diaginertia="0.22517 0.11593 0.115485"/>
