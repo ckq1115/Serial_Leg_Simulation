@@ -6,6 +6,8 @@ from utils import load_config, resolve_project_path, require_actuator_order, PRO
 from controller import StandController
 from keyboard_reader import KeyboardHoldReader
 
+DEFAULT_VIEWER_CAMERA = "base_follow_camera"
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Serial five-link wheel-leg standing simulation (upgraded).")
     parser.add_argument("--duration", type=float, default=0.0, help="Run duration in seconds. 0 for infinite.")
@@ -74,6 +76,13 @@ def run_with_viewer(controller, duration):
         print("Keyboard controls: Arrow keys for speed/yaw, left/right Shift for leg length, Space for jump.")
     try:
         with mujoco.viewer.launch_passive(controller.model, controller.data) as viewer:
+            camera_id = mj.mj_name2id(controller.model, mj.mjtObj.mjOBJ_CAMERA, DEFAULT_VIEWER_CAMERA)
+            if camera_id >= 0:
+                viewer.cam.type = mj.mjtCamera.mjCAMERA_FIXED
+                viewer.cam.fixedcamid = camera_id
+            else:
+                print(f"Viewer camera not found: {DEFAULT_VIEWER_CAMERA}")
+
             while viewer.is_running() and (unlimited or controller.data.time < duration):
                 step_start = time.time()
                 axes = keyboard_reader.read_axes() if keyboard_reader is not None else None

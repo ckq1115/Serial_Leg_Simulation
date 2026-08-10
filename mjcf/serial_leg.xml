@@ -78,6 +78,8 @@
             <inertial pos="0 0 0" mass="15.0"
                       diaginertia="0.22517 0.11593 0.115485"/>
             <site name="imu" pos="0 0 0" size="0.01" rgba="1 0 0 1"/>
+            <camera name="base_follow_camera" mode="fixed" pos="0.08 0 0.08"
+                    xyaxes="0 -1 0 0 0 1" fovy="75"/>
             <geom name="base_body" type="box" size="0.15 0.15 0.025" rgba="0.6 0.6 0.6 1"/>
             <geom name="left_hip_mount" type="box" pos="0 0.155 0" size="0.026 0.005 0.026"
                   rgba="0.21 0.16 0.10 1"/>
