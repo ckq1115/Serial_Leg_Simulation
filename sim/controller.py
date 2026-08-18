@@ -272,7 +272,11 @@ class StandController:
         )
 
     def build_lqr_target(self, e2, e3_l, e3_r):
-        """构造 LQR 目标状态向量（含平衡偏移量，手册 §5.4）。"""
+        """构造 LQR 目标状态向量（含平衡偏移量）。
+
+        e2/e3 是线性化的平衡角本身（linearize.py 里 e2=θ_eq、e3=θ_L_eq），
+        目标应为 x_eq = +e2/+e3，使平衡点处 (x - target)=0、LQR 输出 0。
+        """
         x_ref = self.target_x
         x_dot_ref = self.target_x_dot
         return np.array([

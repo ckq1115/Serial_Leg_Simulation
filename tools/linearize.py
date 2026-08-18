@@ -41,8 +41,8 @@ Q_DIAG = np.array([
     300,   # x
     50,   # yaw
     10000,   # pitch
-    2500,   # th_L
-    2500,   # th_R
+    4000,   # th_L
+    4000,   # th_R
     5,   # x_dot
     5,   # yaw_dot
     1,   # pitch_dot
@@ -173,10 +173,12 @@ def build_serial_model():
                 + (L_l+L_r)/2*(thld_s+thrd_s)/2*sp.sin((thl_s+thr_s)/2))**2)
          +sp.Rational(1,2)*j_z*wd_s**2)
 
-    # Potential Energy
-    th_p_L = sp.atan2(cx_l,c_l); th_p_R = sp.atan2(cx_r,c_r)
-    V = (ml*g*sp.sqrt(c_l**2+cx_l**2)*sp.cos(thl_s-th_p_L)
-         +mr*g*sp.sqrt(c_r**2+cx_r**2)*sp.cos(thr_s-th_p_R)
+    # Potential Energy — 腿质心势能应相对轮轴(地面接触点)：
+    #   质心高度 = (L - c)·cosθ + cx·sinθ，其中 c 是髋→质心距离、L 是髋→轮轴(腿总长)。
+    #   原实现误用 c·cosθ（相对髋），此处改为轮轴参照 (L - c)。
+    th_p_L = sp.atan2(cx_l, L_l-c_l); th_p_R = sp.atan2(cx_r, L_r-c_r)
+    V = (ml*g*sp.sqrt((L_l-c_l)**2+cx_l**2)*sp.cos(thl_s-th_p_L)
+         +mr*g*sp.sqrt((L_r-c_r)**2+cx_r**2)*sp.cos(thr_s-th_p_R)
          +m*g*((L_l+L_r)/2*sp.cos((thl_s+thr_s)/2)+l_body*sp.cos(th_s)))
 
     # Euler-Lagrange (same generalized forces as MATLAB eq1-eq5)

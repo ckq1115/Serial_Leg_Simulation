@@ -41,13 +41,13 @@
 └──────────────────────────────────────────────────┘
 ```
 
-控制流程简述（对应手册 §13 chassis_task 管线）：
+控制流程：
 
-1. **感知（§2）**：从 MuJoCo 读取传感器 + 五连杆运动学正解 → 虚拟腿长 L 和摆角 θ
-2. **估计（§7）**：Kalman 滤波器融合 IMU 加速度与轮式里程计 → 水平位移 x 与速度 ẋ
-3. **规划（§4-5, §10）**：Chebyshev 增益调度 K(L_l, L_r) + 键盘参考调速器 + 跳跃状态机
-4. **控制（§4, §8）**：LQR 最优反馈 u=-Kx + PID 腿长/Roll + 重力前馈
-5. **映射（§6, §9）**：VMC 力矩映射 τ=JᵀF + 离地检测 K 矩阵抑制
+1. **感知**：从 MuJoCo 读取传感器 + 五连杆运动学正解 → 虚拟腿长 L 和摆角 θ
+2. **估计**：Kalman 滤波器融合 IMU 加速度与轮式里程计 → 水平位移 x 与速度 ẋ
+3. **规划**：Chebyshev 增益调度 K(L_l, L_r) + 键盘参考调速器 + 跳跃状态机
+4. **控制**：LQR 最优反馈 u=-Kx + PID 腿长/Roll + 重力前馈
+5. **映射**：VMC 力矩映射 τ=JᵀF + 离地检测 K 矩阵抑制
 6. **执行**：力矩限幅 → MuJoCo `data.ctrl` → `mj_step()`
 7. **遥测**：UDP 发送 24 维状态数据（供 VOFA+ 可视化）
 
@@ -90,7 +90,7 @@ python sim/main.py
 | `←` / `→` | 左转 / 右转 |
 | `Shift`（左/右） | 升高 / 降低车身 |
 | `Space` | 原地跳跃状态机 |
-| `C` | 切换 MuJoCo 自由视角 / 机体第一人称相机 |
+| `C` | 切换车身跟随相机 / MuJoCo 自由视角 |
 
 ### 2. LQR 自主平衡模式
 
@@ -128,14 +128,13 @@ python sim/main.py --initial-pitch 0.1 --initial-x-velocity 1.0
 
 ### 键盘遥控模式
 
-默认模式（`--control-mode keyboard`）。键盘输入经过 **LqrReferenceGovernor** 处理：
+默认模式（`--control-mode keyboard`）。键盘输入经 **LqrReferenceGovernor** 转为 LQR 参考目标：
 
-- 速度指令以配置的加速度平滑斜坡变化（`speed_accel_mps2` / `speed_release_accel_mps2`）
-- 偏航指令积分为累积 yaw 角度目标，并保留 yaw 角速度目标
-- 松开速度键时以释放减速度（release accel）快速停止
-- 支持 `instant_stop_on_release` 让速度瞬时刹车
+- 速度与偏航均为**瞬时指令**（无斜坡）：`x_dot = 轴值 × max_speed`，`yaw_dot = 轴值 × max_yaw_rate`
+- 位置目标对速度指令积分，并 clamp 到实际位置前方 0.05 m，避免目标漂移
+- 松开速度键时位置目标吸附到当前位置，防止回弹
 
-键盘指令转换为 LQR 的位置/yaw 角目标，并叠加位置预览、速度误差和轮端前馈。
+键盘指令最终叠加位置预览、速度误差与轮端前馈。
 
 ### LQR 自主平衡模式
 
@@ -151,39 +150,40 @@ python sim/main.py --control-mode lqr --target-x 1.0
 
 ## 命令行参数
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `--duration` | float | `0.0` | 运行时长（秒），0 表示无限运行 |
-| `--viewer` / `--headless` | flag | `--viewer` | 是否显示 MuJoCo 可视化窗口 |
-| `--camera-mode` | str | `base` | 初始相机视角：`base` 机体第一人称，`free` MuJoCo 自由视角 |
-| `--control-mode` | str | `keyboard` | 控制模式：`keyboard` 或 `lqr` |
-| `--target-leg-length` | float | 自动 | 目标腿长（m），默认从初始姿态读取 |
-| `--support-force` | float | `0.5*m*g` | 单腿支撑力（N） |
-| `--target-x` | float | `0.0` | LQR 目标 x 位置（m） |
-| `--target-yaw` | float | `0.0` | LQR 目标偏航角（rad） |
-| `--target-pitch` | float | `0.0` | LQR 目标俯仰角（rad） |
-| `--target-x-dot` | float | `0.0` | LQR 目标 x 速度（m/s） |
-| `--target-yaw-dot` | float | `0.0` | LQR 目标偏航角速度（rad/s） |
-| `--max-keyboard-speed` | float | `1.50` | 键盘最大速度（m/s） |
-| `--max-keyboard-yaw-rate` | float | `5.00` | 键盘最大偏航角速度（rad/s） |
-| `--keyboard-speed-accel` | float | `3.00` | 键盘速度加速度（m/s²） |
-| `--keyboard-speed-release-accel` | float | `4.00` | 键盘速度释放减速度（m/s²） |
-| `--keyboard-yaw-rate-accel` | float | `1.50` | 键盘偏航加速度（rad/s²） |
-| `--keyboard-yaw-rate-release-accel` | float | `2.50` | 键盘偏航释放减速度（rad/s²） |
-| `--initial-pitch` | float | `0.0` | 初始俯仰角（rad） |
-| `--initial-x-velocity` | float | `0.0` | 初始 x 速度（m/s） |
-| `--push-body` | str | `base` | 推动目标刚体名称 |
-| `--push-time` | float | `1.0` | 推力开始时间（s） |
-| `--push-duration` | float | `0.0` | 推力持续时间（s） |
-| `--push-force-x/y/z` | float | `0.0` | 推力分量（N） |
-| `--push-torque-x/y/z` | float | `0.0` | 推力矩分量（Nm） |
-| `--joint-torque-limit` | float | `40.0` | 关节力矩限制（Nm） |
-| `--wheel-torque-limit` | float | `5.0` | 轮端力矩限制（Nm） |
-| `--length-position-force-limit` | float | `1500.0` | 腿长位置环力限制（N） |
-| `--length-velocity-force-limit` | float | `1000.0` | 腿长速度环力限制（N） |
-| `--roll-force-limit` | float | `1000.0` | 横滚力限制（N） |
-| `--fall-angle` | float | `1.0` | 摔倒判定角（rad），超出此角度停止仿真 |
-| `--log-every` | float | `0.5` | 日志打印间隔（s） |
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--duration` | `0.0` | 运行时长（秒），0 表示无限运行 |
+| `--viewer` / `--headless` | `--viewer` | 是否显示 MuJoCo 可视化窗口 |
+| `--camera-mode` | `base` | 初始相机：`base` 车身跟随相机，`free` MuJoCo 自由视角 |
+| `--control-mode` | `keyboard` | 控制模式：`keyboard` 或 `lqr` |
+| `--target-leg-length` | 最小腿长 | 目标腿长（m），默认从下蹲（`min_length_m`）起步 |
+| `--support-force` | `0.5·m·g` | 单腿支撑力（N） |
+| `--target-x` | `0.0` | LQR 目标 x 位置（m） |
+| `--target-yaw` | `0.0` | LQR 目标偏航角（rad） |
+| `--target-pitch` | `0.0` | LQR 目标俯仰角（rad） |
+| `--target-left-leg-theta` | `0.0` | LQR 目标左腿摆角（rad） |
+| `--target-right-leg-theta` | `0.0` | LQR 目标右腿摆角（rad） |
+| `--target-x-dot` | `0.0` | LQR 目标 x 速度（m/s） |
+| `--target-yaw-dot` | `0.0` | LQR 目标偏航角速度（rad/s） |
+| `--max-keyboard-speed` | `2.0` | 键盘最大速度（m/s） |
+| `--max-keyboard-yaw-rate` | `2.0` | 键盘最大偏航角速度（rad/s） |
+| `--initial-pitch` | `0.0` | 初始俯仰角（rad） |
+| `--initial-x-velocity` | `0.0` | 初始 x 速度（m/s） |
+| `--push-body` | `base` | 推动目标刚体名称 |
+| `--push-time` | `1.0` | 推力开始时间（s） |
+| `--push-duration` | `0.0` | 推力持续时间（s） |
+| `--push-force-x/y/z` | `0.0` | 推力分量（N） |
+| `--push-torque-x/y/z` | `0.0` | 推力矩分量（Nm） |
+| `--joint-torque-limit` | `40.0` | 关节力矩限制（Nm） |
+| `--wheel-torque-limit` | `5.0` | 轮端力矩限制（Nm） |
+| `--length-position-force-limit` | `1500.0` | 腿长位置环力限制（N） |
+| `--length-velocity-force-limit` | `1000.0` | 腿长速度环力限制（N） |
+| `--roll-force-limit` | `1000.0` | 横滚力限制（N） |
+| `--fall-angle` | `1.0` | 摔倒判定角（rad），当前仅作保留参数，未触发停机 |
+| `--log-every` | `0.05` | 日志打印间隔（s） |
+
+> 注：`--keyboard-*-accel` 系列参数仍被解析，但调速器已改为瞬时速度指令，不再使用。
+> `--target-*`、`--max-keyboard-*` 等参数默认值为 `None`，实际值从 `config/robot_params.yaml` 读取。
 
 跳跃参数在 `config/robot_params.yaml` 的 `control_initial.jump` 下配置。第一版按保守原地跳设置：
 下蹲 `l_crouch_m`、起跳伸展 `l_launch_m`、空中收腿 `l_tuck_m`、着陆缓冲 `l_land_m`，
@@ -199,13 +199,14 @@ python sim/main.py --control-mode lqr --target-x 1.0
 
 | 段 | 说明 |
 |----|------|
-| `simulation` | 仿真步长（500Hz）、积分器（RK4）、重力加速度 |
+| `simulation` | 仿真步长（500Hz）、积分器（implicitfast）、重力加速度 |
+| `coordinates` | 坐标系约定、LQR 状态/输出顺序 |
 | `geometry` | 轮径、轮距、车身尺寸、五连杆各段杆长 |
 | `mass_properties` | 总质量、各部分质量与转动惯量 |
 | `mujoco` | MuJoCo 模型文件路径、关节/传感器/执行器命名 |
-| `actuators` | 电机力矩限幅、轮毂电机功率模型参数 |
+| `actuators` | 电机力矩限幅、轮毂电机（M3508）功率模型参数 |
 | `contact` | 轮地接触摩擦参数、闭环运动学约束求解参数 |
-| `control_initial` | PID 参数、LQR 目标偏置、键盘指令参数、Kalman 噪声参数 |
+| `control_initial` | PID 参数、LQR 目标偏置、键盘指令参数、跳跃参数、Kalman 噪声参数 |
 
 ### 增益调度
 
@@ -221,25 +222,30 @@ Serial_Leg_Simulation/
 ├── config/
 │   └── robot_params.yaml          # 统一参数配置文件
 ├── mjcf/
-│   ├── serial_leg.xml             # MuJoCo 五连杆并联腿模型
-│   └── ramp_wedge.stl             # 17° 楔形斜坡 STL
+│   └── serial_leg.xml             # MuJoCo 五连杆并联腿模型（引用 RMUC2026 地形）
+├── RMUC2026/                      # RMUC2026 比赛地形资源（高度图 + 地面/建筑 mesh）
 ├── sim/                           # 在线仿真模块（每控制步调用）
 │   ├── main.py                    # 主入口，参数解析与仿真循环
-│   ├── controller.py              # StandController: 6 阶段控制管线编排器（§8, §13）
-│   ├── kinematics.py              # FiveLinkLeg: FK + IK + Jacobian（§2）
-│   ├── vmc.py                     # VmcMapper: VMC 力矩映射 τ=JᵀF（§6）
-│   ├── pid.py                     # PID 控制器（§8）
-│   ├── kalman.py                  # KalmanOdometry: 2-D Kalman 滤波器（§7）
-│   ├── lqr_governor.py            # LqrReferenceGovernor: 参考调速器（§4-5）
-│   ├── ground_contact.py          # GroundContactDetector: 离地/卡死/打滑检测（§9）
+│   ├── controller.py              # StandController: 控制链路
+│   ├── kinematics.py              # FiveLinkLeg: FK + IK + Jacobian
+│   ├── vmc.py                     # VmcMapper: VMC 力矩映射 τ=JᵀF
+│   ├── pid.py                     # PID 控制器
+│   ├── kalman.py                  # KalmanOdometry: 2-D Kalman 滤波器
+│   ├── lqr_governor.py            # LqrReferenceGovernor: 参考调速器
+│   ├── jump_state_machine.py      # JumpStateMachine: 跳跃状态机
+│   ├── ground_contact.py          # GroundContactDetector: 离地/卡死/打滑检测
 │   ├── keyboard_reader.py         # 键盘输入读取
 │   ├── utils.py                   # 工具函数 + ContinuousAngle
 │   └── __init__.py                # 包初始化 + 公共 API 导出
 ├── data/                          # 预计算数据（离线生成，在线查表）
-│   ├── lqr_gain_fit.py            # Chebyshev 2D 多项式系数 + get_K/get_e2/get_e3
-│   └── k_table_2d.h              # C 头文件: 2D Chebyshev 增益表（MCU 用）
+│   ├── lqr_gain_fit.py            # Chebyshev 2D 多项式系数加载 + get_K/get_e2/get_e3
+│   ├── _K2D_COEFF.npy             # 4×10×45 K 矩阵系数
+│   ├── _E2_COEFF.npy / _E3_COEFF.npy  # e2/e3 平衡偏置系数
+│   ├── _U_EQ_COEFF.npy            # 平衡控制量前馈系数
+│   ├── AB_sampling_points.npz     # 采样点 A_d/B_d 矩阵
+│   └── k_table_2d.h               # C 头文件: 2D Chebyshev 增益表（MCU 用）
 ├── tools/                         # 离线计算（运行一次，生成 data/）
-│   └── linearize.py               # 手册 §3-5, §12: 动力学线性化 → DARE → 2D 拟合 → 导出
+│   └── linearize.py               # 动力学线性化 → DARE → 2D 拟合 → 导出
 ├── 轮腿机器人控制理论手册.md       # 控制理论参考手册
 └── README.md                      # 本文件
 ```
@@ -252,10 +258,10 @@ Serial_Leg_Simulation/
 
 `tools/linearize.py` 使用 **SymPy 拉格朗日力学**推导五连杆轮腿机器人非线性动力学模型，
 在多个腿长工作点线性化得到 A_d, B_d 矩阵，求解 DARE 得到 K 矩阵，拟合 2D 多项式系数，
-导出到 `data/lqr_gain_fit.py`、`data/k_table_2d.h` 和 `data/AB_sampling_points.npz`。
+导出到 `data/` 目录。
 
 ```bash
-# 生成 2D Chebyshev 增益表（14×14 网格）+ C 头文件
+# 生成 2D Chebyshev 增益表（14×14 网格，8 阶）+ C 头文件
 python tools/linearize.py
 
 # 更细网格
@@ -266,10 +272,12 @@ python tools/linearize.py --grid-size 27
 
 | 文件 | 用途 |
 |------|------|
-| `data/lqr_gain_fit.py` | 2D Chebyshev 系数 + get_K/get_e2/get_e3（仿真导入） |
+| `data/lqr_gain_fit.py` | Chebyshev 系数加载 + get_K/get_e2/get_e3（仿真导入） |
+| `data/_K2D_COEFF.npy` 等 | K、e2/e3、u_eq 的系数（`.npy`） |
 | `data/k_table_2d.h` | 2D Chebyshev 增益表 C 头文件（MCU 移植） |
+| `data/AB_sampling_points.npz` | 各采样点的线性化 A_d/B_d 矩阵 |
 
-2D 增益表支持左右腿长不同的非对称工况（转弯、单腿台阶等），拟合精度 < 5% 相对 RMS 误差。
+2D 增益表支持左右腿长不同的非对称工况（转弯、单腿台阶等）。
 
 ---
 
@@ -295,7 +303,7 @@ u = [τ_L, τ_R, T_wL, T_wR]ᵀ
 
 即左右虚拟腿力矩 + 左右轮端力矩。
 
-### 控制管线
+### 控制链路
 
 ```
 传感器读数 → 五连杆运动学 → (L, θ) → Kalman 状态估计 → 10 维状态
@@ -311,12 +319,12 @@ VMC τ = JᵀF → 关节力矩
 
 ### 增益调度
 
-2D Chebyshev 多项式 `K(L_l, L_r)` 将腿长变化纳入增益计算（手册 §5.6）。
-40 个 K 元素各自为 28 项 Chebyshev 基函数的线性组合，运行时递推求值。
+2D Chebyshev 多项式 `K(L_l, L_r)` 将腿长变化纳入增益计算。
+40 个 K 元素各自为 45 项（总阶数 8）三角 Chebyshev 基函数的线性组合，运行时递推求值。
 
 ### 着地检测
 
-`GroundContactDetector`（手册 §9）提供三级检测：离地（Fn 滞后+去抖）、
+`GroundContactDetector` 提供三级检测：离地（Fn 滞后+去抖）、
 卡腿（力矩饱和+轮速为零）、打滑（轮速与车速失配）。
 检测结果抑制 K 矩阵对应行，防止悬空/卡死腿失控。
 
