@@ -142,25 +142,25 @@ contact:
     solref: [0.005, 1.0]
     solimp: [0.9, 0.95, 0.001]
   closed_chain_equality:
-    solref: [0.002, 1.0]
 
 # 初始控制参数。这里只用于仿真启动，不代表最终实机参数。
 control_initial:
   leg_length_pid:
-    position_kp: 2000.0
+    position_kp: 1500.0
     position_ki: 0.0
-    position_kd: 0.0
+    position_kd: 40.0
     velocity_kp: 100.0
     velocity_ki: 0.0
     velocity_kd: 0.0
-  roll_pid:
-    kp: 2000.0
-    ki: 0.0
-    kd: 1000.0
+  roll_control:
+    # 高度调度 PD + 速率阻尼 + 斜坡积分（解析极点配置，替代固定增益 roll_pid）
+    wc_radps: 25.0     # 横滚闭环带宽 (rad/s)，≈ 原固定 kp=1000 的等效增益
+    zeta: 0.9          # 阻尼比
+    ki_slope: 100.0    # 斜坡稳态积分增益 (N·s/rad)，抗积分饱和
   leg_length_trajectory:
     min_length_m: 0.156
     max_length_m: 0.356
-    max_rate_mps: 0.20
+    max_rate_mps: 0.40
   lqr_target:
     # LQR 状态目标偏置。
     x_m: 0.0
@@ -172,45 +172,18 @@ control_initial:
     yaw_dot_radps: 0.0
   keyboard_command:
     max_speed_mps: 2.0
-    max_yaw_rate_radps: 2.00
+    max_yaw_rate_radps: 2.50
     speed_accel_mps2: 5.00
     speed_release_accel_mps2: 5.00
     instant_stop_on_release: false
     instant_yaw_rate_command: true
     speed_axis_sign: 1.0
     yaw_axis_sign: 1.0
-  jump:
-    enabled: true
-    # In-place jump profile.
-    l_crouch_m: 0.156
-    l_launch_m: 0.350
-    l_tuck_m: 0.170
-    l_land_m: 0.220
-    l_crouch_threshold_m: 0.166
-    l_extend_threshold_m: 0.350
-    launch_complete_tolerance_m: 0.010
-    target_leg_rate_mps: 2.0
-    crouch_timeout_s: 0.25
-    launch_timeout_s: 0.35
-    tuck_time_s: 0.12
-    landing_min_time_s: 0.08
-    landing_timeout_s: 0.60
-    recover_time_s: 0.20
-    cooldown_s: 0.50
-    liftoff_force_n: 8.0
-    touchdown_force_n: 30.0
-    position_gain_scale: 3.0
-    velocity_gain_scale: 2.0
-    f_crouch_n: -30.0
-    f_launch_n: 5000.0
-    f_tuck_n: -20.0
-    f_land_n: 0.0
   fall_angle_rad: 1.0
   # Kalman filter noise parameters (2-D: position, velocity)
   # From control theory manual section 7.3
   kalman:
     q_pos: 0.0001   # position process noise
     q_vel: 0.01     # velocity process noise
-    r_pos: 1.0      # odometry position measurement noise
-    r_vel: 0.5      # odometry velocity measurement noise
+    r_vel: 0.01     # velocity measurement noise (ground-truth base_linvel in sim)
 

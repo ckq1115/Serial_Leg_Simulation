@@ -7,7 +7,8 @@ from controller import StandController
 from keyboard_reader import KeyboardHoldReader
 
 DEFAULT_VIEWER_CAMERA = "base_follow_camera"
-CAMERA_TOGGLE_KEY = ord("C")
+# 视角切换键。避开 MuJoCo viewer 自带的 F/T/Q/S/V/R/H/P、Tab、Space、Esc、方向键等。
+CAMERA_TOGGLE_KEY = ord("B")
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Serial five-link wheel-leg standing simulation (upgraded).")
@@ -75,7 +76,7 @@ def set_viewer_camera(viewer, model, mode, announce=True):
         viewer.cam.type = mj.mjtCamera.mjCAMERA_FREE
         viewer.cam.fixedcamid = -1
         if announce:
-            print("Viewer camera: free MuJoCo view. Drag/zoom with the mouse; press C to switch to base camera.")
+            print("Viewer camera: free MuJoCo view. Drag/zoom with the mouse; press B to switch to base camera.")
         return "free"
 
     camera_id = mj.mj_name2id(model, mj.mjtObj.mjOBJ_CAMERA, DEFAULT_VIEWER_CAMERA)
@@ -86,7 +87,7 @@ def set_viewer_camera(viewer, model, mode, announce=True):
     viewer.cam.type = mj.mjtCamera.mjCAMERA_FIXED
     viewer.cam.fixedcamid = camera_id
     if announce:
-        print("Viewer camera: base first-person view. Press C to switch to free MuJoCo view.")
+        print("Viewer camera: base first-person view. Press B to switch to free MuJoCo view.")
     return "base"
 
 def run_with_viewer(controller, duration, camera_mode):
@@ -97,15 +98,16 @@ def run_with_viewer(controller, duration, camera_mode):
 
     def key_callback(key):
         if key != CAMERA_TOGGLE_KEY or viewer_state["viewer"] is None:
-            return
+            return False
         next_mode = "free" if viewer_state["camera_mode"] == "base" else "base"
         viewer_state["camera_mode"] = set_viewer_camera(
             viewer_state["viewer"], controller.model, next_mode
         )
+        return True
 
     if controller.control_mode == "keyboard":
         keyboard_reader = KeyboardHoldReader()
-        print("Keyboard controls: Arrow keys for speed/yaw, left/right Shift for leg length, Space for jump.")
+        print("Keyboard controls: Arrow keys for speed/yaw, left/right Shift for leg length.")
     try:
         with mujoco.viewer.launch_passive(
             controller.model, controller.data, key_callback=key_callback

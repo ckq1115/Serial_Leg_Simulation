@@ -6,8 +6,6 @@ class KeyboardHoldReader:
         self.speed_axis = 0.0
         self.yaw_axis = 0.0
         self.hight_axis = 0.0
-        self.jump_pressed = False
-        self.jump_held = False
         self.lock = threading.Lock()
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
@@ -32,11 +30,6 @@ class KeyboardHoldReader:
             elif key == keyboard.Key.shift_r:
                 with self.lock:
                     self.hight_axis = -0.001
-            elif key == keyboard.Key.space:
-                with self.lock:
-                    if not self.jump_held:
-                        self.jump_pressed = True
-                    self.jump_held = True
         except AttributeError:
             pass
 
@@ -51,17 +44,12 @@ class KeyboardHoldReader:
             elif key == keyboard.Key.shift_l or key == keyboard.Key.shift_r:
                 with self.lock:
                     self.hight_axis = 0.0
-            elif key == keyboard.Key.space:
-                with self.lock:
-                    self.jump_held = False
         except AttributeError:
             pass
 
     def read_axes(self):
         with self.lock:
-            jump_pressed = self.jump_pressed
-            self.jump_pressed = False
-            return (self.speed_axis, self.yaw_axis, self.hight_axis, jump_pressed)
+            return (self.speed_axis, self.yaw_axis, self.hight_axis)
 
     def stop(self):
         self.listener.stop()

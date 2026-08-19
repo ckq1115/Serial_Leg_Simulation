@@ -49,6 +49,10 @@ class GroundContactDetector:
         self.slip_active    = [False, False]
         self.stuck_active   = [False, False]
 
+        # slip-adaptive Kalman noise (consumed by controller's body_odom)
+        self.kalman_r_vel = 0.5   # nominal velocity measurement noise
+        self.kalman_q_vel = 0.01  # nominal velocity process noise
+
     # ── public API ─────────────────────────────────────────────────
     @property
     def fn_left(self):

@@ -33,19 +33,24 @@ WHEEL_RADIUS = 0.05; HALF_TRACK = 0.165
 GRAVITY = 9.81; L_BODY_COM = 0.0
 DT = 0.002; N_ITER_DARE = 100000
 H_MIN, H_MAX = 0.156, 0.356
+
+# Generalized-coordinate damping (N·m·s/rad), mapped from serial_leg.xml joint
+# damping: x/yaw/pitch ride on the free joint -> undamped (0); theta_L/theta_R
+# (virtual leg swing) are driven by two hip joints with damping=0.05 each -> ~0.1.
+DAMPING_Q = np.array([0.0, 0.0, 0.0, 0.1, 0.1])
 _DATA_DIR = Path(__file__).resolve().parents[1] / "data"  # always Serial_Leg_Simulation/data/
 
 # LQR 状态权重 Q（10×10 对角）
 # 状态:      x    yaw   pitch  th_L   th_R   x_dot yaw_dot pitch_dot th_L_dot th_R_dot
 Q_DIAG = np.array([
-    300,   # x
+    200,   # x
     50,   # yaw
     10000,   # pitch
-    4000,   # th_L
-    4000,   # th_R
+    3000,   # th_L
+    3000,   # th_R
     5,   # x_dot
     5,   # yaw_dot
-    1,   # pitch_dot
+    30,   # pitch_dot
     1,   # thL_dot
     1,   # thR_dot
 ])
@@ -223,11 +228,12 @@ def build_serial_model():
 #  Numerical linearization
 # ══════════════════════════════════════════════════════════════════════
 
-def linearize_at_length(L_l, L_r, r_com, c_x, M_func, Bq_func, V_func, eq_stats=None):
+def linearize_at_length(L_l, L_r, r_com_l, c_x_l, r_com_r, c_x_r,
+                        M_func, Bq_func, V_func, eq_stats=None):
     p = [M_BODY,M_WHEEL,HALF_TRACK,WHEEL_RADIUS,
          I_BODY_YY,I_BODY_ZZ,I_WHEEL_ZZ,I_WHEEL_YY,GRAVITY,
-         L_l,L_r, M_LEG,M_LEG, r_com,r_com, c_x,c_x,
-         L_BODY_COM, 0.003,0.003]   # j_ly=0.003 calibrated for leg inertia
+         L_l,L_r, M_LEG,M_LEG, r_com_l,r_com_r, c_x_l,c_x_r,
+         L_BODY_COM, 0.003,0.003]   # j_ly/j_ry=0.003 calibrated for leg inertia
 
     def dV(q_a):
         qf=[0,0,q_a[0],q_a[1],q_a[2]]; eps=1e-6; grad=np.zeros(3)
@@ -272,7 +278,7 @@ def linearize_at_length(L_l, L_r, r_com, c_x, M_func, Bq_func, V_func, eq_stats=
     Mi=np.linalg.inv(M)
     A=np.zeros((10,10)); A[0:5,5:10]=np.eye(5)
     A[5:10,0:5]=-Mi@Kg
-    Dd=np.zeros(5); A[5:10,5:10]=-Mi@np.diag(Dd)
+    A[5:10,5:10]=-Mi@np.diag(DAMPING_Q)
     B=np.zeros((10,4)); B[5:10,:]=Mi@Bq
 
     # equilibrium control: G(q_eq) = Bq * u_eq  =>  u_eq = pinv(Bq) * G
@@ -529,7 +535,7 @@ def main():
 
     print(f"\n=== {ORDER_2D}th-order 2D Chebyshev fit (asymmetric legs) ===")
     print(f"  Grid: {N_2D}x{N_2D} = {n_2d} points, order={ORDER_2D}")
-    t_fit = time.perf_counter(); seed_2d = None
+    t_fit = time.perf_counter()
     eq_stats = {
         "count": 0,
         "nonconverged": 0,
@@ -537,12 +543,26 @@ def main():
         "max_residual": 0.0,
         "worst": None,
     }
+
+    # Precompute per-leg COM geometry as a function of leg length (symmetric
+    # pose at each length). Each leg's COM depends only on its own length, so
+    # an asymmetric (L_l, L_r) grid point uses COM(L_l) for the left leg and
+    # COM(L_r) for the right leg — instead of the previous symmetric-average
+    # approximation that reused one COM for both legs.
+    unique_L = np.sort(np.unique(L_l_flat))
+    com_by_L = {}
+    seed_com = None
+    for L in unique_L:
+        seed_com = solver.solve(data, float(L), seed_com)
+        com_by_L[float(L)] = solver.leg_com(data)
+
     for k in range(n_2d):
         L_l, L_r = float(L_l_flat[k]), float(L_r_flat[k])
-        seed_2d = solver.solve(data, 0.5 * (L_l + L_r), seed_2d)
-        r_com, c_x = solver.leg_com(data)
+        r_com_l, c_x_l = com_by_L[L_l]
+        r_com_r, c_x_r = com_by_L[L_r]
         A, B, u_eq, th_eq, thl_eq, thr_eq = linearize_at_length(
-            L_l, L_r, r_com, c_x, M_func, Bq_func, V_func, eq_stats)
+            L_l, L_r, r_com_l, c_x_l, r_com_r, c_x_r,
+            M_func, Bq_func, V_func, eq_stats)
         u_eq_set[k] = u_eq
         Ad, Bd = discretize_zoh(A, B, DT)
         A_d_set[k], B_d_set[k] = Ad, Bd

@@ -38,9 +38,19 @@ class VmcMapper:
         -------
         (front_torque, back_torque) : (float, float)
         """
+        # Singularity guard: sin(phi_front - phi_back) -> 0 when the front and
+        # rear links are collinear. Clamp the denominator magnitude so the J^T
+        # mapping cannot blow up; the resulting hip torque is still clipped
+        # downstream to the actuator limits. Normal (non-collinear) poses keep
+        # their exact denominator, so this only bounds the near-singular region.
         denom = np.sin(phi_front - phi_back)
-        if abs(denom) < 1e-6:
-            denom = np.copysign(1e-6, denom if denom != 0.0 else 1.0)
+        denom_min = 0.05  # rad; caps torque amplification to ~1/denom_min
+        if denom > 0.0:
+            denom = max(denom, denom_min)
+        elif denom < 0.0:
+            denom = min(denom, -denom_min)
+        else:
+            denom = denom_min
 
         back_torque = (
             leg_force
