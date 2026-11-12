@@ -1,0 +1,2854 @@
+{
+  "status": "EXPORTED",
+  "links": 15,
+  "internal_tree_joints": 14,
+  "active_drives": [
+    {
+      "actuator": "motor_right_thigh",
+      "joint": "right_thigh_joint",
+      "units": "joint-output Nm",
+      "limit_Nm": 40.0
+    },
+    {
+      "actuator": "motor_right_hip_knee_driver",
+      "joint": "right_hip_knee_driver_joint",
+      "units": "joint-output Nm",
+      "limit_Nm": 40.0
+    },
+    {
+      "actuator": "motor_right_wheel",
+      "joint": "right_wheel_joint",
+      "units": "joint-output Nm",
+      "limit_Nm": 6.0
+    },
+    {
+      "actuator": "motor_left_thigh",
+      "joint": "left_thigh_joint",
+      "units": "joint-output Nm",
+      "limit_Nm": 40.0
+    },
+    {
+      "actuator": "motor_left_hip_knee_driver",
+      "joint": "left_hip_knee_driver_joint",
+      "units": "joint-output Nm",
+      "limit_Nm": 40.0
+    },
+    {
+      "actuator": "motor_left_wheel",
+      "joint": "left_wheel_joint",
+      "units": "joint-output Nm",
+      "limit_Nm": 6.0
+    }
+  ],
+  "closures": [
+    {
+      "name": "right_upper_C",
+      "body1": "right_upper_coupler_link",
+      "body2": "right_knee_node_link",
+      "anchor_B_mm": [
+        -0.766976761659862,
+        -176.99999999999991,
+        -115.46367931016562
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -92.27658153704306,
+        -12.700000000000045,
+        -75.14008583861188
+      ],
+      "local_anchor2_mm": [
+        91.27023463735213,
+        0.0,
+        -76.35931029835609
+      ]
+    },
+    {
+      "name": "right_lower_E",
+      "body1": "right_lower_coupler_link",
+      "body2": "right_shank_link",
+      "anchor_B_mm": [
+        -227.95540445286997,
+        -178.24999839639727,
+        -32.156475096112985
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -105.84279285203661,
+        -14.499998396395085,
+        -44.9700249823278
+      ],
+      "local_anchor2_mm": [
+        -30.075400201825005,
+        0.0,
+        51.91791889800727
+      ]
+    },
+    {
+      "name": "left_upper_C",
+      "body1": "left_upper_coupler_link",
+      "body2": "left_knee_node_link",
+      "anchor_B_mm": [
+        -0.766976761659862,
+        176.9999999999886,
+        -115.46367931016562
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -92.27658153704306,
+        12.7000000000005,
+        -75.14008583861188
+      ],
+      "local_anchor2_mm": [
+        91.27023463735213,
+        0.0,
+        -76.35931029835609
+      ]
+    },
+    {
+      "name": "left_lower_E",
+      "body1": "left_lower_coupler_link",
+      "body2": "left_shank_link",
+      "anchor_B_mm": [
+        -227.95540445286997,
+        178.24999999998482,
+        -32.156475096112985
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -105.84279285203661,
+        14.499999999998948,
+        -44.9700249823278
+      ],
+      "local_anchor2_mm": [
+        -30.075400201825005,
+        0.0,
+        51.91791889800727
+      ]
+    }
+  ],
+  "part_to_link": [
+    {
+      "id": 2,
+      "name": "【整体】底盘",
+      "link": "base_link"
+    },
+    {
+      "id": 4,
+      "name": "薄壁深沟球轴承_40x50x6",
+      "link": "base_link"
+    },
+    {
+      "id": 6,
+      "name": "板件-2mm-中心直角折弯侧边板_改",
+      "link": "base_link"
+    },
+    {
+      "id": 7,
+      "name": "打印件-中心直角折弯_内侧_导向_隔离SLDPRT",
+      "link": "base_link"
+    },
+    {
+      "id": 8,
+      "name": "打印件-中心直角折弯_外侧_右",
+      "link": "base_link"
+    },
+    {
+      "id": 9,
+      "name": "板件-2mm-中心直角折弯侧边板_改",
+      "link": "base_link"
+    },
+    {
+      "id": 10,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 11,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 12,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 13,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 14,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 15,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 16,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 17,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 18,
+      "name": "标准件-拨盘轴承2-6-3",
+      "link": "base_link"
+    },
+    {
+      "id": 19,
+      "name": "打印件-中心直角折弯_外侧_左",
+      "link": "base_link"
+    },
+    {
+      "id": 20,
+      "name": "打印件-中心直角折弯侧边固定_定心",
+      "link": "base_link"
+    },
+    {
+      "id": 21,
+      "name": "打印件-中心直角折弯侧边固定_定心（滚花）",
+      "link": "base_link"
+    },
+    {
+      "id": 22,
+      "name": "M2x30杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 23,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 24,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 25,
+      "name": "2x12圆柱销",
+      "link": "base_link"
+    },
+    {
+      "id": 26,
+      "name": "2x12圆柱销",
+      "link": "base_link"
+    },
+    {
+      "id": 27,
+      "name": "2x12圆柱销",
+      "link": "base_link"
+    },
+    {
+      "id": 28,
+      "name": "2x12圆柱销",
+      "link": "base_link"
+    },
+    {
+      "id": 29,
+      "name": "M2x25平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 30,
+      "name": "M2x25平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 31,
+      "name": "M2x25平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 32,
+      "name": "M2x25平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 33,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 34,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 35,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 36,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 37,
+      "name": "263轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 38,
+      "name": "263轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 39,
+      "name": "263轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 40,
+      "name": "263轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 41,
+      "name": "263轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 42,
+      "name": "263轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 43,
+      "name": "263轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 44,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 45,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 46,
+      "name": "M2x20平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 47,
+      "name": "M2x20平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 48,
+      "name": "M2x20平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 49,
+      "name": "M2x20平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 50,
+      "name": "M2x20平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 51,
+      "name": "M2x20平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 52,
+      "name": "M2x16平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 53,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 54,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 55,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 56,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 57,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 58,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 59,
+      "name": "M2防松螺母",
+      "link": "base_link"
+    },
+    {
+      "id": 60,
+      "name": "M2.5x25薄头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 61,
+      "name": "M2.5x25薄头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 62,
+      "name": "M2.5x25薄头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 63,
+      "name": "M2.5x25薄头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 64,
+      "name": "M3x10杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 65,
+      "name": "M3x10杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 66,
+      "name": "M3x10杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 67,
+      "name": "M3x10杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 68,
+      "name": "M3x20杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 69,
+      "name": "M3x20杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 70,
+      "name": "M3x20杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 71,
+      "name": "M3x20杯头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 72,
+      "name": "中心供弹底板⑨_Mk3_外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 73,
+      "name": "内旋示意-263",
+      "link": "base_link"
+    },
+    {
+      "id": 74,
+      "name": "分弹片Mk5.1",
+      "link": "base_link"
+    },
+    {
+      "id": 75,
+      "name": "中心供弹_轴承内圈载板",
+      "link": "base_link"
+    },
+    {
+      "id": 76,
+      "name": "双通铝柱_M3_22",
+      "link": "base_link"
+    },
+    {
+      "id": 77,
+      "name": "双通铝柱_M3_22",
+      "link": "base_link"
+    },
+    {
+      "id": 78,
+      "name": "双通铝柱_M3_22",
+      "link": "base_link"
+    },
+    {
+      "id": 79,
+      "name": "双通铝柱_M3_22",
+      "link": "base_link"
+    },
+    {
+      "id": 80,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 81,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 82,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 83,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 84,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 85,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 86,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 87,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 88,
+      "name": "3-6-2.5M3L4外螺纹轴承",
+      "link": "base_link"
+    },
+    {
+      "id": 89,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 90,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 91,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 92,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 93,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 94,
+      "name": "M2x6平头螺丝",
+      "link": "base_link"
+    },
+    {
+      "id": 95,
+      "name": "拨爪_九齿_Mk2",
+      "link": "base_link"
+    },
+    {
+      "id": 96,
+      "name": "中心供弹_轴承外圈载板_⑨_Mk2",
+      "link": "base_link"
+    },
+    {
+      "id": 97,
+      "name": "圆柱齿轮50×2_轴承_Mk2.1",
+      "link": "base_link"
+    },
+    {
+      "id": 98,
+      "name": "圆柱齿轮50×2_垫高_Mk2.1",
+      "link": "base_link"
+    },
+    {
+      "id": 99,
+      "name": "中心供弹Yaw外圈打印兼导流罩",
+      "link": "base_link"
+    },
+    {
+      "id": 100,
+      "name": "分层片Mk2",
+      "link": "base_link"
+    },
+    {
+      "id": 101,
+      "name": "中心2006固定板",
+      "link": "base_link"
+    },
+    {
+      "id": 102,
+      "name": "RoboMaster M2006 P36",
+      "link": "base_link"
+    },
+    {
+      "id": 103,
+      "name": "圆柱齿轮20×2",
+      "link": "base_link"
+    },
+    {
+      "id": 104,
+      "name": "2006上交联轴器",
+      "link": "base_link"
+    },
+    {
+      "id": 105,
+      "name": "小弹丸模拟",
+      "link": "base_link"
+    },
+    {
+      "id": 106,
+      "name": "小弹丸模拟",
+      "link": "base_link"
+    },
+    {
+      "id": 107,
+      "name": "小弹丸模拟",
+      "link": "base_link"
+    },
+    {
+      "id": 108,
+      "name": "双通铝柱_M3_25",
+      "link": "base_link"
+    },
+    {
+      "id": 109,
+      "name": "双通铝柱_M3_25",
+      "link": "base_link"
+    },
+    {
+      "id": 110,
+      "name": "双通铝柱_M3_25",
+      "link": "base_link"
+    },
+    {
+      "id": 111,
+      "name": "双通铝柱_M3_25",
+      "link": "base_link"
+    },
+    {
+      "id": 112,
+      "name": "【外购件】防松螺母 M3",
+      "link": "base_link"
+    },
+    {
+      "id": 113,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 114,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 115,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 116,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 117,
+      "name": "【玻纤】弹舱壁电池对侧",
+      "link": "base_link"
+    },
+    {
+      "id": 118,
+      "name": "【玻纤】弹舱侧壁",
+      "link": "base_link"
+    },
+    {
+      "id": 119,
+      "name": "【玻纤】弹舱侧壁靠左腿",
+      "link": "base_link"
+    },
+    {
+      "id": 120,
+      "name": "【玻纤】电池下接上载板",
+      "link": "base_link"
+    },
+    {
+      "id": 121,
+      "name": "【打印件】后前装甲板垫块30mm",
+      "link": "base_link"
+    },
+    {
+      "id": 122,
+      "name": "【玻纤】弹舱壁接电池架",
+      "link": "base_link"
+    },
+    {
+      "id": 123,
+      "name": "【打印件】后前装甲板垫块30mm",
+      "link": "base_link"
+    },
+    {
+      "id": 124,
+      "name": "裁判系统灯条模块",
+      "link": "base_link"
+    },
+    {
+      "id": 125,
+      "name": "【玻纤】车前上载板",
+      "link": "base_link"
+    },
+    {
+      "id": 126,
+      "name": "【打印件】后前装甲板垫块30mm",
+      "link": "base_link"
+    },
+    {
+      "id": 127,
+      "name": "【打印件】后前装甲板垫块30mm",
+      "link": "base_link"
+    },
+    {
+      "id": 128,
+      "name": "【玻纤】电池下接下载板",
+      "link": "base_link"
+    },
+    {
+      "id": 129,
+      "name": "【玻纤】车前下载板",
+      "link": "base_link"
+    },
+    {
+      "id": 131,
+      "name": "官方元件-RoboMaster 装甲模块（小） AM02 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 132,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 133,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 134,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 135,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 136,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 137,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 139,
+      "name": "官方元件-RoboMaster 装甲模块（小） AM02 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 140,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 141,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 142,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 143,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 144,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 145,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 146,
+      "name": "【玻纤】电池架支撑A",
+      "link": "base_link"
+    },
+    {
+      "id": 147,
+      "name": "【玻纤】电池架支撑B",
+      "link": "base_link"
+    },
+    {
+      "id": 148,
+      "name": "【裁判系统】RM场地交互模块-改1.15",
+      "link": "base_link"
+    },
+    {
+      "id": 149,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 150,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 151,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 152,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 153,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 154,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 155,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 156,
+      "name": "【铝件】前后导轮板安装件儿",
+      "link": "base_link"
+    },
+    {
+      "id": 157,
+      "name": "【玻纤】前后防撞导轮板",
+      "link": "base_link"
+    },
+    {
+      "id": 158,
+      "name": "【成品】包胶轴承前后",
+      "link": "base_link"
+    },
+    {
+      "id": 159,
+      "name": "【玻纤】前后防撞导轮板",
+      "link": "base_link"
+    },
+    {
+      "id": 160,
+      "name": "【成品】包胶轴承前后",
+      "link": "base_link"
+    },
+    {
+      "id": 161,
+      "name": "【玻纤】前后防撞导轮板",
+      "link": "base_link"
+    },
+    {
+      "id": 162,
+      "name": "【成品】包胶轴承前后",
+      "link": "base_link"
+    },
+    {
+      "id": 163,
+      "name": "【玻纤】前后防撞导轮板",
+      "link": "base_link"
+    },
+    {
+      "id": 164,
+      "name": "【成品】包胶轴承前后",
+      "link": "base_link"
+    },
+    {
+      "id": 165,
+      "name": "【玻纤】场地交互连接板",
+      "link": "base_link"
+    },
+    {
+      "id": 166,
+      "name": "【玻纤】场地交互保护导轮板",
+      "link": "base_link"
+    },
+    {
+      "id": 167,
+      "name": "【玻纤】场地交互保护导轮板",
+      "link": "base_link"
+    },
+    {
+      "id": 168,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 169,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 170,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 171,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 172,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 173,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 174,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 175,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 176,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 177,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 178,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 179,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 180,
+      "name": "【波纤】弹舱最底板",
+      "link": "base_link"
+    },
+    {
+      "id": 181,
+      "name": "【玻纤】车前装甲板围挡侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 182,
+      "name": "【玻纤】车前装甲板围挡侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 183,
+      "name": "【玻纤】车前装甲板围挡前",
+      "link": "base_link"
+    },
+    {
+      "id": 184,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 185,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 186,
+      "name": "【成品】裁判系统主控模块MC02",
+      "link": "base_link"
+    },
+    {
+      "id": 187,
+      "name": "【玻纤】车后装甲板围挡侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 188,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 189,
+      "name": "【玻纤】车后装甲板围挡侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 190,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 191,
+      "name": "【玻纤】车后围挡前",
+      "link": "base_link"
+    },
+    {
+      "id": 192,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 193,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 194,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 195,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 196,
+      "name": "【玻纤】电源管理载板",
+      "link": "base_link"
+    },
+    {
+      "id": 197,
+      "name": "【打印件】弹舱底部",
+      "link": "base_link"
+    },
+    {
+      "id": 198,
+      "name": "【玻纤】车后夹层围挡",
+      "link": "base_link"
+    },
+    {
+      "id": 199,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 200,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 201,
+      "name": "【玻纤】车后夹层围挡",
+      "link": "base_link"
+    },
+    {
+      "id": 202,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 203,
+      "name": "【玻纤】车后下围挡前",
+      "link": "base_link"
+    },
+    {
+      "id": 204,
+      "name": "【玻纤】车前下围挡侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 205,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 206,
+      "name": "【玻纤】车前下围挡侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 207,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 208,
+      "name": "【成品】电源管理模块",
+      "link": "base_link"
+    },
+    {
+      "id": 209,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 210,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 211,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 212,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 213,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 216,
+      "name": "RoboMaster 电池架.STEP",
+      "link": "base_link"
+    },
+    {
+      "id": 217,
+      "name": "黑色电池.STEP",
+      "link": "base_link"
+    },
+    {
+      "id": 218,
+      "name": "【玻纤】车后下围挡前",
+      "link": "base_link"
+    },
+    {
+      "id": 219,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 220,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 221,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 222,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 223,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 224,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 225,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 226,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 227,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 228,
+      "name": "【成品】场地交互保护导轮",
+      "link": "base_link"
+    },
+    {
+      "id": 229,
+      "name": "【铝件】铝管加强",
+      "link": "base_link"
+    },
+    {
+      "id": 230,
+      "name": "【铝件】铝管加强",
+      "link": "base_link"
+    },
+    {
+      "id": 231,
+      "name": "【铝件】铝管加强",
+      "link": "base_link"
+    },
+    {
+      "id": 232,
+      "name": "【铝件】铝管加强",
+      "link": "base_link"
+    },
+    {
+      "id": 233,
+      "name": "【成品】垫柱",
+      "link": "base_link"
+    },
+    {
+      "id": 234,
+      "name": "【玻纤】电器仓盖",
+      "link": "base_link"
+    },
+    {
+      "id": 235,
+      "name": "鸭嘴口上",
+      "link": "base_link"
+    },
+    {
+      "id": 236,
+      "name": "鸭嘴扣下",
+      "link": "base_link"
+    },
+    {
+      "id": 237,
+      "name": "【玻纤】弹舱上全",
+      "link": "base_link"
+    },
+    {
+      "id": 239,
+      "name": "【成品】1寸合页单体A",
+      "link": "base_link"
+    },
+    {
+      "id": 240,
+      "name": "【成品】1寸合页单体B",
+      "link": "base_link"
+    },
+    {
+      "id": 242,
+      "name": "【成品】1寸合页单体A",
+      "link": "base_link"
+    },
+    {
+      "id": 243,
+      "name": "【成品】1寸合页单体B",
+      "link": "base_link"
+    },
+    {
+      "id": 245,
+      "name": "【成品】1寸合页单体A",
+      "link": "base_link"
+    },
+    {
+      "id": 246,
+      "name": "【成品】1寸合页单体B",
+      "link": "base_link"
+    },
+    {
+      "id": 248,
+      "name": "【成品】1寸合页单体A",
+      "link": "base_link"
+    },
+    {
+      "id": 249,
+      "name": "【成品】1寸合页单体B",
+      "link": "base_link"
+    },
+    {
+      "id": 251,
+      "name": "【成品】1寸合页单体A",
+      "link": "base_link"
+    },
+    {
+      "id": 252,
+      "name": "【成品】1寸合页单体B",
+      "link": "base_link"
+    },
+    {
+      "id": 254,
+      "name": "【成品】1寸合页单体A",
+      "link": "base_link"
+    },
+    {
+      "id": 255,
+      "name": "【成品】1寸合页单体B",
+      "link": "base_link"
+    },
+    {
+      "id": 256,
+      "name": "【玻纤】弹仓盖",
+      "link": "base_link"
+    },
+    {
+      "id": 257,
+      "name": "【玻纤】电池盖",
+      "link": "base_link"
+    },
+    {
+      "id": 258,
+      "name": "【成品】弹仓卡扣上",
+      "link": "base_link"
+    },
+    {
+      "id": 259,
+      "name": "【成品】迷你铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 260,
+      "name": "【成品】迷你铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 261,
+      "name": "【成品】迷你铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 262,
+      "name": "【成品】迷你铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 263,
+      "name": "【成品】插销（插）",
+      "link": "base_link"
+    },
+    {
+      "id": 265,
+      "name": "【铝件】大眼睛",
+      "link": "base_link"
+    },
+    {
+      "id": 266,
+      "name": "CP.BM.000081-P1010B-111+减速电机（外发）-",
+      "link": "base_link"
+    },
+    {
+      "id": 267,
+      "name": "CP.BM.000081-P1010B-111+减速电机（外发）-",
+      "link": "base_link"
+    },
+    {
+      "id": 268,
+      "name": "【成品】角接触轴承45-58-7",
+      "link": "base_link"
+    },
+    {
+      "id": 269,
+      "name": "【成品】角接触轴承45-58-7",
+      "link": "base_link"
+    },
+    {
+      "id": 270,
+      "name": "【铝件】角接触内接",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 271,
+      "name": "【铝件】角接触外接",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 272,
+      "name": "【铝件】从动链轮小腿 ",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 273,
+      "name": "【铝件】大腿中轴",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 274,
+      "name": "【铝件】中轴螺母",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 275,
+      "name": "滚针轴承内20外26长16",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 276,
+      "name": "碗组轴承42-52-7",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 277,
+      "name": "碗组轴承42-52-7",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 278,
+      "name": "【铝件】大腿从动链轮",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 279,
+      "name": "【铝件】髋关节轴承座",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 280,
+      "name": "【铝件】大腿",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 281,
+      "name": "【铝件】小腿主动连杆",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 282,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 283,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 284,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 285,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 286,
+      "name": "【黑波】侧轴接管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 287,
+      "name": "【黑波】侧轴接管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 288,
+      "name": "【黑波】侧挂轴保护上",
+      "link": "base_link"
+    },
+    {
+      "id": 289,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 290,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 292,
+      "name": "官方元件-RoboMaster 装甲模块（小） AM02 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 293,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 294,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 295,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 296,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 297,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 298,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 299,
+      "name": "【铝件】侧装甲板防撞保护侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 300,
+      "name": "【黑波】侧挂轴保护下",
+      "link": "base_link"
+    },
+    {
+      "id": 301,
+      "name": "【铝件】侧装甲板防撞保护侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 302,
+      "name": "【成品】螺纹包胶轮",
+      "link": "base_link"
+    },
+    {
+      "id": 303,
+      "name": "【成品】螺纹包胶轮",
+      "link": "base_link"
+    },
+    {
+      "id": 304,
+      "name": "大眼睛侧挂轴铝管",
+      "link": "base_link"
+    },
+    {
+      "id": 305,
+      "name": "侧轴滑环2.0",
+      "link": "base_link"
+    },
+    {
+      "id": 306,
+      "name": "【铝件】侧挂轴压紧上",
+      "link": "base_link"
+    },
+    {
+      "id": 307,
+      "name": "【铝件】大眼睛侧挂轴压紧下",
+      "link": "base_link"
+    },
+    {
+      "id": 308,
+      "name": "【打印件】膝关节碗组垫片",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 310,
+      "name": "【成品】碗组碗盖膝关节",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 311,
+      "name": "【成品】碗组轴承膝关节",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 312,
+      "name": "【成品】碗组轴承膝关节 底挡 (1)",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 313,
+      "name": "【打印件】膝关节碗组垫片",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 315,
+      "name": "【成品】碗组碗盖膝关节",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 316,
+      "name": "【成品】碗组轴承膝关节",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 317,
+      "name": "【成品】碗组轴承膝关节 底挡 (1)",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 318,
+      "name": "膝关节大螺母",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 319,
+      "name": "【铝件】小腿",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 320,
+      "name": "F698ZZ",
+      "link": "right_upper_coupler_link"
+    },
+    {
+      "id": 321,
+      "name": "F698ZZ",
+      "link": "right_hip_knee_driver_link"
+    },
+    {
+      "id": 322,
+      "name": "【铝件】膝关节节点连杆",
+      "link": "right_knee_node_link"
+    },
+    {
+      "id": 323,
+      "name": "F698ZZ",
+      "link": "right_knee_node_link"
+    },
+    {
+      "id": 324,
+      "name": "F698ZZ",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 325,
+      "name": "F698ZZ",
+      "link": "right_upper_coupler_link"
+    },
+    {
+      "id": 326,
+      "name": "F698ZZ",
+      "link": "right_knee_node_link"
+    },
+    {
+      "id": 327,
+      "name": "F698ZZ",
+      "link": "right_lower_coupler_link"
+    },
+    {
+      "id": 328,
+      "name": "F698ZZ",
+      "link": "right_knee_node_link"
+    },
+    {
+      "id": 329,
+      "name": "【铝件】膝关节二级长连杆",
+      "link": "right_lower_coupler_link"
+    },
+    {
+      "id": 330,
+      "name": "【铝件】膝关节一级长连杆",
+      "link": "right_upper_coupler_link"
+    },
+    {
+      "id": 331,
+      "name": "F698ZZ",
+      "link": "right_lower_coupler_link"
+    },
+    {
+      "id": 332,
+      "name": "F698ZZ",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 333,
+      "name": "【打印件】8-12-3垫片",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 334,
+      "name": "【打印件】垫片8-12-1",
+      "link": "right_upper_coupler_link"
+    },
+    {
+      "id": 335,
+      "name": "【打印件】垫片8-12-1",
+      "link": "right_upper_coupler_link"
+    },
+    {
+      "id": 336,
+      "name": "【打印件】8-12-1.5",
+      "link": "right_lower_coupler_link"
+    },
+    {
+      "id": 337,
+      "name": "【打印件】8-12-1.75",
+      "link": "right_lower_coupler_link"
+    },
+    {
+      "id": 338,
+      "name": "对锁螺丝螺母-20",
+      "link": "right_upper_coupler_link"
+    },
+    {
+      "id": 339,
+      "name": "对锁螺丝螺母-25",
+      "link": "right_lower_coupler_link"
+    },
+    {
+      "id": 340,
+      "name": "对锁螺丝螺母-25",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 341,
+      "name": "对锁螺丝螺母-20",
+      "link": "right_lower_coupler_link"
+    },
+    {
+      "id": 342,
+      "name": "对锁螺丝螺母-20",
+      "link": "right_upper_coupler_link"
+    },
+    {
+      "id": 349,
+      "name": "基座mk9v0.0",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 351,
+      "name": "3508电坤屁股",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 352,
+      "name": "3508太阳轮17×0.6",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 353,
+      "name": "双联齿mk8v0.0-粉末冶金-大齿-0.33",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 354,
+      "name": "双联齿mk8v0.0-粉末冶金-大齿-0.33",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 355,
+      "name": "双联齿mk8v0.0-粉末冶金-大齿-0.33",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 356,
+      "name": "内齿圈-67齿-对粉末冶金特调",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 357,
+      "name": "71810AC",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 358,
+      "name": "71810AC",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 359,
+      "name": "土星环",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 360,
+      "name": "土星环3",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 361,
+      "name": "轮毂mk9",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 362,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 363,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 364,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 365,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 366,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 367,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "right_wheel_link"
+    },
+    {
+      "id": 368,
+      "name": "内六角圆柱头螺钉 M3x20",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 369,
+      "name": "内六角圆柱头螺钉 M3x20",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 370,
+      "name": "内六角圆柱头螺钉 M3x20",
+      "link": "right_shank_link"
+    },
+    {
+      "id": 371,
+      "name": "【打印件】小腿限位",
+      "link": "right_thigh_link"
+    },
+    {
+      "id": 372,
+      "name": "【铝件】主动链轮小腿  ",
+      "link": "base_link"
+    },
+    {
+      "id": 373,
+      "name": "【铝件】主动链轮大腿大眼睛",
+      "link": "base_link"
+    },
+    {
+      "id": 374,
+      "name": "【铝件】涨紧打印件垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 375,
+      "name": "【打印件】涨紧2.0",
+      "link": "base_link"
+    },
+    {
+      "id": 377,
+      "name": "【铝件】大眼睛",
+      "link": "base_link"
+    },
+    {
+      "id": 378,
+      "name": "CP.BM.000081-P1010B-111+减速电机（外发）-",
+      "link": "base_link"
+    },
+    {
+      "id": 379,
+      "name": "CP.BM.000081-P1010B-111+减速电机（外发）-",
+      "link": "base_link"
+    },
+    {
+      "id": 380,
+      "name": "【成品】角接触轴承45-58-7",
+      "link": "base_link"
+    },
+    {
+      "id": 381,
+      "name": "【成品】角接触轴承45-58-7",
+      "link": "base_link"
+    },
+    {
+      "id": 382,
+      "name": "【铝件】角接触内接",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 383,
+      "name": "【铝件】角接触外接",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 384,
+      "name": "【铝件】从动链轮小腿 ",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 385,
+      "name": "【铝件】大腿中轴",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 386,
+      "name": "【铝件】中轴螺母",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 387,
+      "name": "滚针轴承内20外26长16",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 388,
+      "name": "碗组轴承42-52-7",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 389,
+      "name": "碗组轴承42-52-7",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 390,
+      "name": "【铝件】大腿从动链轮",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 391,
+      "name": "【铝件】髋关节轴承座",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 392,
+      "name": "【铝件】小腿主动连杆",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 393,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 394,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 395,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 396,
+      "name": "【成品件】20mm管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 397,
+      "name": "【黑波】侧轴接管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 398,
+      "name": "【黑波】侧轴接管夹",
+      "link": "base_link"
+    },
+    {
+      "id": 399,
+      "name": "【黑波】侧挂轴保护上",
+      "link": "base_link"
+    },
+    {
+      "id": 400,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 401,
+      "name": "【成品】铝条",
+      "link": "base_link"
+    },
+    {
+      "id": 403,
+      "name": "官方元件-RoboMaster 装甲模块（小） AM02 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 404,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 405,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 406,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 407,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 408,
+      "name": "装甲板小垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 409,
+      "name": "官方元件-RoboMaster 装甲支撑架A型 2020_奇点李想",
+      "link": "base_link"
+    },
+    {
+      "id": 410,
+      "name": "【铝件】侧装甲板防撞保护侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 411,
+      "name": "【黑波】侧挂轴保护下",
+      "link": "base_link"
+    },
+    {
+      "id": 412,
+      "name": "【铝件】侧装甲板防撞保护侧面",
+      "link": "base_link"
+    },
+    {
+      "id": 413,
+      "name": "【成品】螺纹包胶轮",
+      "link": "base_link"
+    },
+    {
+      "id": 414,
+      "name": "【成品】螺纹包胶轮",
+      "link": "base_link"
+    },
+    {
+      "id": 415,
+      "name": "大眼睛侧挂轴铝管",
+      "link": "base_link"
+    },
+    {
+      "id": 416,
+      "name": "侧轴滑环2.0",
+      "link": "base_link"
+    },
+    {
+      "id": 417,
+      "name": "【铝件】侧挂轴压紧上",
+      "link": "base_link"
+    },
+    {
+      "id": 418,
+      "name": "【铝件】大眼睛侧挂轴压紧下",
+      "link": "base_link"
+    },
+    {
+      "id": 419,
+      "name": "【铝件】主动链轮大腿大眼睛",
+      "link": "base_link"
+    },
+    {
+      "id": 420,
+      "name": "【铝件】主动链轮小腿  ",
+      "link": "base_link"
+    },
+    {
+      "id": 421,
+      "name": "【铝件】大腿左大眼睛",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 422,
+      "name": "F698ZZ",
+      "link": "left_upper_coupler_link"
+    },
+    {
+      "id": 423,
+      "name": "F698ZZ",
+      "link": "left_hip_knee_driver_link"
+    },
+    {
+      "id": 424,
+      "name": "【铝件】膝关节二级长连杆",
+      "link": "left_lower_coupler_link"
+    },
+    {
+      "id": 425,
+      "name": "【铝件】膝关节节点连杆",
+      "link": "left_knee_node_link"
+    },
+    {
+      "id": 426,
+      "name": "【铝件】膝关节一级长连杆",
+      "link": "left_upper_coupler_link"
+    },
+    {
+      "id": 427,
+      "name": "F698ZZ",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 428,
+      "name": "F698ZZ",
+      "link": "left_knee_node_link"
+    },
+    {
+      "id": 429,
+      "name": "F698ZZ",
+      "link": "left_lower_coupler_link"
+    },
+    {
+      "id": 430,
+      "name": "F698ZZ",
+      "link": "left_knee_node_link"
+    },
+    {
+      "id": 431,
+      "name": "F698ZZ",
+      "link": "left_knee_node_link"
+    },
+    {
+      "id": 432,
+      "name": "F698ZZ",
+      "link": "left_upper_coupler_link"
+    },
+    {
+      "id": 433,
+      "name": "【铝件】小腿",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 434,
+      "name": "F698ZZ",
+      "link": "left_lower_coupler_link"
+    },
+    {
+      "id": 435,
+      "name": "F698ZZ",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 436,
+      "name": "【打印件】膝关节碗组垫片",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 437,
+      "name": "膝关节大螺母",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 439,
+      "name": "【成品】碗组碗盖膝关节",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 440,
+      "name": "【成品】碗组轴承膝关节",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 441,
+      "name": "【成品】碗组轴承膝关节 底挡 (1)",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 443,
+      "name": "【成品】碗组碗盖膝关节",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 444,
+      "name": "【成品】碗组轴承膝关节",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 445,
+      "name": "【成品】碗组轴承膝关节 底挡 (1)",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 446,
+      "name": "【打印件】膝关节碗组垫片",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 447,
+      "name": "对锁螺丝螺母-20",
+      "link": "left_upper_coupler_link"
+    },
+    {
+      "id": 448,
+      "name": "对锁螺丝螺母-25",
+      "link": "left_lower_coupler_link"
+    },
+    {
+      "id": 449,
+      "name": "对锁螺丝螺母-25",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 450,
+      "name": "对锁螺丝螺母-20",
+      "link": "left_lower_coupler_link"
+    },
+    {
+      "id": 451,
+      "name": "对锁螺丝螺母-20",
+      "link": "left_upper_coupler_link"
+    },
+    {
+      "id": 452,
+      "name": "【打印件】8-12-1.5",
+      "link": "left_lower_coupler_link"
+    },
+    {
+      "id": 453,
+      "name": "【打印件】8-12-1.75",
+      "link": "left_lower_coupler_link"
+    },
+    {
+      "id": 454,
+      "name": "【打印件】8-12-3垫片",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 455,
+      "name": "【打印件】垫片8-12-1",
+      "link": "left_upper_coupler_link"
+    },
+    {
+      "id": 456,
+      "name": "【打印件】垫片8-12-1",
+      "link": "left_upper_coupler_link"
+    },
+    {
+      "id": 458,
+      "name": "基座mk9v0.0",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 460,
+      "name": "3508电坤屁股",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 461,
+      "name": "3508太阳轮17×0.6",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 462,
+      "name": "双联齿mk8v0.0-粉末冶金-大齿-0.33",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 463,
+      "name": "双联齿mk8v0.0-粉末冶金-大齿-0.33",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 464,
+      "name": "双联齿mk8v0.0-粉末冶金-大齿-0.33",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 465,
+      "name": "内齿圈-67齿-对粉末冶金特调",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 466,
+      "name": "71810AC",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 467,
+      "name": "71810AC",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 468,
+      "name": "土星环",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 469,
+      "name": "土星环3",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 470,
+      "name": "轮毂mk9",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 471,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 472,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 473,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 474,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 475,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 476,
+      "name": "内六角圆柱头螺钉 M4x15",
+      "link": "left_wheel_link"
+    },
+    {
+      "id": 477,
+      "name": "内六角圆柱头螺钉 M3x20",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 478,
+      "name": "内六角圆柱头螺钉 M3x20",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 479,
+      "name": "内六角圆柱头螺钉 M3x20",
+      "link": "left_shank_link"
+    },
+    {
+      "id": 480,
+      "name": "【打印件】小腿限位",
+      "link": "left_thigh_link"
+    },
+    {
+      "id": 486,
+      "name": "【铝件】大眼睛下垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 487,
+      "name": "【铝件】大眼睛下垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 488,
+      "name": "【铝件】大眼睛下垫块",
+      "link": "base_link"
+    },
+    {
+      "id": 489,
+      "name": "【铝件】大眼睛下垫块",
+      "link": "base_link"
+    }
+  ],
+  "physics": {
+    "timestep_s": 0.001,
+    "hip_torque_limit_Nm": 40.0,
+    "wheel_torque_limit_Nm": 6.0,
+    "joint_damping_Nms": 0.025,
+    "wheel_friction": 0.8,
+    "hip_motor_assumed_mass_kg": 1.3,
+    "aluminium_density_kg_m3": 2700.0,
+    "steel_density_kg_m3": 7800.0,
+    "composite_density_kg_m3": 1600.0,
+    "polymer_density_kg_m3": 1200.0,
+    "unidentified_density_kg_m3": 2200.0,
+    "viewer": {
+      "hip_kp": 300.0,
+      "hip_kd": 8.0,
+      "wheel_kp": 5.0,
+      "wheel_kd": 0.3
+    },
+    "note": "Masses/materials, motor limits, damping and friction are editable estimates; not hardware identification. Gimbal and gas springs removed."
+  },
+  "link_mass_properties": {
+    "base_link": {
+      "mass_kg": 15.067140000116192,
+      "COM_local_m": [
+        -0.010926262795983186,
+        0.0003581340533896905,
+        -0.04544202817278775
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.2383692203509827,
+          0.0013620662841008087,
+          0.016839025854798535
+        ],
+        [
+          0.0013620662841008087,
+          0.3143089897473729,
+          6.376825883573975e-05
+        ],
+        [
+          0.016839025854798535,
+          6.376825883573975e-05,
+          0.45725583095705735
+        ]
+      ]
+    },
+    "right_thigh_link": {
+      "mass_kg": 0.6963698892396653,
+      "COM_local_m": [
+        -0.10045593919168015,
+        -2.08267534145608e-05,
+        -0.04226539482822415
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.0010936224548513329,
+          -1.0787745029555695e-05,
+          -0.0020341217664384395
+        ],
+        [
+          -1.0787745029555695e-05,
+          0.0061682036065262335,
+          -1.5228640013783684e-06
+        ],
+        [
+          -0.0020341217664384395,
+          -1.5228640013783684e-06,
+          0.0051453028331532496
+        ]
+      ]
+    },
+    "right_hip_knee_driver_link": {
+      "mass_kg": 0.3336204932054989,
+      "COM_local_m": [
+        0.009117478710499678,
+        0.02386131883432998,
+        -0.004017794291087876
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.00020636539474058039,
+          7.951563821583966e-05,
+          8.716088196596979e-05
+        ],
+        [
+          7.951563821583966e-05,
+          0.0003524475363280962,
+          -3.503908609986059e-05
+        ],
+        [
+          8.716088196596979e-05,
+          -3.503908609986059e-05,
+          0.00036576182579749325
+        ]
+      ]
+    },
+    "right_upper_coupler_link": {
+      "mass_kg": 0.08393164971519948,
+      "COM_local_m": [
+        -0.0461382882303446,
+        -0.0054501904946356134,
+        -0.037570046246720154
+      ],
+      "inertia_local_kg_m2": [
+        [
+          9.159841177056103e-05,
+          -1.1577018513560613e-12,
+          -0.00010475855136115475
+        ],
+        [
+          -1.1577018513560613e-12,
+          0.0002187108499823825,
+          1.5158166143958705e-12
+        ],
+        [
+          -0.00010475855136115477,
+          1.5158166143958705e-12,
+          0.00013494421037747265
+        ]
+      ]
+    },
+    "right_knee_node_link": {
+      "mass_kg": 0.12530980178329088,
+      "COM_local_m": [
+        0.022476684100347175,
+        -0.0010185170009488333,
+        -0.012637894760837265
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.0002477469285575082,
+          -2.652672909147999e-07,
+          0.0002283874025467564
+        ],
+        [
+          -2.652672909147999e-07,
+          0.0004869151282546541,
+          5.731569800301857e-07
+        ],
+        [
+          0.00022838740254675643,
+          5.731569800301857e-07,
+          0.0002415747476478518
+        ]
+      ]
+    },
+    "right_shank_link": {
+      "mass_kg": 0.7656358557341226,
+      "COM_local_m": [
+        0.1330663117820706,
+        -0.009335659695935918,
+        -0.11029753278747977
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.003994517123479104,
+          0.00045166736593296936,
+          0.004162840479768806
+        ],
+        [
+          0.00045166736593296936,
+          0.008916004043873748,
+          -0.00038474042418396704
+        ],
+        [
+          0.004162840479768806,
+          -0.00038474042418396704,
+          0.005214202879806604
+        ]
+      ]
+    },
+    "right_lower_coupler_link": {
+      "mass_kg": 0.08470848881231,
+      "COM_local_m": [
+        -0.053447071780648725,
+        -0.0059450298720135535,
+        -0.02270835909181558
+      ],
+      "inertia_local_kg_m2": [
+        [
+          3.796517868365824e-05,
+          -9.575398338807742e-07,
+          -7.296737528716725e-05
+        ],
+        [
+          -9.575398338807742e-07,
+          0.000207425068215989,
+          -4.0683535441621313e-07
+        ],
+        [
+          -7.296737528716725e-05,
+          -4.0683535441621313e-07,
+          0.00017870131053048294
+        ]
+      ]
+    },
+    "right_wheel_link": {
+      "mass_kg": 0.18924111628014,
+      "COM_local_m": [
+        1.2001797295277424e-06,
+        1.7183823536148263e-05,
+        -4.86074606664556e-07
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.00017739278030121862,
+          -1.6995220612440937e-09,
+          -3.0039744628220085e-09
+        ],
+        [
+          -1.6995220612440672e-09,
+          0.00034417494969921336,
+          6.883092943385048e-10
+        ],
+        [
+          -3.0039744628234908e-09,
+          6.883092943377107e-10,
+          0.00017738657890589772
+        ]
+      ]
+    },
+    "left_thigh_link": {
+      "mass_kg": 0.6963698552944488,
+      "COM_local_m": [
+        -0.1004559408113215,
+        2.0826533490860595e-05,
+        -0.04226539400952609
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.0010936224320388208,
+          1.0787748647385037e-05,
+          -0.0020341217430900013
+        ],
+        [
+          1.0787748647385037e-05,
+          0.0061682034400756015,
+          1.5228613456330205e-06
+        ],
+        [
+          -0.0020341217430900013,
+          1.5228613456330205e-06,
+          0.005145302687791639
+        ]
+      ]
+    },
+    "left_hip_knee_driver_link": {
+      "mass_kg": 0.3336204932054989,
+      "COM_local_m": [
+        0.009117438870439962,
+        -0.02386131919268045,
+        -0.0040177938943463205
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.00020636541696257858,
+          -7.951550377905431e-05,
+          8.716110683922647e-05
+        ],
+        [
+          -7.951550377905431e-05,
+          0.0003524477773209366,
+          3.503908426514462e-05
+        ],
+        [
+          8.716110683922647e-05,
+          3.503908426514462e-05,
+          0.00036576205898814136
+        ]
+      ]
+    },
+    "left_upper_coupler_link": {
+      "mass_kg": 0.08393164971519948,
+      "COM_local_m": [
+        -0.04613828821416086,
+        0.005450190467566372,
+        -0.03757004593555101
+      ],
+      "inertia_local_kg_m2": [
+        [
+          9.159841182166595e-05,
+          1.1086617888099585e-12,
+          -0.00010475855137101859
+        ],
+        [
+          1.1086617888099585e-12,
+          0.0002187108499677356,
+          -1.4475975661525592e-12
+        ],
+        [
+          -0.00010475855137101859,
+          -1.4475975661525592e-12,
+          0.0001349442102609261
+        ]
+      ]
+    },
+    "left_knee_node_link": {
+      "mass_kg": 0.12530980178329088,
+      "COM_local_m": [
+        0.022476684125746334,
+        0.0010185169959730017,
+        -0.012637894043424268
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.00024774692788407906,
+          2.6526737395654144e-07,
+          0.00022838740243347888
+        ],
+        [
+          2.6526737395654144e-07,
+          0.0004869151278583785,
+          -5.73156971311264e-07
+        ],
+        [
+          0.00022838740243347888,
+          -5.73156971311264e-07,
+          0.0002415747479182639
+        ]
+      ]
+    },
+    "left_shank_link": {
+      "mass_kg": 0.7656358557341226,
+      "COM_local_m": [
+        0.1330298479347799,
+        0.009335658895107159,
+        -0.11031658103838879
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.003995453422045379,
+          -0.0004520852613196252,
+          0.004162713537505581
+        ],
+        [
+          -0.0004520852613196252,
+          0.00891399556445886,
+          0.00038452206157809114
+        ],
+        [
+          0.004162713537505581,
+          0.00038452206157809114,
+          0.005211258075300528
+        ]
+      ]
+    },
+    "left_lower_coupler_link": {
+      "mass_kg": 0.08470848881231,
+      "COM_local_m": [
+        -0.05344707178055027,
+        0.005945029888504985,
+        -0.022708359022361777
+      ],
+      "inertia_local_kg_m2": [
+        [
+          3.796517872859714e-05,
+          9.57539830931358e-07,
+          -7.296737531626076e-05
+        ],
+        [
+          9.57539830931358e-07,
+          0.00020742506822441281,
+          4.0683541281007784e-07
+        ],
+        [
+          -7.296737531626078e-05,
+          4.0683541281007784e-07,
+          0.0001787013105272205
+        ]
+      ]
+    },
+    "left_wheel_link": {
+      "mass_kg": 0.18924111628014,
+      "COM_local_m": [
+        -2.862991623344659e-07,
+        -1.718382353617564e-05,
+        -1.2617253615470752e-06
+      ],
+      "inertia_local_kg_m2": [
+        [
+          0.00017738578540222656,
+          -4.057858899436411e-10,
+          1.8637018388547085e-09
+        ],
+        [
+          -4.0578588994336314e-10,
+          0.00034417494969921336,
+          -1.7881506460560807e-09
+        ],
+        [
+          1.8637018388415795e-09,
+          -1.78815064605616e-09,
+          0.00017739357380488973
+        ]
+      ]
+    }
+  },
+  "total_mass_kg": 19.62477455571143,
+  "collision_geoms": 91,
+  "self_collision": true,
+  "spawn_height_m": 0.312,
+  "geometry_corrections": [
+    {
+      "type": "translate_parts",
+      "parts": [
+        267,
+        373
+      ],
+      "translation_CAD_mm": [
+        0.0,
+        -1.4851485395610116,
+        4.774341364278598
+      ],
+      "reason": "User: right thigh motor A distance 101 -> 106 mm; move motor and driving sprocket together"
+    }
+  ],
+  "removed_subsystems": [
+    "entire yaw assembly and head, including feed chain and mount strips",
+    "both gas springs, their joints, preload forces and limits"
+  ],
+  "limitations": [
+    "Material densities and motor mass/torque/damping are estimates, edit physics.json and rerun export.",
+    "No balance/gait controller; stand scene fixes floating base for mechanism checks.",
+    "Internal wheel gears and motor-side chain/belt pulleys are static equivalent-transmission visuals; actuators command output torques.",
+    "Complete bearings assigned to one adjacent body; no internal rolling-element dynamics.",
+    "IMU sites are reference frames at body origins, not measured PCB positions."
+  ],
+  "collision_exclusions": [
+    [
+      "right_thigh_link",
+      "right_hip_knee_driver_link"
+    ],
+    [
+      "right_upper_coupler_link",
+      "right_knee_node_link"
+    ],
+    [
+      "right_lower_coupler_link",
+      "right_shank_link"
+    ],
+    [
+      "left_thigh_link",
+      "left_hip_knee_driver_link"
+    ],
+    [
+      "left_upper_coupler_link",
+      "left_knee_node_link"
+    ],
+    [
+      "left_lower_coupler_link",
+      "left_shank_link"
+    ]
+  ]
+}

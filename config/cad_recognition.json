@@ -1,0 +1,1779 @@
+{
+  "status": "SOURCE_CAD_RECOGNITION",
+  "source": "E:\\py_project\\guodong_sim_mujoco\\大眼睛版本总装.STEP",
+  "unit": "mm; radians for rotation",
+  "origin_CAD_mm": [
+    25.1858108601041,
+    16.774904981910584,
+    1297.7421974109059
+  ],
+  "R_CAD_to_B": [
+    [
+      0.0,
+      0.0,
+      1.0
+    ],
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ]
+  ],
+  "coordinate_convention": "B: X forward (+CAD Z), Y left (+CAD X), Z up (+CAD Y); battery is rear",
+  "zero": "All native joint positions zero in supplied STEP pose; not motor encoder zeros",
+  "yaw_STEP_offset_deg": -17.630174775287603,
+  "yaw_center_B_mm": [
+    0.0,
+    0.0,
+    43.00000053807942
+  ],
+  "R_G_to_B_at_STEP": [
+    [
+      0.9530312927571698,
+      0.3028718458780838,
+      0.0
+    ],
+    [
+      -0.3028718458780838,
+      0.9530312927571698,
+      0.0
+    ],
+    [
+      0.0,
+      -1.1373135970679492e-17,
+      1.0
+    ]
+  ],
+  "legs": {
+    "right": {
+      "pivots_B_mm": {
+        "A": [
+          5.112951839691959e-09,
+          -163.5,
+          0.0
+        ],
+        "B": [
+          91.5096047753832,
+          -163.5,
+          -40.323593471553735
+        ],
+        "C": [
+          -0.766976761659862,
+          -163.5,
+          -115.46367931016562
+        ],
+        "P": [
+          -92.037211399012,
+          -163.5,
+          -39.104369011809524
+        ],
+        "D": [
+          -122.11261160083336,
+          -163.5,
+          12.813549886214812
+        ],
+        "E": [
+          -227.95540445286997,
+          -163.5,
+          -32.156475096112985
+        ],
+        "K": [
+          -197.88000425104497,
+          -163.5,
+          -84.07439399412026
+        ],
+        "W": [
+          7.196376827778295e-10,
+          -163.5,
+          -249.6265121200035
+        ],
+        "S": [
+          4.823843342222517,
+          -163.5,
+          -45.74637160005196
+        ],
+        "T": [
+          -153.7788418366638,
+          -163.5,
+          -120.97069852210275
+        ]
+      },
+      "core_parts": [
+        280,
+        281,
+        330,
+        322,
+        329,
+        319,
+        361,
+        344,
+        346
+      ]
+    },
+    "left": {
+      "pivots_B_mm": {
+        "A": [
+          5.112951839691959e-09,
+          163.5,
+          0.0
+        ],
+        "B": [
+          91.5096047753832,
+          163.5,
+          -40.323593471553735
+        ],
+        "C": [
+          -0.766976761659862,
+          163.5,
+          -115.46367931016562
+        ],
+        "P": [
+          -92.037211399012,
+          163.5,
+          -39.104369011809524
+        ],
+        "D": [
+          -122.11261160083336,
+          163.5,
+          12.813549886214812
+        ],
+        "E": [
+          -227.95540445286997,
+          163.5,
+          -32.156475096112985
+        ],
+        "K": [
+          -197.88000425104497,
+          163.5,
+          -84.07439399412026
+        ],
+        "W": [
+          7.196376827778295e-10,
+          163.5,
+          -249.6265121200035
+        ],
+        "S": [
+          4.823843342222517,
+          163.5,
+          -45.74637160005196
+        ],
+        "T": [
+          -153.7788418366638,
+          163.5,
+          -120.97069852210275
+        ]
+      },
+      "core_parts": [
+        421,
+        392,
+        426,
+        425,
+        424,
+        433,
+        470,
+        482,
+        484
+      ]
+    }
+  },
+  "leg_pivots_CAD_yz_mm": {
+    "A": [
+      16.774904981910584,
+      1297.7421974160188
+    ],
+    "B": [
+      -23.548688489643148,
+      1389.251802186289
+    ],
+    "C": [
+      -98.68877432825504,
+      1296.975220649246
+    ],
+    "P": [
+      -22.32946402989894,
+      1205.7049860118939
+    ],
+    "D": [
+      29.588454868125396,
+      1175.6295858100725
+    ],
+    "E": [
+      -15.381570114202404,
+      1069.786792958036
+    ],
+    "K": [
+      -67.29948901220968,
+      1099.862193159861
+    ],
+    "W": [
+      -232.8516071380929,
+      1297.7421974116255
+    ],
+    "S": [
+      -28.971466618141374,
+      1302.5660407531284
+    ],
+    "T": [
+      -104.19579354019217,
+      1143.963355574242
+    ]
+  },
+  "leg_lengths_mm": {
+    "AP": 99.99999979429678,
+    "AK": 214.99999955789684,
+    "PK": 114.99999976360006,
+    "AB": 99.999999778351,
+    "BC": 118.99999999998538,
+    "PD": 60.00000000001291,
+    "KE": 59.999999999999964,
+    "DE": 114.99999976361008,
+    "KW": 257.9999998035751,
+    "ST": 175.5377768653474
+  },
+  "head_pivots_G_xz_mm": {
+    "O": [
+      -92.29700466791449,
+      75.42192646490508
+    ],
+    "A": [
+      -19.00224895048433,
+      127.65102548494627
+    ],
+    "B": [
+      -97.01376944892618,
+      110.10264344135697
+    ],
+    "C": [
+      -23.718535603746524,
+      162.33107148184553
+    ],
+    "C_unused": [
+      -19.00080414706673,
+      162.65102545519312
+    ]
+  },
+  "head_lengths_mm": {
+    "OA": 90.0000000006835,
+    "OB": 35.00000000000215,
+    "BC": 90.00000000000034,
+    "AC": 34.999270708727444
+  },
+  "links": [
+    {
+      "name": "base_link",
+      "parent": null,
+      "origin_B_mm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        1
+      ]
+    },
+    {
+      "name": "right_thigh_link",
+      "parent": "base_link",
+      "origin_B_mm": [
+        5.112951839691959e-09,
+        -160.50000005000047,
+        0.0
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        280
+      ],
+      "role": "A-P-K thigh"
+    },
+    {
+      "name": "right_hip_knee_driver_link",
+      "parent": "base_link",
+      "origin_B_mm": [
+        5.112951839691959e-09,
+        -176.00000000000003,
+        0.0
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        281
+      ],
+      "role": "A-B input rocker"
+    },
+    {
+      "name": "right_upper_coupler_link",
+      "parent": "right_hip_knee_driver_link",
+      "origin_B_mm": [
+        91.5096047753832,
+        -164.29999999999987,
+        -40.323593471553735
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        330
+      ],
+      "role": "B-C coupler"
+    },
+    {
+      "name": "right_knee_node_link",
+      "parent": "right_thigh_link",
+      "origin_B_mm": [
+        -92.037211399012,
+        -176.99999999999991,
+        -39.104369011809524
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        322
+      ],
+      "role": "P-C-D ternary link"
+    },
+    {
+      "name": "right_shank_link",
+      "parent": "right_thigh_link",
+      "origin_B_mm": [
+        -197.88000425104497,
+        -178.24999839639727,
+        -84.07439399412026
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        319
+      ],
+      "role": "K-E-W shank"
+    },
+    {
+      "name": "right_lower_coupler_link",
+      "parent": "right_knee_node_link",
+      "origin_B_mm": [
+        -122.11261160083336,
+        -163.7500000000022,
+        12.813549886214812
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        329
+      ],
+      "role": "D-E coupler"
+    },
+    {
+      "name": "right_wheel_link",
+      "parent": "right_shank_link",
+      "origin_B_mm": [
+        7.196376827778295e-10,
+        -205.74999999926027,
+        -249.6265121200035
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        361
+      ],
+      "role": "wheel output; fixed-carrier gear assumption"
+    },
+    {
+      "name": "right_gas_cylinder_link",
+      "parent": "right_shank_link",
+      "origin_B_mm": [
+        -153.7788418366638,
+        -163.5,
+        -120.97069852210275
+      ],
+      "rotation_B": [
+        [
+          0.9035245176914153,
+          0.0,
+          -0.428536399773106
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.428536399773106,
+          0.0,
+          0.9035245176914153
+        ]
+      ],
+      "parts": [
+        344,
+        347
+      ],
+      "role": "cylinder and shank-side eye T"
+    },
+    {
+      "name": "right_gas_rod_link",
+      "parent": "right_gas_cylinder_link",
+      "origin_B_mm": [
+        -153.7788418366638,
+        -163.5,
+        -120.97069852210275
+      ],
+      "rotation_B": [
+        [
+          0.9035245176914153,
+          0.0,
+          -0.428536399773106
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.428536399773106,
+          0.0,
+          0.9035245176914153
+        ]
+      ],
+      "parts": [
+        346,
+        345
+      ],
+      "role": "rod and thigh-side eye S; q=0 at STEP eye length"
+    },
+    {
+      "name": "left_thigh_link",
+      "parent": "base_link",
+      "origin_B_mm": [
+        5.112951839691959e-09,
+        160.5000000499871,
+        0.0
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        421
+      ],
+      "role": "A-P-K thigh"
+    },
+    {
+      "name": "left_hip_knee_driver_link",
+      "parent": "base_link",
+      "origin_B_mm": [
+        5.112951839691959e-09,
+        175.99999999998553,
+        0.0
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        392
+      ],
+      "role": "A-B input rocker"
+    },
+    {
+      "name": "left_upper_coupler_link",
+      "parent": "left_hip_knee_driver_link",
+      "origin_B_mm": [
+        91.5096047753832,
+        164.2999999999881,
+        -40.323593471553735
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        426
+      ],
+      "role": "B-C coupler"
+    },
+    {
+      "name": "left_knee_node_link",
+      "parent": "left_thigh_link",
+      "origin_B_mm": [
+        -92.037211399012,
+        176.9999999999886,
+        -39.104369011809524
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        425
+      ],
+      "role": "P-C-D ternary link"
+    },
+    {
+      "name": "left_shank_link",
+      "parent": "left_thigh_link",
+      "origin_B_mm": [
+        -197.88000425104497,
+        178.24999999998482,
+        -84.07439399412026
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        433
+      ],
+      "role": "K-E-W shank"
+    },
+    {
+      "name": "left_lower_coupler_link",
+      "parent": "left_knee_node_link",
+      "origin_B_mm": [
+        -122.11261160083336,
+        163.74999999998587,
+        12.813549886214812
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        424
+      ],
+      "role": "D-E coupler"
+    },
+    {
+      "name": "left_wheel_link",
+      "parent": "left_shank_link",
+      "origin_B_mm": [
+        7.196376827778295e-10,
+        205.7499998731355,
+        -249.6265121200035
+      ],
+      "rotation_B": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "parts": [
+        470
+      ],
+      "role": "wheel output; fixed-carrier gear assumption"
+    },
+    {
+      "name": "left_gas_cylinder_link",
+      "parent": "left_shank_link",
+      "origin_B_mm": [
+        -153.7788418366638,
+        163.5,
+        -120.97069852210275
+      ],
+      "rotation_B": [
+        [
+          0.9035245176914153,
+          0.0,
+          -0.428536399773106
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.428536399773106,
+          0.0,
+          0.9035245176914153
+        ]
+      ],
+      "parts": [
+        482,
+        485
+      ],
+      "role": "cylinder and shank-side eye T"
+    },
+    {
+      "name": "left_gas_rod_link",
+      "parent": "left_gas_cylinder_link",
+      "origin_B_mm": [
+        -153.7788418366638,
+        163.5,
+        -120.97069852210275
+      ],
+      "rotation_B": [
+        [
+          0.9035245176914153,
+          0.0,
+          -0.428536399773106
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.428536399773106,
+          0.0,
+          0.9035245176914153
+        ]
+      ],
+      "parts": [
+        484,
+        483
+      ],
+      "role": "rod and thigh-side eye S; q=0 at STEP eye length"
+    },
+    {
+      "name": "yaw_link",
+      "parent": "base_link",
+      "origin_B_mm": [
+        0.0,
+        0.0,
+        43.00000053807942
+      ],
+      "rotation_B": [
+        [
+          0.9530312927571698,
+          0.3028718458780838,
+          0.0
+        ],
+        [
+          -0.3028718458780838,
+          0.9530312927571698,
+          0.0
+        ],
+        [
+          0.0,
+          -1.1373135970679492e-17,
+          1.0
+        ]
+      ],
+      "parts": [
+        498,
+        503
+      ],
+      "role": "gimbal base; CAD yaw offset"
+    },
+    {
+      "name": "pitch_crank_link",
+      "parent": "yaw_link",
+      "origin_B_mm": [
+        -87.96193367627708,
+        27.95416417278938,
+        118.4219270029845
+      ],
+      "rotation_B": [
+        [
+          0.9530312927571698,
+          0.3028718458780838,
+          0.0
+        ],
+        [
+          -0.3028718458780838,
+          0.9530312927571698,
+          0.0
+        ],
+        [
+          0.0,
+          -1.1373135970679492e-17,
+          1.0
+        ]
+      ],
+      "parts": [
+        614
+      ],
+      "role": "O-B crank; motor stator 606 belongs to yaw_link"
+    },
+    {
+      "name": "pitch_coupler_link",
+      "parent": "pitch_crank_link",
+      "origin_B_mm": [
+        -92.45715811315614,
+        29.382739428587126,
+        153.10264397943638
+      ],
+      "rotation_B": [
+        [
+          0.9530312927571698,
+          0.3028718458780838,
+          0.0
+        ],
+        [
+          -0.3028718458780838,
+          0.9530312927571698,
+          0.0
+        ],
+        [
+          0.0,
+          -1.1373135970679492e-17,
+          1.0
+        ]
+      ],
+      "parts": [
+        609
+      ],
+      "role": "B-C coupler"
+    },
+    {
+      "name": "head_link",
+      "parent": "yaw_link",
+      "origin_B_mm": [
+        -18.109737882573654,
+        5.75524621546807,
+        170.65102602302568
+      ],
+      "rotation_B": [
+        [
+          0.9530312927571698,
+          0.3028718458780838,
+          0.0
+        ],
+        [
+          -0.3028718458780838,
+          0.9530312927571698,
+          0.0
+        ],
+        [
+          0.0,
+          -1.1373135970679492e-17,
+          1.0
+        ]
+      ],
+      "parts": [
+        623,
+        624,
+        615,
+        619,
+        620,
+        622,
+        625,
+        631,
+        638,
+        641
+      ],
+      "role": "A-C output arm and rigid gun/camera assembly"
+    }
+  ],
+  "joints": [
+    {
+      "name": "right_thigh_joint",
+      "parent": "base_link",
+      "child": "right_thigh_link",
+      "point_B_mm": [
+        5.112951839691959e-09,
+        -160.50000005000047,
+        0.0
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_hip_knee_driver_joint",
+      "parent": "base_link",
+      "child": "right_hip_knee_driver_link",
+      "point_B_mm": [
+        5.112951839691959e-09,
+        -176.00000000000003,
+        0.0
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_upper_coupler_joint",
+      "parent": "right_hip_knee_driver_link",
+      "child": "right_upper_coupler_link",
+      "point_B_mm": [
+        91.5096047753832,
+        -164.29999999999987,
+        -40.323593471553735
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_knee_node_joint",
+      "parent": "right_thigh_link",
+      "child": "right_knee_node_link",
+      "point_B_mm": [
+        -92.037211399012,
+        -176.99999999999991,
+        -39.104369011809524
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_shank_joint",
+      "parent": "right_thigh_link",
+      "child": "right_shank_link",
+      "point_B_mm": [
+        -197.88000425104497,
+        -178.24999839639727,
+        -84.07439399412026
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_lower_coupler_joint",
+      "parent": "right_knee_node_link",
+      "child": "right_lower_coupler_link",
+      "point_B_mm": [
+        -122.11261160083336,
+        -163.7500000000022,
+        12.813549886214812
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_wheel_joint",
+      "parent": "right_shank_link",
+      "child": "right_wheel_link",
+      "point_B_mm": [
+        7.196376827778295e-10,
+        -205.74999999926027,
+        -249.6265121200035
+      ],
+      "axis_B": [
+        -0.0,
+        1.0,
+        -0.0
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_gas_cylinder_joint",
+      "parent": "right_shank_link",
+      "child": "right_gas_cylinder_link",
+      "point_B_mm": [
+        -153.7788418366638,
+        -163.5,
+        -120.97069852210275
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "right_gas_rod_joint",
+      "parent": "right_gas_cylinder_link",
+      "child": "right_gas_rod_link",
+      "point_B_mm": [
+        -153.7788418366638,
+        -163.5,
+        -120.97069852210275
+      ],
+      "axis_B": [
+        0.9035245176914153,
+        0.0,
+        0.428536399773106
+      ],
+      "type": "slide",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_thigh_joint",
+      "parent": "base_link",
+      "child": "left_thigh_link",
+      "point_B_mm": [
+        5.112951839691959e-09,
+        160.5000000499871,
+        0.0
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_hip_knee_driver_joint",
+      "parent": "base_link",
+      "child": "left_hip_knee_driver_link",
+      "point_B_mm": [
+        5.112951839691959e-09,
+        175.99999999998553,
+        0.0
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_upper_coupler_joint",
+      "parent": "left_hip_knee_driver_link",
+      "child": "left_upper_coupler_link",
+      "point_B_mm": [
+        91.5096047753832,
+        164.2999999999881,
+        -40.323593471553735
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_knee_node_joint",
+      "parent": "left_thigh_link",
+      "child": "left_knee_node_link",
+      "point_B_mm": [
+        -92.037211399012,
+        176.9999999999886,
+        -39.104369011809524
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_shank_joint",
+      "parent": "left_thigh_link",
+      "child": "left_shank_link",
+      "point_B_mm": [
+        -197.88000425104497,
+        178.24999999998482,
+        -84.07439399412026
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_lower_coupler_joint",
+      "parent": "left_knee_node_link",
+      "child": "left_lower_coupler_link",
+      "point_B_mm": [
+        -122.11261160083336,
+        163.74999999998587,
+        12.813549886214812
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_wheel_joint",
+      "parent": "left_shank_link",
+      "child": "left_wheel_link",
+      "point_B_mm": [
+        7.196376827778295e-10,
+        205.7499998731355,
+        -249.6265121200035
+      ],
+      "axis_B": [
+        -0.0,
+        1.0,
+        -0.0
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_gas_cylinder_joint",
+      "parent": "left_shank_link",
+      "child": "left_gas_cylinder_link",
+      "point_B_mm": [
+        -153.7788418366638,
+        163.5,
+        -120.97069852210275
+      ],
+      "axis_B": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "left_gas_rod_joint",
+      "parent": "left_gas_cylinder_link",
+      "child": "left_gas_rod_link",
+      "point_B_mm": [
+        -153.7788418366638,
+        163.5,
+        -120.97069852210275
+      ],
+      "axis_B": [
+        0.9035245176914153,
+        0.0,
+        0.428536399773106
+      ],
+      "type": "slide",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "yaw_joint",
+      "parent": "base_link",
+      "child": "yaw_link",
+      "point_B_mm": [
+        0.0,
+        0.0,
+        43.00000053807942
+      ],
+      "axis_B": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "pitch_crank_joint",
+      "parent": "yaw_link",
+      "child": "pitch_crank_link",
+      "point_B_mm": [
+        -87.96193367627708,
+        27.95416417278938,
+        118.4219270029845
+      ],
+      "axis_B": [
+        -0.3028718458780838,
+        -0.9530312927571698,
+        1.1373135970679492e-17
+      ],
+      "type": "hinge",
+      "active": true,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "pitch_coupler_joint",
+      "parent": "pitch_crank_link",
+      "child": "pitch_coupler_link",
+      "point_B_mm": [
+        -92.45715811315614,
+        29.382739428587126,
+        153.10264397943638
+      ],
+      "axis_B": [
+        -0.3028718458780838,
+        -0.9530312927571698,
+        1.1373135970679492e-17
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    },
+    {
+      "name": "head_joint",
+      "parent": "yaw_link",
+      "child": "head_link",
+      "point_B_mm": [
+        -18.109737882573654,
+        5.75524621546807,
+        170.65102602302568
+      ],
+      "axis_B": [
+        -0.3028718458780838,
+        -0.9530312927571698,
+        1.1373135970679492e-17
+      ],
+      "type": "hinge",
+      "active": false,
+      "zero": "STEP_pose"
+    }
+  ],
+  "closures": [
+    {
+      "name": "right_upper_C",
+      "body1": "right_upper_coupler_link",
+      "body2": "right_knee_node_link",
+      "anchor_B_mm": [
+        -0.766976761659862,
+        -176.99999999999991,
+        -115.46367931016562
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -92.27658153704306,
+        -12.700000000000045,
+        -75.14008583861188
+      ],
+      "local_anchor2_mm": [
+        91.27023463735213,
+        0.0,
+        -76.35931029835609
+      ]
+    },
+    {
+      "name": "right_lower_E",
+      "body1": "right_lower_coupler_link",
+      "body2": "right_shank_link",
+      "anchor_B_mm": [
+        -227.95540445286997,
+        -178.24999839639727,
+        -32.156475096112985
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -105.84279285203661,
+        -14.499998396395085,
+        -44.9700249823278
+      ],
+      "local_anchor2_mm": [
+        -30.075400201825005,
+        0.0,
+        51.91791889800727
+      ]
+    },
+    {
+      "name": "right_gas_S",
+      "body1": "right_gas_rod_link",
+      "body2": "right_thigh_link",
+      "anchor_B_mm": [
+        4.823843342222517,
+        -163.5,
+        -45.74637160005196
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        175.5377768653474,
+        0.0,
+        0.0
+      ],
+      "local_anchor2_mm": [
+        4.823843337109565,
+        -2.999999949999534,
+        -45.74637160005196
+      ]
+    },
+    {
+      "name": "left_upper_C",
+      "body1": "left_upper_coupler_link",
+      "body2": "left_knee_node_link",
+      "anchor_B_mm": [
+        -0.766976761659862,
+        176.9999999999886,
+        -115.46367931016562
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -92.27658153704306,
+        12.7000000000005,
+        -75.14008583861188
+      ],
+      "local_anchor2_mm": [
+        91.27023463735213,
+        0.0,
+        -76.35931029835609
+      ]
+    },
+    {
+      "name": "left_lower_E",
+      "body1": "left_lower_coupler_link",
+      "body2": "left_shank_link",
+      "anchor_B_mm": [
+        -227.95540445286997,
+        178.24999999998482,
+        -32.156475096112985
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        -105.84279285203661,
+        14.499999999998948,
+        -44.9700249823278
+      ],
+      "local_anchor2_mm": [
+        -30.075400201825005,
+        0.0,
+        51.91791889800727
+      ]
+    },
+    {
+      "name": "left_gas_S",
+      "body1": "left_gas_rod_link",
+      "body2": "left_thigh_link",
+      "anchor_B_mm": [
+        4.823843342222517,
+        163.5,
+        -45.74637160005196
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        175.5377768653474,
+        0.0,
+        0.0
+      ],
+      "local_anchor2_mm": [
+        4.823843337109565,
+        2.999999950012892,
+        -45.74637160005196
+      ]
+    },
+    {
+      "name": "pitch_C",
+      "body1": "pitch_coupler_link",
+      "body2": "head_link",
+      "anchor_B_mm": [
+        -22.60450664874551,
+        7.183676659831761,
+        205.33107201992493
+      ],
+      "type": "connect",
+      "local_anchor1_mm": [
+        73.29523384517965,
+        -4.146714692439827e-15,
+        52.22842804048855
+      ],
+      "local_anchor2_mm": [
+        -4.716286653262196,
+        -1.723762736671229e-16,
+        34.68004599689925
+      ]
+    }
+  ],
+  "measured_axis_mismatch": [
+    {
+      "side": "right",
+      "point": "C",
+      "parts": [
+        330,
+        322
+      ],
+      "radial_axis_separation_mm": 8.251135646760296e-06
+    },
+    {
+      "side": "right",
+      "point": "E",
+      "parts": [
+        329,
+        319
+      ],
+      "radial_axis_separation_mm": 2.568228880295242e-07
+    },
+    {
+      "side": "right",
+      "point": "S",
+      "parts": [
+        345,
+        280
+      ],
+      "radial_axis_separation_mm": 1.1049776171694968e-06
+    },
+    {
+      "side": "right",
+      "point": "T",
+      "parts": [
+        347,
+        319
+      ],
+      "radial_axis_separation_mm": 1.6312647937537647e-06
+    },
+    {
+      "side": "left",
+      "point": "C",
+      "parts": [
+        426,
+        425
+      ],
+      "radial_axis_separation_mm": 8.639632127059803e-06
+    },
+    {
+      "side": "left",
+      "point": "E",
+      "parts": [
+        424,
+        433
+      ],
+      "radial_axis_separation_mm": 6.815591415106208e-07
+    },
+    {
+      "side": "left",
+      "point": "S",
+      "parts": [
+        483,
+        421
+      ],
+      "radial_axis_separation_mm": 1.9606724502288023e-07
+    },
+    {
+      "side": "left",
+      "point": "T",
+      "parts": [
+        485,
+        433
+      ],
+      "radial_axis_separation_mm": 3.0623564743907295e-06
+    },
+    {
+      "side": "gimbal",
+      "point": "C",
+      "parts": [
+        609,
+        623
+      ],
+      "radial_axis_separation_mm": 4.5496934130773415e-14
+    },
+    {
+      "side": "gimbal",
+      "point": "B",
+      "parts": [
+        614,
+        609
+      ],
+      "radial_axis_separation_mm": 1.3101760682293512e-13
+    },
+    {
+      "side": "gimbal",
+      "point": "O",
+      "parts": [
+        606,
+        614
+      ],
+      "radial_axis_separation_mm": 8.984778476267786e-12
+    },
+    {
+      "side": "gimbal",
+      "point": "A",
+      "parts": [
+        605,
+        623
+      ],
+      "radial_axis_separation_mm": 1.8650900910311475e-13
+    }
+  ],
+  "hip_motors": [
+    {
+      "part": 266,
+      "side": "right",
+      "driven_link": "right_hip_knee_driver_link",
+      "original_axis_CAD_yz_mm": [
+        -14.710242994813408,
+        1196.526163982413
+      ],
+      "original_distance_to_hip_A_mm": 105.99999984504255,
+      "axis_CAD_yz_mm": [
+        -14.710242994813408,
+        1196.526163982413
+      ],
+      "distance_to_hip_A_mm": 105.99999984504255
+    },
+    {
+      "part": 267,
+      "side": "right",
+      "driven_link": "right_thigh_link",
+      "original_axis_CAD_yz_mm": [
+        -13.225094479961934,
+        1394.1838896399413
+      ],
+      "original_distance_to_hip_A_mm": 100.99999983527792,
+      "axis_CAD_yz_mm": [
+        -14.710243019522945,
+        1398.95823100422
+      ],
+      "distance_to_hip_A_mm": 106.0000000000001
+    },
+    {
+      "part": 378,
+      "side": "left",
+      "driven_link": "left_thigh_link",
+      "original_axis_CAD_yz_mm": [
+        -14.710242994807572,
+        1398.9582308393854
+      ],
+      "original_distance_to_hip_A_mm": 105.99999983526362,
+      "axis_CAD_yz_mm": [
+        -14.710242994807572,
+        1398.9582308393854
+      ],
+      "distance_to_hip_A_mm": 105.99999983526362
+    },
+    {
+      "part": 379,
+      "side": "left",
+      "driven_link": "left_hip_knee_driver_link",
+      "original_axis_CAD_yz_mm": [
+        -14.710242994813449,
+        1196.526163982418
+      ],
+      "original_distance_to_hip_A_mm": 105.99999984503779,
+      "axis_CAD_yz_mm": [
+        -14.710242994813449,
+        1196.526163982418
+      ],
+      "distance_to_hip_A_mm": 105.99999984503779
+    }
+  ],
+  "geometry_corrections": [
+    {
+      "type": "translate_parts",
+      "parts": [
+        267,
+        373
+      ],
+      "translation_CAD_mm": [
+        0.0,
+        -1.4851485395610116,
+        4.774341364278598
+      ],
+      "reason": "User: right thigh motor A distance 101 -> 106 mm; move motor and driving sprocket together"
+    },
+    {
+      "type": "relocate_hole",
+      "part": 624,
+      "old_center_G_xz_mm": [
+        -19.00080414706673,
+        162.65102545519312
+      ],
+      "new_center_G_xz_mm": [
+        -23.718535603746524,
+        162.33107148184553
+      ],
+      "translation_B_mm": [
+        -4.496145709040709,
+        1.4288680346417102,
+        -0.31995397334759446
+      ],
+      "diameter_mm": 3.3,
+      "reason": "Fill old left arm upper hole and recut coaxial to actual right arm linkage C; preserve plate and head pose"
+    }
+  ],
+  "shank_collinearity": {
+    "points": [
+      "K",
+      "T",
+      "W"
+    ],
+    "KT_mm": 57.49999838366301,
+    "TW_mm": 200.5000014199121,
+    "T_to_KW_line_mm": 1.8355497569897772e-07
+  },
+  "degrees_of_freedom": {
+    "tree_joints": 22,
+    "closure_jacobian_rank": 14,
+    "internal_independent": 8,
+    "active": 8,
+    "physical_links": 23,
+    "floating_base_additional": 6
+  },
+  "gas_spring": {
+    "each_force_N": 300,
+    "reported_eye_distance_mm": 190,
+    "STEP_eye_distance_mm": 175.5377768653474,
+    "reported_length_tolerance": "User confirmed max eye distance 190 mm and stroke 60 mm",
+    "stroke_mm": 60,
+    "min_eye_distance_mm": 130,
+    "max_eye_distance_mm": 190,
+    "current_state": "compressed, not fully bottomed",
+    "compression_from_max_mm": 14.46222313465259,
+    "remaining_compression_mm": 45.53777686534741,
+    "slide_range_from_STEP_mm": [
+      -45.53777686534741,
+      14.46222313465259
+    ],
+    "force_curve": null
+  },
+  "transmissions": {
+    "hips": "20T:20T chain, 1:1, same direction",
+    "yaw": "40T:40T belt, 1:1, same direction",
+    "wheel": {
+      "sun_teeth": 17,
+      "planet_large_teeth": 40,
+      "planet_small_teeth": 10,
+      "ring_teeth": 67,
+      "motor_to_wheel_speed_ratio": -0.06343283582089553,
+      "torque_ratio_magnitude": 15.764705882352942,
+      "assumption": "carrier fixed to shank; ring attached to wheel; requires confirmation"
+    }
+  },
+  "review_questions": [
+    "Confirm forward axis and zero conventions",
+    "Confirm fixed carrier / ring wheel output"
+  ],
+  "ownership_note": "Core moving parts identified; screws, bearing races and belt/chain visual ownership will be completed after topology approval",
+  "exported_model": "../robot.xml",
+  "current_export_scope": "Chassis and legs only; gimbal and gas springs removed. See ../model_info.json for current links/joints."
+}

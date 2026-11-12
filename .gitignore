@@ -36,6 +36,9 @@ Desktop.ini
 # === 仿真运行时产物 ===
 *.log
 *.npz
+!/data/AB_sampling_points.npz
+/MUJOCO_LOG.TXT
+/output/recovery_logs/
 
 # === Jupyter ===
 .ipynb_checkpoints/

@@ -1,3 +1,15 @@
+# 当前接入：大眼睛六杆轮腿 + RMUC2027
+
+默认 `python sim/main.py` 加载 `mjcf/bigeye_rmuc2027.xml`，使用原工程 LQR/VMC 控制流程。模型已移除云台与气弹簧，保留真实六杆闭链及六个主动电机；关节、传感器与电机顺序已对齐原接口。
+
+物理 1 kHz，控制保留原工程 500 Hz。查看器使用 **MuJoCo 原生 managed viewer**。Space 暂停/运行，Reset 重置仿真，视角和碰撞组在原生界面调整，鼠标扰动由 MuJoCo 处理。没有额外的 3/C/B 碰撞或视角快捷键；J 单次跳跃（松开后可再次触发），Space 仍用于原生暂停。方向键与 Shift 保留原工程的行驶/腿长控制。
+
+腿部正解和 VMC 改为 `sim/cad_kinematics.py`，依据实际 A/B/C/P/K/W 几何计算，使用原生关节零位。旧五连杆杆长没有用于新模型的力矩映射。质量、质心、惯量和轮距已更新至 `config/robot_params.yaml`。LQR/LESO 增益表已按当前 CAD 质量、完整质心偏移和髋轴位置状态重新生成；完整腿长范围、跳跃和大扰动仍需独立验证。
+
+建模参考见 [四套轮腿动力学建模逐项对比](docs/四套轮腿动力学建模逐项对比.html)。
+
+---
+
 # 串联五连杆轮腿机器人仿真
 
 基于 MuJoCo 物理引擎的串联五连杆轮腿机器人仿真平台。核心控制器采用 **10 维状态空间 LQR + VMC（虚拟模型控制）** 方案，支持键盘遥控与 LQR 自主平衡两种运行模式。
@@ -37,7 +49,7 @@
 │  └─────────────┴──────────────┴────────────────┘ │
 ├──────────────────────────────────────────────────┤
 │              MuJoCo 物理引擎                       │
-│         mjcf/serial_leg.xml (机器人模型)           │
+│         mjcf/bigeye_robot.xml (机器人模型)           │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -89,8 +101,9 @@ python sim/main.py
 | `↑` / `↓` | 前进 / 后退 |
 | `←` / `→` | 左转 / 右转 |
 | `Shift`（左/右） | 升高 / 降低车身 |
-| `Space` | 原地跳跃状态机 |
-| `C` | 切换车身跟随相机 / MuJoCo 自由视角 |
+| `Space` | MuJoCo 原生暂停/运行 |
+| `J` | 双轮触地时单次跳跃，按住不连续触发 |
+| 原生界面 | 选择相机及 Rendering 碰撞显示组 |
 
 ### 2. LQR 自主平衡模式
 
@@ -156,7 +169,7 @@ python sim/main.py --control-mode lqr --target-x 1.0
 | `--viewer` / `--headless` | `--viewer` | 是否显示 MuJoCo 可视化窗口 |
 | `--camera-mode` | `base` | 初始相机：`base` 车身跟随相机，`free` MuJoCo 自由视角 |
 | `--control-mode` | `keyboard` | 控制模式：`keyboard` 或 `lqr` |
-| `--target-leg-length` | 最小腿长 | 目标腿长（m），默认从下蹲（`min_length_m`）起步 |
+| `--target-leg-length` | 0.22 m | 目标腿长（m） |
 | `--support-force` | `0.5·m·g` | 单腿支撑力（N） |
 | `--target-x` | `0.0` | LQR 目标 x 位置（m） |
 | `--target-yaw` | `0.0` | LQR 目标偏航角（rad） |
@@ -185,9 +198,12 @@ python sim/main.py --control-mode lqr --target-x 1.0
 > 注：`--keyboard-*-accel` 系列参数仍被解析，但调速器已改为瞬时速度指令，不再使用。
 > `--target-*`、`--max-keyboard-*` 等参数默认值为 `None`，实际值从 `config/robot_params.yaml` 读取。
 
-跳跃参数在 `config/robot_params.yaml` 的 `control_initial.jump` 下配置。第一版按保守原地跳设置：
-下蹲 `l_crouch_m`、起跳伸展 `l_launch_m`、空中收腿 `l_tuck_m`、着陆缓冲 `l_land_m`，
-并通过 `position_gain_scale` / `velocity_gain_scale` 临时放大腿长控制输出。
+跳跃参数在 `config/robot_params.yaml` 的 `control_initial.jump` 下配置：
+`force_per_leg_n` 每腿起跳力（当前 300 N）、`max_thrust_time_s` 最长蹬地时间（0.15 s）、
+`retract_length_m` 收腿目标（0.10 m）、`min_retract_time_s` 最短收腿时间（0.25 s）、
+`retract_force_scale` 收腿位置环增益倍率（2）。按 J 触发一次，双轮离地后收腿，
+满足最短收腿时间并双轮触地后恢复站立腿长。跳跃请求会跨控制周期缓存，避免按键丢失。
+平地两次完整跳跃已验证；RMUC2027 场地上的落地稳定性仍需处理。
 
 ---
 
@@ -222,8 +238,11 @@ Serial_Leg_Simulation/
 ├── config/
 │   └── robot_params.yaml          # 统一参数配置文件
 ├── mjcf/
-│   └── serial_leg.xml             # MuJoCo 五连杆并联腿模型（引用 RMUC2026 地形）
-├── RMUC2026/                      # RMUC2026 比赛地形资源（高度图 + 地面/建筑 mesh）
+│   ├── bigeye_robot.xml           # 大眼睛六杆轮腿机器人模型
+│   ├── bigeye_rmuc2027.xml        # 大眼睛与 RMUC2027 组合场景
+│   ├── bigeye_flat.xml            # 平地测试场景
+│   └── bigeye_ramp17.xml          # 17° 斜坡与碎石测试场景
+├── RMUC2027/                      # 比赛场地模型与资源
 ├── sim/                           # 在线仿真模块（每控制步调用）
 │   ├── main.py                    # 主入口，参数解析与仿真循环
 │   ├── controller.py              # StandController: 控制链路
@@ -278,6 +297,8 @@ python tools/linearize.py --grid-size 27
 | `data/AB_sampling_points.npz` | 各采样点的线性化 A_d/B_d 矩阵 |
 
 2D 增益表支持左右腿长不同的非对称工况（转弯、单腿台阶等）。
+
+单独再生成 LESO 表时，运行 `python tools/linearize.py --leso-only --leso-check-grid 81`。该命令和仿真运行时都会读取 `data/AB_sampling_points.npz`。
 
 ---
 
@@ -359,3 +380,12 @@ python sim/main.py --max-keyboard-speed 2.5 --max-keyboard-yaw-rate 8.0
 # 自定义初始状态 + 无头模式
 python sim/main.py --headless --duration 5 --initial-pitch 0.15 --control-mode lqr
 ```
+
+方向键冲突修复：Windows 下仅当本仿真窗口获得焦点时，四个方向键被底盘控制读取并拦截，不再触发 MuJoCo 时间回放/单步暂停。Space 和原生暂停按钮不变；其他窗口的方向键不受影响。修改后须重启 Python 仿真进程。
+
+线性化工具已适配新 CAD：闭链直接读取原生 connect 锚点，不再依赖旧 Left_front_site1 等 site；按当前模型读取运动杆、质量和惯量，轮距按轮中心测量。离线求姿态使用机器人本体，避免加载场地。重新运行 tools/linearize.py 会同步生成增益、二维平衡偏置和 MCU 表；原降阶动力学形式与 Q/R 权重保留。
+
+质心与坐标修正：物理模型的质心保留原值，动力学显式使用机身 X/Y/Z 质心偏移；腿部质心采用髋轴向下距离和前后偏移。位置状态统一为髋轴中点，轮胎滚动反作用力矩按同一坐标推导。IMU 比力投影到水平前向轴后再进入速度滤波和打滑检测，去掉倾斜时的重力分量。不添加常数 pitch 补偿。重新运行 tools/linearize.py 可复现增益表。
+
+
+腿角统一定义：theta_body 是关节正解得到的机身相对角，theta_world = theta_body + body_pitch 是矢状面内相对世界竖直线的有符号角。theta 为 theta_world 的兼容字段；LQR、里程计修正、腿角微分及支撑力竖直投影均使用 theta_world。零度为腿竖直，髋轴在轮心前方为正。质心补偿产生的平衡腿角可以非零。VMC 在固定机身姿态下对关节求导，两种角的关节雅可比相同，不重复叠加 pitch。

@@ -1,0 +1,258 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="RMUC2027_field">
+  <statistic center="-11.18 -4.96 0.6" extent="17" />
+  <asset>
+    <material name="rmuc2027_material_0" rgba="0.06 0.06 0.06 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_1" rgba="0.06 0.06 0.76 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_2" rgba="0.06 0.76 0.06 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_3" rgba="0.06 0.76 0.76 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_4" rgba="0.064777623 0.06 0.30382389 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_5" rgba="0.064777623 0.73276396 0.064777623 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_6" rgba="0.06891536 0.06891536 0.06891536 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_7" rgba="0.06891536 0.072841655 0.072841655 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_8" rgba="0.07663665 0.12118091 0.44437581 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_9" rgba="0.080336906 0.064777623 0.06 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_10" rgba="0.091045086 0.091045086 0.091045086 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_11" rgba="0.10471724 0.24749025 0.68792746 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_12" rgba="0.76 0.76 0.68792746 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_13" rgba="0.10805747 0.30382389 0.33417644 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_14" rgba="0.12762233 0.12762233 0.12762233 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_15" rgba="0.14344532 0.10805747 0.06 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_16" rgba="0.14344532 0.13081722 0.083963376 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_17" rgba="0.16810527 0.16810527 0.16810527 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_18" rgba="0.17416761 0.17114103 0.34511952 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_19" rgba="0.18618773 0.18618773 0.18618773 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_20" rgba="0.19511929 0.07663665 0.07663665 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_21" rgba="0.24176039 0.17416761 0.072841655 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_22" rgba="0.30104439 0.30104439 0.30104439 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_23" rgba="0.30937241 0.30937241 0.30937241 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_24" rgba="0.30937241 0.76 0.30937241 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_25" rgba="0.3668683 0.3668683 0.3668683 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_26" rgba="0.36957464 0.40452764 0.4654387 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_27" rgba="0.37227836 0.06 0.25604889 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_28" rgba="0.4284944 0.21571448 0.1403095 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_29" rgba="0.4496533 0.4496533 0.4496533 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_30" rgba="0.47330569 0.45228906 0.4337965 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_31" rgba="0.48638064 0.48638064 0.40452764 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_32" rgba="0.55111984 0.50461133 0.41520167 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_33" rgba="0.55368891 0.62252117 0.66788681 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_34" rgba="0.4864 0.4864 0.44027357 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_35" rgba="0.59714324 0.68792746 0.76 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_36" rgba="0.63768671 0.47068523 0.15893958 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_37" rgba="0.76 0.06 0.06 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_38" rgba="0.76 0.064777623 0.064777623 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_39" rgba="0.76 0.76 0.68792746 1" specular="0.04" shininess="0.18" />
+    <material name="rmuc2027_material_40" rgba="0.76 0.76 0.76 1" specular="0.04" shininess="0.18" />
+    <hfield name="rmuc2027_collision_south" file="assets/levelled/ground_south.bin" size="14.02 4.01 3.70835037432 .05" />
+    <hfield name="rmuc2027_collision_north" file="assets/levelled/ground_north.bin" size="14.02 4.01 3.7076754262 .05" />
+    <mesh name="rmuc_tunnel_roof_a_red_lining" file="assets/levelled/rmuc_tunnel_roof_a_red_lining.obj" />
+    <mesh name="rmuc_tunnel_roof_a_blue_lining" file="assets/levelled/rmuc_tunnel_roof_a_blue_lining.obj" />
+    <mesh name="rmuc2027_visual_mesh_0_north" file="assets/levelled/rmuc2027_visual_mesh_0_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_0_south" file="assets/levelled/rmuc2027_visual_mesh_0_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_1_north" file="assets/levelled/rmuc2027_visual_mesh_1_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_1_south" file="assets/levelled/rmuc2027_visual_mesh_1_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_2_north" file="assets/levelled/rmuc2027_visual_mesh_2_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_2_south" file="assets/levelled/rmuc2027_visual_mesh_2_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_3_north" file="assets/levelled/rmuc2027_visual_mesh_3_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_3_south" file="assets/levelled/rmuc2027_visual_mesh_3_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_4_north" file="assets/levelled/rmuc2027_visual_mesh_4_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_4_south" file="assets/levelled/rmuc2027_visual_mesh_4_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_5_north" file="assets/levelled/rmuc2027_visual_mesh_5_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_5_south" file="assets/levelled/rmuc2027_visual_mesh_5_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_6_north" file="assets/levelled/rmuc2027_visual_mesh_6_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_6_south" file="assets/levelled/rmuc2027_visual_mesh_6_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_7_north" file="assets/levelled/rmuc2027_visual_mesh_7_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_7_south" file="assets/levelled/rmuc2027_visual_mesh_7_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_8_north" file="assets/levelled/rmuc2027_visual_mesh_8_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_8_south" file="assets/levelled/rmuc2027_visual_mesh_8_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_9_north" file="assets/levelled/rmuc2027_visual_mesh_9_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_9_south" file="assets/levelled/rmuc2027_visual_mesh_9_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_10_north" file="assets/levelled/rmuc2027_visual_mesh_10_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_10_south" file="assets/levelled/rmuc2027_visual_mesh_10_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_11_north" file="assets/levelled/rmuc2027_visual_mesh_11_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_11_south" file="assets/levelled/rmuc2027_visual_mesh_11_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_12_north" file="assets/levelled/rmuc2027_visual_mesh_12_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_12_south" file="assets/levelled/rmuc2027_visual_mesh_12_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_13_north" file="assets/levelled/rmuc2027_visual_mesh_13_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_13_south" file="assets/levelled/rmuc2027_visual_mesh_13_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_14_north" file="assets/levelled/rmuc2027_visual_mesh_14_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_14_south" file="assets/levelled/rmuc2027_visual_mesh_14_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_15_north" file="assets/levelled/rmuc2027_visual_mesh_15_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_15_south" file="assets/levelled/rmuc2027_visual_mesh_15_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_16_north" file="assets/levelled/rmuc2027_visual_mesh_16_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_16_south" file="assets/levelled/rmuc2027_visual_mesh_16_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_17_north" file="assets/levelled/rmuc2027_visual_mesh_17_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_17_south" file="assets/levelled/rmuc2027_visual_mesh_17_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_18_north" file="assets/levelled/rmuc2027_visual_mesh_18_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_18_south" file="assets/levelled/rmuc2027_visual_mesh_18_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_19_north" file="assets/levelled/rmuc2027_visual_mesh_19_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_19_south" file="assets/levelled/rmuc2027_visual_mesh_19_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_20_north" file="assets/levelled/rmuc2027_visual_mesh_20_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_20_south" file="assets/levelled/rmuc2027_visual_mesh_20_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_21_north" file="assets/levelled/rmuc2027_visual_mesh_21_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_21_south" file="assets/levelled/rmuc2027_visual_mesh_21_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_22_north" file="assets/levelled/rmuc2027_visual_mesh_22_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_22_south" file="assets/levelled/rmuc2027_visual_mesh_22_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_23_north" file="assets/levelled/rmuc2027_visual_mesh_23_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_23_south" file="assets/levelled/rmuc2027_visual_mesh_23_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_24_north" file="assets/levelled/rmuc2027_visual_mesh_24_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_24_south" file="assets/levelled/rmuc2027_visual_mesh_24_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_25_north" file="assets/levelled/rmuc2027_visual_mesh_25_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_25_south" file="assets/levelled/rmuc2027_visual_mesh_25_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_26_north" file="assets/levelled/rmuc2027_visual_mesh_26_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_26_south" file="assets/levelled/rmuc2027_visual_mesh_26_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_27_north" file="assets/levelled/rmuc2027_visual_mesh_27_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_27_south" file="assets/levelled/rmuc2027_visual_mesh_27_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_28_north" file="assets/levelled/rmuc2027_visual_mesh_28_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_28_south" file="assets/levelled/rmuc2027_visual_mesh_28_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_29_north" file="assets/levelled/rmuc2027_visual_mesh_29_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_29_south" file="assets/levelled/rmuc2027_visual_mesh_29_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_30_north" file="assets/levelled/rmuc2027_visual_mesh_30_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_30_south" file="assets/levelled/rmuc2027_visual_mesh_30_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_31_north" file="assets/levelled/rmuc2027_visual_mesh_31_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_31_south" file="assets/levelled/rmuc2027_visual_mesh_31_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_32_north" file="assets/levelled/rmuc2027_visual_mesh_32_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_32_south" file="assets/levelled/rmuc2027_visual_mesh_32_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_33_north" file="assets/levelled/rmuc2027_visual_mesh_33_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_33_south" file="assets/levelled/rmuc2027_visual_mesh_33_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_34_north" file="assets/levelled/rmuc2027_visual_mesh_34_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_34_south" file="assets/levelled/rmuc2027_visual_mesh_34_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_35_north" file="assets/levelled/rmuc2027_visual_mesh_35_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_35_south" file="assets/levelled/rmuc2027_visual_mesh_35_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_36_north" file="assets/levelled/rmuc2027_visual_mesh_36_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_36_south" file="assets/levelled/rmuc2027_visual_mesh_36_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_37_north" file="assets/levelled/rmuc2027_visual_mesh_37_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_37_south" file="assets/levelled/rmuc2027_visual_mesh_37_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_38_north" file="assets/levelled/rmuc2027_visual_mesh_38_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_38_south" file="assets/levelled/rmuc2027_visual_mesh_38_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_39_north" file="assets/levelled/rmuc2027_visual_mesh_39_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_39_south" file="assets/levelled/rmuc2027_visual_mesh_39_south.obj" />
+    <mesh name="rmuc2027_visual_mesh_40_north" file="assets/levelled/rmuc2027_visual_mesh_40_north.obj" />
+    <mesh name="rmuc2027_visual_mesh_40_south" file="assets/levelled/rmuc2027_visual_mesh_40_south.obj" />
+    <mesh name="rmuc2027_official_wall_114_south" file="assets/levelled/rmuc2027_official_wall_114_south.obj" />
+    <mesh name="rmuc2027_official_wall_121_north" file="assets/levelled/rmuc2027_official_wall_121_north.obj" />
+    <mesh name="rmuc_tunnel_roof_a_red_north" file="assets/levelled/rmuc_tunnel_roof_a_red_north.obj" />
+    <mesh name="rmuc_tunnel_roof_a_blue_south" file="assets/levelled/rmuc_tunnel_roof_a_blue_south.obj" />
+    <mesh name="rmuc_tunnel_roof_b_red_north" file="assets/levelled/rmuc_tunnel_roof_b_red_north.obj" />
+    <mesh name="rmuc_tunnel_roof_b_blue_south" file="assets/levelled/rmuc_tunnel_roof_b_blue_south.obj" />
+    <mesh name="rmuc_tunnel_roof_c_red_north" file="assets/levelled/rmuc_tunnel_roof_c_red_north.obj" />
+    <mesh name="rmuc_tunnel_roof_c_blue_south" file="assets/levelled/rmuc_tunnel_roof_c_blue_south.obj" />
+  </asset>
+  <worldbody>
+    <light name="rmuc2027_key_light" directional="true" castshadow="false" pos="0 0 12" dir="-0.25 -0.35 -1" diffuse="0.55 0.53 0.50" />
+    <light name="rmuc2027_fill_light" directional="true" castshadow="false" pos="0 0 8" dir="0.45 0.20 -1" diffuse="0.10 0.12 0.15" />
+    <camera name="rmuc2027_overview" mode="fixed" pos="-11.180004 -4.95843454 20.2288073" xyaxes="1 0 0 0 1 0" fovy="55" />
+    <geom name="rmuc2027_perimeter_left" type="box" pos="-25.180004045 -4.95843454361 1.04340932042" size="0.025 7.475 1.35" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.04 1" rgba="0.08 0.09 0.10 0.22" />
+    <geom name="rmuc2027_perimeter_right" type="box" pos="2.81999595495 -4.95843454361 1.04340932042" size="0.025 7.475 1.35" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.04 1" rgba="0.08 0.09 0.10 0.22" />
+    <geom name="rmuc2027_perimeter_bottom" type="box" pos="-11.180004045 -12.4584345436 1.04340932042" size="14.025 0.025 1.35" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.04 1" rgba="0.08 0.09 0.10 0.22" />
+    <geom name="rmuc2027_perimeter_top" type="box" pos="-11.180004045 2.54156545639 1.04340932042" size="14.025 0.025 1.35" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.04 1" rgba="0.08 0.09 0.10 0.22" />
+    <body name="rmuc_level_north" pos="0 0.00169971391689 8.06215499453e-09" quat="0.999914327574 0.0130895955713 0 0">
+      <geom name="rmuc2027_field_collision_north" type="hfield" hfield="rmuc2027_collision_north" pos="-11.18 -0.95 -0.0801289280666" rgba="0.10 0.38 0.62 0" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.02 1" group="3" />
+      <geom name="rmuc_tunnel_roof_a_red_lining_visual" type="mesh" mesh="rmuc_tunnel_roof_a_red_lining" material="rmuc2027_material_31" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_0_north" type="mesh" mesh="rmuc2027_visual_mesh_0_north" material="rmuc2027_material_0" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_1_north" type="mesh" mesh="rmuc2027_visual_mesh_1_north" material="rmuc2027_material_1" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_2_north" type="mesh" mesh="rmuc2027_visual_mesh_2_north" material="rmuc2027_material_2" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_3_north" type="mesh" mesh="rmuc2027_visual_mesh_3_north" material="rmuc2027_material_3" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_4_north" type="mesh" mesh="rmuc2027_visual_mesh_4_north" material="rmuc2027_material_4" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_5_north" type="mesh" mesh="rmuc2027_visual_mesh_5_north" material="rmuc2027_material_5" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_6_north" type="mesh" mesh="rmuc2027_visual_mesh_6_north" material="rmuc2027_material_6" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_7_north" type="mesh" mesh="rmuc2027_visual_mesh_7_north" material="rmuc2027_material_7" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_8_north" type="mesh" mesh="rmuc2027_visual_mesh_8_north" material="rmuc2027_material_8" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_9_north" type="mesh" mesh="rmuc2027_visual_mesh_9_north" material="rmuc2027_material_9" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_10_north" type="mesh" mesh="rmuc2027_visual_mesh_10_north" material="rmuc2027_material_10" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_11_north" type="mesh" mesh="rmuc2027_visual_mesh_11_north" material="rmuc2027_material_11" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_12_north" type="mesh" mesh="rmuc2027_visual_mesh_12_north" material="rmuc2027_material_12" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_13_north" type="mesh" mesh="rmuc2027_visual_mesh_13_north" material="rmuc2027_material_13" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_14_north" type="mesh" mesh="rmuc2027_visual_mesh_14_north" material="rmuc2027_material_14" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_15_north" type="mesh" mesh="rmuc2027_visual_mesh_15_north" material="rmuc2027_material_15" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_16_north" type="mesh" mesh="rmuc2027_visual_mesh_16_north" material="rmuc2027_material_16" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_17_north" type="mesh" mesh="rmuc2027_visual_mesh_17_north" material="rmuc2027_material_17" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_18_north" type="mesh" mesh="rmuc2027_visual_mesh_18_north" material="rmuc2027_material_18" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_19_north" type="mesh" mesh="rmuc2027_visual_mesh_19_north" material="rmuc2027_material_19" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_20_north" type="mesh" mesh="rmuc2027_visual_mesh_20_north" material="rmuc2027_material_20" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_21_north" type="mesh" mesh="rmuc2027_visual_mesh_21_north" material="rmuc2027_material_21" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_22_north" type="mesh" mesh="rmuc2027_visual_mesh_22_north" material="rmuc2027_material_22" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_23_north" type="mesh" mesh="rmuc2027_visual_mesh_23_north" material="rmuc2027_material_23" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_24_north" type="mesh" mesh="rmuc2027_visual_mesh_24_north" material="rmuc2027_material_24" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_25_north" type="mesh" mesh="rmuc2027_visual_mesh_25_north" material="rmuc2027_material_25" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_26_north" type="mesh" mesh="rmuc2027_visual_mesh_26_north" material="rmuc2027_material_26" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_27_north" type="mesh" mesh="rmuc2027_visual_mesh_27_north" material="rmuc2027_material_27" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_28_north" type="mesh" mesh="rmuc2027_visual_mesh_28_north" material="rmuc2027_material_28" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_29_north" type="mesh" mesh="rmuc2027_visual_mesh_29_north" material="rmuc2027_material_29" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_30_north" type="mesh" mesh="rmuc2027_visual_mesh_30_north" material="rmuc2027_material_30" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_31_north" type="mesh" mesh="rmuc2027_visual_mesh_31_north" material="rmuc2027_material_31" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_32_north" type="mesh" mesh="rmuc2027_visual_mesh_32_north" material="rmuc2027_material_32" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_33_north" type="mesh" mesh="rmuc2027_visual_mesh_33_north" material="rmuc2027_material_33" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_34_north" type="mesh" mesh="rmuc2027_visual_mesh_34_north" material="rmuc2027_material_34" contype="0" conaffinity="0" group="2" />
+      <geom name="rmuc2027_visual_35_north" type="mesh" mesh="rmuc2027_visual_mesh_35_north" material="rmuc2027_material_35" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_36_north" type="mesh" mesh="rmuc2027_visual_mesh_36_north" material="rmuc2027_material_36" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_37_north" type="mesh" mesh="rmuc2027_visual_mesh_37_north" material="rmuc2027_material_37" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_38_north" type="mesh" mesh="rmuc2027_visual_mesh_38_north" material="rmuc2027_material_38" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_39_north" type="mesh" mesh="rmuc2027_visual_mesh_39_north" material="rmuc2027_material_39" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_40_north" type="mesh" mesh="rmuc2027_visual_mesh_40_north" material="rmuc2027_material_40" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_official_wall_121_north" type="mesh" mesh="rmuc2027_official_wall_121_north" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc_tunnel_roof_a_red" type="mesh" mesh="rmuc_tunnel_roof_a_red_north" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc_tunnel_roof_b_red" type="mesh" mesh="rmuc_tunnel_roof_b_red_north" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc_tunnel_roof_c_red" type="mesh" mesh="rmuc_tunnel_roof_c_red_north" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc2027_cabin_blue_floor" type="box" pos="-24.3390641804 1.70982915514 0.0577616425201" quat="0.999914327574 -0.0130895955713 0 0" size="0.840935417806 0.619999949769 0.102500028397" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_blue_roof" type="box" pos="-24.3390641804 1.74953536304 1.57408054703" quat="0.999914327574 -0.0130895955713 0 0" size="0.840935417806 0.619999949769 0.0959738462169" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_blue_side_low" type="box" pos="-24.3390641804 1.19727933124 0.826598346434" quat="0.999914327574 -0.0130895955713 0 0" size="0.840935417806 0.0874999652381 0.857656280929" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_blue_side_high" type="box" pos="-24.3390641804 2.26191432013 0.798719898115" quat="0.999914327574 -0.0130895955713 0 0" size="0.840935417806 0.0874999965245 0.857656280929" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_blue_rear" type="box" pos="-25.1699995983 1.72959684132 0.812659121865" quat="0.999914327574 -0.0130895955713 0 0" size="0.01 0.619999949769 0.857656280929" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+    </body>
+    <body name="rmuc_level_south" pos="0 -0.00509797727375 -0.25959336141" quat="0.999914327574 -0.0130895955713 0 0">
+      <geom name="rmuc2027_field_collision_south" type="hfield" hfield="rmuc2027_collision_south" pos="-11.18 -8.97 -0.0802109139031" rgba="0.10 0.38 0.62 0" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.02 1" group="3" />
+      <geom name="rmuc_tunnel_roof_a_blue_lining_visual" type="mesh" mesh="rmuc_tunnel_roof_a_blue_lining" material="rmuc2027_material_31" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_0_south" type="mesh" mesh="rmuc2027_visual_mesh_0_south" material="rmuc2027_material_0" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_1_south" type="mesh" mesh="rmuc2027_visual_mesh_1_south" material="rmuc2027_material_1" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_2_south" type="mesh" mesh="rmuc2027_visual_mesh_2_south" material="rmuc2027_material_2" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_3_south" type="mesh" mesh="rmuc2027_visual_mesh_3_south" material="rmuc2027_material_3" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_4_south" type="mesh" mesh="rmuc2027_visual_mesh_4_south" material="rmuc2027_material_4" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_5_south" type="mesh" mesh="rmuc2027_visual_mesh_5_south" material="rmuc2027_material_5" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_6_south" type="mesh" mesh="rmuc2027_visual_mesh_6_south" material="rmuc2027_material_6" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_7_south" type="mesh" mesh="rmuc2027_visual_mesh_7_south" material="rmuc2027_material_7" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_8_south" type="mesh" mesh="rmuc2027_visual_mesh_8_south" material="rmuc2027_material_8" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_9_south" type="mesh" mesh="rmuc2027_visual_mesh_9_south" material="rmuc2027_material_9" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_10_south" type="mesh" mesh="rmuc2027_visual_mesh_10_south" material="rmuc2027_material_10" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_11_south" type="mesh" mesh="rmuc2027_visual_mesh_11_south" material="rmuc2027_material_11" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_12_south" type="mesh" mesh="rmuc2027_visual_mesh_12_south" material="rmuc2027_material_12" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_13_south" type="mesh" mesh="rmuc2027_visual_mesh_13_south" material="rmuc2027_material_13" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_14_south" type="mesh" mesh="rmuc2027_visual_mesh_14_south" material="rmuc2027_material_14" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_15_south" type="mesh" mesh="rmuc2027_visual_mesh_15_south" material="rmuc2027_material_15" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_16_south" type="mesh" mesh="rmuc2027_visual_mesh_16_south" material="rmuc2027_material_16" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_17_south" type="mesh" mesh="rmuc2027_visual_mesh_17_south" material="rmuc2027_material_17" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_18_south" type="mesh" mesh="rmuc2027_visual_mesh_18_south" material="rmuc2027_material_18" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_19_south" type="mesh" mesh="rmuc2027_visual_mesh_19_south" material="rmuc2027_material_19" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_20_south" type="mesh" mesh="rmuc2027_visual_mesh_20_south" material="rmuc2027_material_20" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_21_south" type="mesh" mesh="rmuc2027_visual_mesh_21_south" material="rmuc2027_material_21" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_22_south" type="mesh" mesh="rmuc2027_visual_mesh_22_south" material="rmuc2027_material_22" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_23_south" type="mesh" mesh="rmuc2027_visual_mesh_23_south" material="rmuc2027_material_23" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_24_south" type="mesh" mesh="rmuc2027_visual_mesh_24_south" material="rmuc2027_material_24" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_25_south" type="mesh" mesh="rmuc2027_visual_mesh_25_south" material="rmuc2027_material_25" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_26_south" type="mesh" mesh="rmuc2027_visual_mesh_26_south" material="rmuc2027_material_26" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_27_south" type="mesh" mesh="rmuc2027_visual_mesh_27_south" material="rmuc2027_material_27" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_28_south" type="mesh" mesh="rmuc2027_visual_mesh_28_south" material="rmuc2027_material_28" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_29_south" type="mesh" mesh="rmuc2027_visual_mesh_29_south" material="rmuc2027_material_29" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_30_south" type="mesh" mesh="rmuc2027_visual_mesh_30_south" material="rmuc2027_material_30" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_31_south" type="mesh" mesh="rmuc2027_visual_mesh_31_south" material="rmuc2027_material_31" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_32_south" type="mesh" mesh="rmuc2027_visual_mesh_32_south" material="rmuc2027_material_32" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_33_south" type="mesh" mesh="rmuc2027_visual_mesh_33_south" material="rmuc2027_material_33" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_34_south" type="mesh" mesh="rmuc2027_visual_mesh_34_south" material="rmuc2027_material_34" contype="0" conaffinity="0" group="2" />
+      <geom name="rmuc2027_visual_35_south" type="mesh" mesh="rmuc2027_visual_mesh_35_south" material="rmuc2027_material_35" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_36_south" type="mesh" mesh="rmuc2027_visual_mesh_36_south" material="rmuc2027_material_36" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_37_south" type="mesh" mesh="rmuc2027_visual_mesh_37_south" material="rmuc2027_material_37" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_38_south" type="mesh" mesh="rmuc2027_visual_mesh_38_south" material="rmuc2027_material_38" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_39_south" type="mesh" mesh="rmuc2027_visual_mesh_39_south" material="rmuc2027_material_39" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_visual_40_south" type="mesh" mesh="rmuc2027_visual_mesh_40_south" material="rmuc2027_material_40" contype="0" conaffinity="0" group="1" />
+      <geom name="rmuc2027_official_wall_114_south" type="mesh" mesh="rmuc2027_official_wall_114_south" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc_tunnel_roof_a_blue" type="mesh" mesh="rmuc_tunnel_roof_a_blue_south" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc_tunnel_roof_b_blue" type="mesh" mesh="rmuc_tunnel_roof_b_blue_south" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc_tunnel_roof_c_blue" type="mesh" mesh="rmuc_tunnel_roof_c_blue_south" contype="2" conaffinity="1" friction="1 0.005 0.0001" solref="0.005 1" group="3" rgba="0.4 0.4 0.4 0" />
+      <geom name="rmuc2027_cabin_red_floor" type="box" pos="1.9790560896 -11.6266976798 0.0577616425201" quat="0 0 -0.0130895955713 0.999914327574" size="0.840935417806 0.619999949769 0.102500028397" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_red_roof" type="box" pos="1.9790560896 -11.6664038877 1.57408054703" quat="0 0 -0.0130895955713 0.999914327574" size="0.840935417806 0.619999949769 0.0959738462169" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_red_side_low" type="box" pos="1.9790560896 -11.1141478559 0.826598346434" quat="0 0 -0.0130895955713 0.999914327574" size="0.840935417806 0.0874999652381 0.857656280929" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_red_side_high" type="box" pos="1.9790560896 -12.1787828448 0.798719898115" quat="0 0 -0.0130895955713 0.999914327574" size="0.840935417806 0.0874999965245 0.857656280929" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+      <geom name="rmuc2027_cabin_red_rear" type="box" pos="2.8099915074 -11.646465366 0.812659121865" quat="0 0 -0.0130895955713 0.999914327574" size="0.01 0.619999949769 0.857656280929" contype="2" conaffinity="1" group="3" rgba="0.3 0.7 0.9 0" friction="1 0.005 0.0001" solref="0.005 1" />
+    </body>
+  </worldbody>
+</mujoco>

@@ -1,0 +1,41 @@
+{
+  "state_position": "hip midpoint horizontal displacement",
+  "body_com_m": [
+    -0.010926262801494358,
+    0.0003581340533915056,
+    -0.04544202817326348
+  ],
+  "body_mass_kg": 15.067140000266404,
+  "leg_mass_kg": 2.267197405829,
+  "wheel_mass_kg": 0.18924111628,
+  "body_com_in_dynamics": [
+    "x",
+    "y",
+    "z"
+  ],
+  "leg_com_convention": "x offset and vertical distance below hip",
+  "support_model": "simultaneous wheel support; induced small-bank inertia; locally upright",
+  "yaw_model": "coupled Yaw/leg inertia; joint ten-state four-input LQR",
+  "Q_diagonal": [
+    117.67440200586925,
+    2351.347596525823,
+    64378.818186328936,
+    2532.853035539866,
+    2532.853035539866,
+    28.137208213125398,
+    4.049107012270894,
+    34.019194283273414,
+    2.473426446138944,
+    2.473426446138944
+  ],
+  "R_diagonal": [
+    0.6885913068617185,
+    0.6885913068617185,
+    3.443771826589662,
+    3.443771826589662
+  ],
+  "max_closed_loop_pole": 0.9986174120646042,
+  "fit_max_relative_error_pct": 0.21055832183591366,
+  "grid_size": 14,
+  "order": 8
+}

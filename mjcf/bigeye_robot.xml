@@ -1,0 +1,675 @@
+<?xml version='1.0' encoding='utf8'?>
+<mujoco model="bigeye_sixbar">
+  <compiler angle="radian" autolimits="true" inertiafromgeom="false" boundmass="0.00001" boundinertia="0.000000001" />
+  <option timestep="0.001" integrator="implicitfast" solver="Newton" cone="elliptic" iterations="80" tolerance="1e-9" />
+  <size memory="64M" />
+  <visual>
+    <global offwidth="1500" offheight="1000" />
+    <headlight ambient=".4 .4 .4" diffuse=".65 .65 .65" />
+  </visual>
+  <default>
+    <default class="visual">
+      <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" />
+    </default>
+    <default class="collision">
+      <geom contype="1" conaffinity="3" group="3" density="0" friction="0.8 0.001 0.0001" solref=".004 1" solimp=".95 .99 .001" rgba=".1 .7 .9 .22" />
+    </default>
+  </default>
+  <asset>
+    <mesh name="base_link_0" file="assets/base_link_0.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_1" file="assets/base_link_1.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_2" file="assets/base_link_2.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_3" file="assets/base_link_3.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_4" file="assets/base_link_4.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_5" file="assets/base_link_5.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_6" file="assets/base_link_6.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_7" file="assets/base_link_7.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_8" file="assets/base_link_8.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_9" file="assets/base_link_9.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_10" file="assets/base_link_10.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_11" file="assets/base_link_11.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_12" file="assets/base_link_12.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_13" file="assets/base_link_13.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_14" file="assets/base_link_14.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_15" file="assets/base_link_15.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_16" file="assets/base_link_16.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_17" file="assets/base_link_17.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_18" file="assets/base_link_18.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_19" file="assets/base_link_19.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_20" file="assets/base_link_20.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_21" file="assets/base_link_21.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_22" file="assets/base_link_22.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_24" file="assets/base_link_24.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_26" file="assets/base_link_26.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_27" file="assets/base_link_27.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_28" file="assets/base_link_28.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_29" file="assets/base_link_29.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_30" file="assets/base_link_30.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_31" file="assets/base_link_31.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_36" file="assets/base_link_36.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_37" file="assets/base_link_37.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_38" file="assets/base_link_38.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_39" file="assets/base_link_39.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="base_link_40" file="assets/base_link_40.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_hip_knee_driver_link_32" file="assets/right_hip_knee_driver_link_32.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_hip_knee_driver_link_33" file="assets/right_hip_knee_driver_link_33.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_hip_knee_driver_link_47" file="assets/right_hip_knee_driver_link_47.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_34" file="assets/right_thigh_link_34.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_35" file="assets/right_thigh_link_35.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_41" file="assets/right_thigh_link_41.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_42" file="assets/right_thigh_link_42.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_43" file="assets/right_thigh_link_43.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_44" file="assets/right_thigh_link_44.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_50" file="assets/right_thigh_link_50.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_55" file="assets/right_thigh_link_55.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_61" file="assets/right_thigh_link_61.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_thigh_link_73" file="assets/right_thigh_link_73.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_45" file="assets/right_shank_link_45.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_54" file="assets/right_shank_link_54.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_62" file="assets/right_shank_link_62.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_63" file="assets/right_shank_link_63.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_64" file="assets/right_shank_link_64.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_65" file="assets/right_shank_link_65.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_67" file="assets/right_shank_link_67.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_shank_link_72" file="assets/right_shank_link_72.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_upper_coupler_link_46" file="assets/right_upper_coupler_link_46.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_upper_coupler_link_53" file="assets/right_upper_coupler_link_53.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_upper_coupler_link_56" file="assets/right_upper_coupler_link_56.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_upper_coupler_link_59" file="assets/right_upper_coupler_link_59.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_knee_node_link_48" file="assets/right_knee_node_link_48.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_knee_node_link_49" file="assets/right_knee_node_link_49.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_lower_coupler_link_51" file="assets/right_lower_coupler_link_51.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_lower_coupler_link_52" file="assets/right_lower_coupler_link_52.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_lower_coupler_link_57" file="assets/right_lower_coupler_link_57.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_lower_coupler_link_58" file="assets/right_lower_coupler_link_58.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_lower_coupler_link_60" file="assets/right_lower_coupler_link_60.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_wheel_link_66" file="assets/right_wheel_link_66.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_wheel_link_68" file="assets/right_wheel_link_68.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_wheel_link_69" file="assets/right_wheel_link_69.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_wheel_link_70" file="assets/right_wheel_link_70.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_wheel_link_71" file="assets/right_wheel_link_71.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_hip_knee_driver_link_74" file="assets/left_hip_knee_driver_link_74.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_hip_knee_driver_link_75" file="assets/left_hip_knee_driver_link_75.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_hip_knee_driver_link_79" file="assets/left_hip_knee_driver_link_79.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_76" file="assets/left_thigh_link_76.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_77" file="assets/left_thigh_link_77.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_83" file="assets/left_thigh_link_83.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_88" file="assets/left_thigh_link_88.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_89" file="assets/left_thigh_link_89.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_90" file="assets/left_thigh_link_90.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_91" file="assets/left_thigh_link_91.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_94" file="assets/left_thigh_link_94.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_97" file="assets/left_thigh_link_97.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_thigh_link_110" file="assets/left_thigh_link_110.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_upper_coupler_link_78" file="assets/left_upper_coupler_link_78.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_upper_coupler_link_82" file="assets/left_upper_coupler_link_82.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_upper_coupler_link_92" file="assets/left_upper_coupler_link_92.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_upper_coupler_link_98" file="assets/left_upper_coupler_link_98.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_lower_coupler_link_80" file="assets/left_lower_coupler_link_80.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_lower_coupler_link_85" file="assets/left_lower_coupler_link_85.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_lower_coupler_link_93" file="assets/left_lower_coupler_link_93.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_lower_coupler_link_95" file="assets/left_lower_coupler_link_95.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_lower_coupler_link_96" file="assets/left_lower_coupler_link_96.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_knee_node_link_81" file="assets/left_knee_node_link_81.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_knee_node_link_84" file="assets/left_knee_node_link_84.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_86" file="assets/left_shank_link_86.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_87" file="assets/left_shank_link_87.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_99" file="assets/left_shank_link_99.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_100" file="assets/left_shank_link_100.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_101" file="assets/left_shank_link_101.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_102" file="assets/left_shank_link_102.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_104" file="assets/left_shank_link_104.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_shank_link_109" file="assets/left_shank_link_109.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_wheel_link_103" file="assets/left_wheel_link_103.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_wheel_link_105" file="assets/left_wheel_link_105.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_wheel_link_106" file="assets/left_wheel_link_106.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_wheel_link_107" file="assets/left_wheel_link_107.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_wheel_link_108" file="assets/left_wheel_link_108.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="collision_part_72" file="assets/collision_part_72.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_96" file="assets/collision_part_96.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_101" file="assets/collision_part_101.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_117" file="assets/collision_part_117.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_118" file="assets/collision_part_118.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_119" file="assets/collision_part_119.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_120" file="assets/collision_part_120.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_122" file="assets/collision_part_122.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_125" file="assets/collision_part_125.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_128" file="assets/collision_part_128.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_129" file="assets/collision_part_129.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_131" file="assets/collision_part_131.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_139" file="assets/collision_part_139.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_146" file="assets/collision_part_146.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_147" file="assets/collision_part_147.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_157" file="assets/collision_part_157.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_159" file="assets/collision_part_159.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_161" file="assets/collision_part_161.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_163" file="assets/collision_part_163.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_165" file="assets/collision_part_165.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_166" file="assets/collision_part_166.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_167" file="assets/collision_part_167.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_180" file="assets/collision_part_180.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_181" file="assets/collision_part_181.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_182" file="assets/collision_part_182.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_183" file="assets/collision_part_183.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_187" file="assets/collision_part_187.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_189" file="assets/collision_part_189.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_191" file="assets/collision_part_191.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_196" file="assets/collision_part_196.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_198" file="assets/collision_part_198.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_201" file="assets/collision_part_201.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_203" file="assets/collision_part_203.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_204" file="assets/collision_part_204.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_206" file="assets/collision_part_206.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_216" file="assets/collision_part_216.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_217" file="assets/collision_part_217.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_218" file="assets/collision_part_218.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_229" file="assets/collision_part_229.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_230" file="assets/collision_part_230.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_231" file="assets/collision_part_231.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_232" file="assets/collision_part_232.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_234" file="assets/collision_part_234.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_237" file="assets/collision_part_237.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_256" file="assets/collision_part_256.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_257" file="assets/collision_part_257.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_265" file="assets/collision_part_265.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_266" file="assets/collision_part_266.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_267" file="assets/collision_part_267.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_272" file="assets/collision_part_272.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_278" file="assets/collision_part_278.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_279" file="assets/collision_part_279.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_280" file="assets/collision_part_280.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_281" file="assets/collision_part_281.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_288" file="assets/collision_part_288.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_292" file="assets/collision_part_292.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_299" file="assets/collision_part_299.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_300" file="assets/collision_part_300.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_301" file="assets/collision_part_301.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_304" file="assets/collision_part_304.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_307" file="assets/collision_part_307.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_319" file="assets/collision_part_319.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_322" file="assets/collision_part_322.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_329" file="assets/collision_part_329.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_330" file="assets/collision_part_330.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_372" file="assets/collision_part_372.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_373" file="assets/collision_part_373.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_377" file="assets/collision_part_377.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_378" file="assets/collision_part_378.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_379" file="assets/collision_part_379.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_384" file="assets/collision_part_384.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_390" file="assets/collision_part_390.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_391" file="assets/collision_part_391.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_392" file="assets/collision_part_392.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_399" file="assets/collision_part_399.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_403" file="assets/collision_part_403.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_410" file="assets/collision_part_410.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_411" file="assets/collision_part_411.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_412" file="assets/collision_part_412.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_415" file="assets/collision_part_415.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_418" file="assets/collision_part_418.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_419" file="assets/collision_part_419.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_420" file="assets/collision_part_420.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_421" file="assets/collision_part_421.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_424" file="assets/collision_part_424.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_425" file="assets/collision_part_425.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_426" file="assets/collision_part_426.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_433" file="assets/collision_part_433.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="collision_part_488" file="assets/collision_part_488.obj" inertia="convex" maxhullvert="64" />
+    <mesh name="guide_wheel_large" file="assets/guide_wheel_large.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="guide_wheel_small" file="assets/guide_wheel_small.obj" inertia="shell" maxhullvert="32" />
+    <material name="gas_cylinder_black" rgba=".055 .058 .063 1" specular=".25" shininess=".30" />
+    <material name="gas_rod_steel" rgba=".65 .69 .73 1" specular=".85" shininess=".75" />
+    <mesh name="right_gas_cylinder_link" file="assets/right_gas_cylinder_link.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="right_gas_rod_link" file="assets/right_gas_rod_link.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_gas_cylinder_link" file="assets/left_gas_cylinder_link.obj" inertia="shell" maxhullvert="32" />
+    <mesh name="left_gas_rod_link" file="assets/left_gas_rod_link.obj" inertia="shell" maxhullvert="32" />
+  </asset>
+  <worldbody>
+    <body name="base" pos="0 0 0.312">
+      <freejoint name="base_free" />
+      <inertial mass="14.924064331" pos="-0.011397674852 0.0003596031867 -0.044475595327" fullinertia="0.23554124505 0.30699516535 0.45014794875 0.0013639607153 0.016074169365 6.5813971429e-05" />
+      <geom name="base_link_0_visual" mesh="base_link_0" rgba="0.76078431373 0.82745098039 0.98431372549 1" class="visual" />
+      <geom name="base_link_1_visual" mesh="base_link_1" rgba="0.58039215686 0.58039215686 0.58039215686 1" class="visual" />
+      <geom name="base_link_2_visual" mesh="base_link_2" rgba="1 1 0 1" class="visual" />
+      <geom name="base_link_3_visual" mesh="base_link_3" rgba="1 1 1 1" class="visual" />
+      <geom name="base_link_4_visual" mesh="base_link_4" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+      <geom name="base_link_5_visual" mesh="base_link_5" rgba="0.93333333333 0.078431372549 0.0039215686275 1" class="visual" />
+      <geom name="base_link_6_visual" mesh="base_link_6" rgba="0.8862745098 0.13333333333 0.0039215686275 1" class="visual" />
+      <geom name="base_link_7_visual" mesh="base_link_7" rgba="0.56470588235 0.53333333333 0.50196078431 1" class="visual" />
+      <geom name="base_link_8_visual" mesh="base_link_8" rgba="1 0.8862745098 0.80784313725 1" class="visual" />
+      <geom name="base_link_9_visual" mesh="base_link_9" rgba="0.99215686275 0.98823529412 0.5137254902 1" class="visual" />
+      <geom name="base_link_10_visual" mesh="base_link_10" rgba="0.74509803922 0.18823529412 0.043137254902 1" class="visual" />
+      <geom name="base_link_11_visual" mesh="base_link_11" rgba="0.64705882353 0.61568627451 0.56862745098 1" class="visual" />
+      <geom name="base_link_12_visual" mesh="base_link_12" rgba="0.90980392157 0.8431372549 0.74117647059 1" class="visual" />
+      <geom name="base_link_13_visual" mesh="base_link_13" rgba="0.21176470588 1 0.41176470588 1" class="visual" />
+      <geom name="base_link_14_visual" mesh="base_link_14" rgba="0.027450980392 0.027450980392 0.027450980392 1" class="visual" />
+      <geom name="base_link_15_visual" mesh="base_link_15" rgba="0.050980392157 0.050980392157 0.050980392157 1" class="visual" />
+      <geom name="base_link_16_visual" mesh="base_link_16" rgba="0.035294117647 0.035294117647 0.050980392157 1" class="visual" />
+      <geom name="base_link_17_visual" mesh="base_link_17" rgba="0.28235294118 0.2431372549 0.25490196078 1" class="visual" />
+      <geom name="base_link_18_visual" mesh="base_link_18" rgba="0.058823529412 0.058823529412 0.058823529412 1" class="visual" />
+      <geom name="base_link_19_visual" mesh="base_link_19" rgba="0 0 0 1" class="visual" />
+      <geom name="base_link_20_visual" mesh="base_link_20" rgba="0.19215686275 0.19215686275 0.19215686275 1" class="visual" />
+      <geom name="base_link_21_visual" mesh="base_link_21" rgba="0.03137254902 0.03137254902 0.03137254902 1" class="visual" />
+      <geom name="base_link_22_visual" mesh="base_link_22" rgba="0.1137254902 0.1137254902 0.1137254902 1" class="visual" />
+      <geom name="base_link_24_visual" mesh="base_link_24" rgba="0.6862745098 0.6862745098 0.6862745098 1" class="visual" />
+      <geom name="base_link_26_visual" mesh="base_link_26" rgba="0.0078431372549 0.0078431372549 0.0078431372549 1" class="visual" />
+      <geom name="base_link_27_visual" mesh="base_link_27" rgba="0.13333333333 0.12941176471 0.12549019608 1" class="visual" />
+      <geom name="base_link_28_visual" mesh="base_link_28" rgba="0.066666666667 0.066666666667 0.066666666667 1" class="visual" />
+      <geom name="base_link_29_visual" mesh="base_link_29" rgba="0.098039215686 0.090196078431 0.090196078431 1" class="visual" />
+      <geom name="base_link_30_visual" mesh="base_link_30" rgba="0.070588235294 0.070588235294 0.070588235294 1" class="visual" />
+      <geom name="base_link_31_visual" mesh="base_link_31" rgba="0.63529411765 0.46666666667 0.43137254902 1" class="visual" />
+      <geom name="base_link_36_visual" mesh="base_link_36" rgba="0.011764705882 0.011764705882 0.011764705882 1" class="visual" />
+      <geom name="base_link_37_visual" mesh="base_link_37" rgba="0.10980392157 0.10980392157 0.10980392157 1" class="visual" />
+      <geom name="base_link_38_visual" mesh="base_link_38" rgba="0.65490196078 0.83137254902 0.61568627451 1" class="visual" />
+      <geom name="base_link_39_visual" mesh="base_link_39" rgba="0.70588235294 0.73725490196 0.81176470588 1" class="visual" />
+      <geom name="base_link_40_visual" mesh="base_link_40" rgba="0.59215686275 0.63921568627 0.85490196078 1" class="visual" />
+      <body name="right_thigh_link" pos="5.1129518397e-12 -0.16050000005 0" quat="1 0 0 0">
+        <joint name="right_rear_hip_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+        <inertial mass="0.69636988924" pos="-0.10045593919 -2.0826753415e-05 -0.042265394828" fullinertia="0.0010936224549 0.0061682036065 0.0051453028332 -1.078774503e-05 -0.0020341217664 -1.5228640014e-06" />
+        <geom name="right_thigh_link_34_visual" mesh="right_thigh_link_34" rgba="0.80392156863 0.80392156863 0.80392156863 1" class="visual" />
+        <geom name="right_thigh_link_35_visual" mesh="right_thigh_link_35" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+        <geom name="right_thigh_link_41_visual" mesh="right_thigh_link_41" rgba="0.67843137255 1 0.62352941176 1" class="visual" />
+        <geom name="right_thigh_link_42_visual" mesh="right_thigh_link_42" rgba="0.070588235294 0.070588235294 0.070588235294 1" class="visual" />
+        <geom name="right_thigh_link_43_visual" mesh="right_thigh_link_43" rgba="0.81568627451 0.0078431372549 0 1" class="visual" />
+        <geom name="right_thigh_link_44_visual" mesh="right_thigh_link_44" rgba="0 0 1 1" class="visual" />
+        <geom name="right_thigh_link_50_visual" mesh="right_thigh_link_50" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+        <geom name="right_thigh_link_55_visual" mesh="right_thigh_link_55" rgba="0.78431372549 0.050980392157 1 1" class="visual" />
+        <geom name="right_thigh_link_61_visual" mesh="right_thigh_link_61" rgba="0.11764705882 0.11764705882 0.11764705882 1" class="visual" />
+        <geom name="right_thigh_link_73_visual" mesh="right_thigh_link_73" rgba="1 1 1 1" class="visual" />
+        <body name="right_knee_node_link" pos="-0.092037211404 -0.01649999995 -0.039104369012" quat="1 0 0 0">
+          <joint name="right_knee_node_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+          <inertial mass="0.12530980178" pos="0.0224766841 -0.0010185170009 -0.012637894761" fullinertia="0.00024774692856 0.00048691512825 0.00024157474765 -2.6526729091e-07 0.00022838740255 5.7315698003e-07" />
+          <geom name="right_knee_node_link_48_visual" mesh="right_knee_node_link_48" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+          <geom name="right_knee_node_link_49_visual" mesh="right_knee_node_link_49" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+          <body name="right_lower_coupler_link" pos="-0.030075400202 0.01325 0.051917918898" quat="1 0 0 0">
+            <joint name="right_lower_coupler_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+            <inertial mass="0.084708488812" pos="-0.053447071781 -0.005945029872 -0.022708359092" fullinertia="3.7965178684e-05 0.00020742506822 0.00017870131053 -9.5753983388e-07 -7.2967375287e-05 -4.0683535442e-07" />
+            <geom name="right_lower_coupler_link_51_visual" mesh="right_lower_coupler_link_51" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+            <geom name="right_lower_coupler_link_52_visual" mesh="right_lower_coupler_link_52" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+            <geom name="right_lower_coupler_link_57_visual" mesh="right_lower_coupler_link_57" rgba="1 0.1137254902 0.89803921569 1" class="visual" />
+            <geom name="right_lower_coupler_link_58_visual" mesh="right_lower_coupler_link_58" rgba="1 0.14509803922 0.83137254902 1" class="visual" />
+            <geom name="right_lower_coupler_link_60_visual" mesh="right_lower_coupler_link_60" rgba="0.11764705882 0.11764705882 0.11764705882 1" class="visual" />
+            <geom name="collision_part_329" mesh="collision_part_329" type="mesh" class="collision" />
+          </body>
+          <geom name="collision_part_322" mesh="collision_part_322" type="mesh" class="collision" />
+        </body>
+        <body name="right_shank_link" pos="-0.19788000426 -0.017749998346 -0.084074393994" quat="1 0 0 0">
+          <joint name="right_shank_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+          <inertial mass="0.76563585573" pos="0.13306631178 -0.0093356596959 -0.11029753279" fullinertia="0.0039945171235 0.0089160040439 0.0052142028798 0.00045166736593 0.0041628404798 -0.00038474042418" />
+          <geom name="right_shank_link_45_visual" mesh="right_shank_link_45" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+          <geom name="right_shank_link_54_visual" mesh="right_shank_link_54" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+          <geom name="right_shank_link_62_visual" mesh="right_shank_link_62" rgba="0.078431372549 0.054901960784 0.070588235294 1" class="visual" />
+          <geom name="right_shank_link_63_visual" mesh="right_shank_link_63" rgba="0.42745098039 0.42352941176 0.41960784314 1" class="visual" />
+          <geom name="right_shank_link_64_visual" mesh="right_shank_link_64" rgba="1 1 1 1" class="visual" />
+          <geom name="right_shank_link_65_visual" mesh="right_shank_link_65" rgba="0.59215686275 0.63921568627 0.85490196078 1" class="visual" />
+          <geom name="right_shank_link_67_visual" mesh="right_shank_link_67" rgba="1 0.8862745098 0.80784313725 1" class="visual" />
+          <geom name="right_shank_link_72_visual" mesh="right_shank_link_72" rgba="0.070588235294 0.070588235294 0.070588235294 1" class="visual" />
+          <body name="right_wheel_link" pos="0.19788000425 -0.027500001603 -0.16555211813" quat="1 0 0 0">
+            <joint name="right_wheel_joint" type="hinge" axis="0 1 0" damping="0.025" armature=".00005" limited="false" />
+            <inertial mass="0.18924111628" pos="1.2001797295e-06 1.7183823536e-05 -4.8607460666e-07" fullinertia="0.0001773927803 0.0003441749497 0.00017738657891 -1.6995220612e-09 -3.0039744628e-09 6.8830929434e-10" />
+            <geom name="right_wheel_link_66_visual" mesh="right_wheel_link_66" rgba="0.59215686275 0.63921568627 0.85490196078 1" class="visual" />
+            <geom name="right_wheel_link_68_visual" mesh="right_wheel_link_68" rgba="0.1137254902 0.062745098039 0.10980392157 1" class="visual" />
+            <geom name="right_wheel_link_69_visual" mesh="right_wheel_link_69" rgba="0.03137254902 0.035294117647 0.035294117647 1" class="visual" />
+            <geom name="right_wheel_link_70_visual" mesh="right_wheel_link_70" rgba="0.047058823529 0.047058823529 0.047058823529 1" class="visual" />
+            <geom name="right_wheel_link_71_visual" mesh="right_wheel_link_71" rgba="0.070588235294 0.070588235294 0.070588235294 1" class="visual" />
+            <geom name="right_wheel_contact" type="cylinder" size=".06 .01" quat="0.70710678119 -0.70710678119 0 0" condim="6" class="collision" />
+          </body>
+          <geom name="collision_part_319" mesh="collision_part_319" type="mesh" class="collision" />
+          <body name="right_gas_cylinder_link" pos="0.044101162414 0.014749998396 -0.036896304528" quat="0.97558303534 0 -0.21963092031 0">
+            <joint name="right_gas_cylinder_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+            <inertial mass="0.14293170274" pos="0.066917637502 8.8160110535e-10 9.1212685505e-12" fullinertia="6.2484088347e-06 0.00013511615384 0.00013507371547 2.7440716949e-13 -7.9208173248e-13 -2.9511104074e-20" />
+            <geom name="right_gas_cylinder_link_visual" mesh="right_gas_cylinder_link" material="gas_cylinder_black" class="visual" />
+            <body name="right_gas_rod_link" pos="0 0 0" quat="1 0 0 0">
+              <joint name="right_gas_rod_joint" type="slide" axis="1 0 0" damping="0" armature="0" limited="true" range="-0.040537776865 0.039462223135" stiffness="625" springref="0.51946222313" solreflimit=".002 1" solimplimit=".999 .9999 .0001" />
+              <inertial mass="0.034689541577" pos="0.12248639629 2.2272897886e-09 -6.7342062729e-10" fullinertia="3.5330252419e-07 2.5108699831e-05 2.5066261462e-05 -6.3775828667e-14 -2.2280460159e-13 -6.7660674482e-21" />
+              <geom name="right_gas_rod_link_visual" mesh="right_gas_rod_link" material="gas_rod_steel" class="visual" />
+            </body>
+          </body>
+        </body>
+        <geom name="collision_part_278" mesh="collision_part_278" type="mesh" class="collision" />
+        <geom name="collision_part_279" mesh="collision_part_279" type="mesh" class="collision" />
+        <geom name="collision_part_280" mesh="collision_part_280" type="mesh" class="collision" />
+      </body>
+      <body name="right_hip_knee_driver_link" pos="5.1129518397e-12 -0.176 0" quat="1 0 0 0">
+        <joint name="right_front_hip_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+        <inertial mass="0.33362049321" pos="0.0091174787105 0.023861318834 -0.0040177942911" fullinertia="0.00020636539474 0.00035244753633 0.0003657618258 7.9515638216e-05 8.7160881966e-05 -3.50390861e-05" />
+        <geom name="right_hip_knee_driver_link_32_visual" mesh="right_hip_knee_driver_link_32" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+        <geom name="right_hip_knee_driver_link_33_visual" mesh="right_hip_knee_driver_link_33" rgba="0.21568627451 0.21568627451 0.21568627451 1" class="visual" />
+        <geom name="right_hip_knee_driver_link_47_visual" mesh="right_hip_knee_driver_link_47" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+        <body name="right_upper_coupler_link" pos="0.09150960477 0.0117 -0.040323593472" quat="1 0 0 0">
+          <joint name="right_upper_coupler_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+          <inertial mass="0.083931649715" pos="-0.04613828823 -0.0054501904946 -0.037570046247" fullinertia="9.1598411771e-05 0.00021871084998 0.00013494421038 -1.1577018514e-12 -0.00010475855136 1.5158166144e-12" />
+          <geom name="right_upper_coupler_link_46_visual" mesh="right_upper_coupler_link_46" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+          <geom name="right_upper_coupler_link_53_visual" mesh="right_upper_coupler_link_53" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+          <geom name="right_upper_coupler_link_56_visual" mesh="right_upper_coupler_link_56" rgba="1 0.30980392157 0.47450980392 1" class="visual" />
+          <geom name="right_upper_coupler_link_59_visual" mesh="right_upper_coupler_link_59" rgba="0.11764705882 0.11764705882 0.11764705882 1" class="visual" />
+          <geom name="collision_part_330" mesh="collision_part_330" type="mesh" class="collision" />
+        </body>
+        <geom name="collision_part_272" mesh="collision_part_272" type="mesh" class="collision" />
+        <geom name="collision_part_281" mesh="collision_part_281" type="mesh" class="collision" />
+      </body>
+      <body name="left_thigh_link" pos="5.1129518397e-12 0.16050000005 0" quat="1 0 0 0">
+        <joint name="left_rear_hip_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+        <inertial mass="0.69636985529" pos="-0.10045594081 2.0826533491e-05 -0.04226539401" fullinertia="0.001093622432 0.0061682034401 0.0051453026878 1.0787748647e-05 -0.0020341217431 1.5228613456e-06" />
+        <geom name="left_thigh_link_76_visual" mesh="left_thigh_link_76" rgba="0.80392156863 0.80392156863 0.80392156863 1" class="visual" />
+        <geom name="left_thigh_link_77_visual" mesh="left_thigh_link_77" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+        <geom name="left_thigh_link_83_visual" mesh="left_thigh_link_83" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+        <geom name="left_thigh_link_88_visual" mesh="left_thigh_link_88" rgba="0.67843137255 1 0.62352941176 1" class="visual" />
+        <geom name="left_thigh_link_89_visual" mesh="left_thigh_link_89" rgba="0.070588235294 0.070588235294 0.070588235294 1" class="visual" />
+        <geom name="left_thigh_link_90_visual" mesh="left_thigh_link_90" rgba="0.81568627451 0.0078431372549 0 1" class="visual" />
+        <geom name="left_thigh_link_91_visual" mesh="left_thigh_link_91" rgba="0 0 1 1" class="visual" />
+        <geom name="left_thigh_link_94_visual" mesh="left_thigh_link_94" rgba="0.11764705882 0.11764705882 0.11764705882 1" class="visual" />
+        <geom name="left_thigh_link_97_visual" mesh="left_thigh_link_97" rgba="0.78431372549 0.050980392157 1 1" class="visual" />
+        <geom name="left_thigh_link_110_visual" mesh="left_thigh_link_110" rgba="1 1 1 1" class="visual" />
+        <body name="left_knee_node_link" pos="-0.092037211404 0.01649999995 -0.039104369012" quat="1 0 0 0">
+          <joint name="left_knee_node_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+          <inertial mass="0.12530980178" pos="0.022476684126 0.001018516996 -0.012637894043" fullinertia="0.00024774692788 0.00048691512786 0.00024157474792 2.6526737396e-07 0.00022838740243 -5.7315697131e-07" />
+          <geom name="left_knee_node_link_81_visual" mesh="left_knee_node_link_81" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+          <geom name="left_knee_node_link_84_visual" mesh="left_knee_node_link_84" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+          <body name="left_lower_coupler_link" pos="-0.030075400202 -0.01325 0.051917918898" quat="1 0 0 0">
+            <joint name="left_lower_coupler_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+            <inertial mass="0.084708488812" pos="-0.053447071781 0.0059450298885 -0.022708359022" fullinertia="3.7965178729e-05 0.00020742506822 0.00017870131053 9.5753983093e-07 -7.2967375316e-05 4.0683541281e-07" />
+            <geom name="left_lower_coupler_link_80_visual" mesh="left_lower_coupler_link_80" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+            <geom name="left_lower_coupler_link_85_visual" mesh="left_lower_coupler_link_85" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+            <geom name="left_lower_coupler_link_93_visual" mesh="left_lower_coupler_link_93" rgba="0.11764705882 0.11764705882 0.11764705882 1" class="visual" />
+            <geom name="left_lower_coupler_link_95_visual" mesh="left_lower_coupler_link_95" rgba="1 0.1137254902 0.89803921569 1" class="visual" />
+            <geom name="left_lower_coupler_link_96_visual" mesh="left_lower_coupler_link_96" rgba="1 0.14509803922 0.83137254902 1" class="visual" />
+            <geom name="collision_part_424" mesh="collision_part_424" type="mesh" class="collision" />
+          </body>
+          <geom name="collision_part_425" mesh="collision_part_425" type="mesh" class="collision" />
+        </body>
+        <body name="left_shank_link" pos="-0.19788000426 0.01774999995 -0.084074393994" quat="1 0 0 0">
+          <joint name="left_shank_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+          <inertial mass="0.76563585573" pos="0.13302984793 0.0093356588951 -0.11031658104" fullinertia="0.003995453422 0.0089139955645 0.0052112580753 -0.00045208526132 0.0041627135375 0.00038452206158" />
+          <geom name="left_shank_link_86_visual" mesh="left_shank_link_86" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+          <geom name="left_shank_link_87_visual" mesh="left_shank_link_87" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+          <geom name="left_shank_link_99_visual" mesh="left_shank_link_99" rgba="0.078431372549 0.054901960784 0.070588235294 1" class="visual" />
+          <geom name="left_shank_link_100_visual" mesh="left_shank_link_100" rgba="0.42745098039 0.42352941176 0.41960784314 1" class="visual" />
+          <geom name="left_shank_link_101_visual" mesh="left_shank_link_101" rgba="1 1 1 1" class="visual" />
+          <geom name="left_shank_link_102_visual" mesh="left_shank_link_102" rgba="0.59215686275 0.63921568627 0.85490196078 1" class="visual" />
+          <geom name="left_shank_link_104_visual" mesh="left_shank_link_104" rgba="1 0.8862745098 0.80784313725 1" class="visual" />
+          <geom name="left_shank_link_109_visual" mesh="left_shank_link_109" rgba="0.070588235294 0.070588235294 0.070588235294 1" class="visual" />
+          <body name="left_wheel_link" pos="0.19788000425 0.027499999873 -0.16555211813" quat="1 0 0 0">
+            <joint name="left_wheel_joint" type="hinge" axis="0 1 0" damping="0.025" armature=".00005" limited="false" />
+            <inertial mass="0.18924111628" pos="-2.8629916233e-07 -1.7183823536e-05 -1.2617253615e-06" fullinertia="0.0001773857854 0.0003441749497 0.0001773935738 -4.0578588994e-10 1.8637018389e-09 -1.7881506461e-09" />
+            <geom name="left_wheel_link_103_visual" mesh="left_wheel_link_103" rgba="0.59215686275 0.63921568627 0.85490196078 1" class="visual" />
+            <geom name="left_wheel_link_105_visual" mesh="left_wheel_link_105" rgba="0.1137254902 0.062745098039 0.10980392157 1" class="visual" />
+            <geom name="left_wheel_link_106_visual" mesh="left_wheel_link_106" rgba="0.03137254902 0.035294117647 0.035294117647 1" class="visual" />
+            <geom name="left_wheel_link_107_visual" mesh="left_wheel_link_107" rgba="0.047058823529 0.047058823529 0.047058823529 1" class="visual" />
+            <geom name="left_wheel_link_108_visual" mesh="left_wheel_link_108" rgba="0.070588235294 0.070588235294 0.070588235294 1" class="visual" />
+            <geom name="left_wheel_contact" type="cylinder" size=".06 .01" quat="0.70710678119 -0.70710678119 0 0" condim="6" class="collision" />
+          </body>
+          <geom name="collision_part_433" mesh="collision_part_433" type="mesh" class="collision" />
+          <body name="left_gas_cylinder_link" pos="0.044101162414 -0.01475 -0.036896304528" quat="0.97558303534 0 -0.21963092031 0">
+            <joint name="left_gas_cylinder_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+            <inertial mass="0.14293170274" pos="0.066917639285 1.2408500456e-11 -8.0965999621e-10" fullinertia="6.2484088347e-06 0.00013511615417 0.0001350737158 2.490108819e-13 -1.3605358152e-12 2.0701556238e-21" />
+            <geom name="left_gas_cylinder_link_visual" mesh="left_gas_cylinder_link" material="gas_cylinder_black" class="visual" />
+            <body name="left_gas_rod_link" pos="0 0 0" quat="1 0 0 0">
+              <joint name="left_gas_rod_joint" type="slide" axis="1 0 0" damping="0" armature="0" limited="true" range="-0.040537776865 0.039462223135" stiffness="625" springref="0.51946222313" solreflimit=".002 1" solimplimit=".999 .9999 .0001" />
+              <inertial mass="0.034689541577" pos="0.12248639757 -2.6399592093e-10 -1.9123032957e-10" fullinertia="3.5330252419e-07 2.5108699869e-05 2.50662615e-05 -2.5365806167e-15 -1.7253647391e-13 8.1256268837e-22" />
+              <geom name="left_gas_rod_link_visual" mesh="left_gas_rod_link" material="gas_rod_steel" class="visual" />
+            </body>
+          </body>
+        </body>
+        <geom name="collision_part_390" mesh="collision_part_390" type="mesh" class="collision" />
+        <geom name="collision_part_391" mesh="collision_part_391" type="mesh" class="collision" />
+        <geom name="collision_part_421" mesh="collision_part_421" type="mesh" class="collision" />
+      </body>
+      <body name="left_hip_knee_driver_link" pos="5.1129518397e-12 0.176 0" quat="1 0 0 0">
+        <joint name="left_front_hip_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+        <inertial mass="0.33362049321" pos="0.0091174388704 -0.023861319193 -0.0040177938943" fullinertia="0.00020636541696 0.00035244777732 0.00036576205899 -7.9515503779e-05 8.7161106839e-05 3.5039084265e-05" />
+        <geom name="left_hip_knee_driver_link_74_visual" mesh="left_hip_knee_driver_link_74" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+        <geom name="left_hip_knee_driver_link_75_visual" mesh="left_hip_knee_driver_link_75" rgba="0.21568627451 0.21568627451 0.21568627451 1" class="visual" />
+        <geom name="left_hip_knee_driver_link_79_visual" mesh="left_hip_knee_driver_link_79" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+        <body name="left_upper_coupler_link" pos="0.09150960477 -0.0117 -0.040323593472" quat="1 0 0 0">
+          <joint name="left_upper_coupler_joint" type="hinge" axis="0 -1 0" damping="0.025" armature=".00005" limited="false" />
+          <inertial mass="0.083931649715" pos="-0.046138288214 0.0054501904676 -0.037570045936" fullinertia="9.1598411822e-05 0.00021871084997 0.00013494421026 1.1086617888e-12 -0.00010475855137 -1.4475975662e-12" />
+          <geom name="left_upper_coupler_link_78_visual" mesh="left_upper_coupler_link_78" rgba="0.21176470588 0.21176470588 0.21176470588 1" class="visual" />
+          <geom name="left_upper_coupler_link_82_visual" mesh="left_upper_coupler_link_82" rgba="0.72156862745 0.80784313725 1 1" class="visual" />
+          <geom name="left_upper_coupler_link_92_visual" mesh="left_upper_coupler_link_92" rgba="0.11764705882 0.11764705882 0.11764705882 1" class="visual" />
+          <geom name="left_upper_coupler_link_98_visual" mesh="left_upper_coupler_link_98" rgba="1 0.30980392157 0.47450980392 1" class="visual" />
+          <geom name="collision_part_426" mesh="collision_part_426" type="mesh" class="collision" />
+        </body>
+        <geom name="collision_part_384" mesh="collision_part_384" type="mesh" class="collision" />
+        <geom name="collision_part_392" mesh="collision_part_392" type="mesh" class="collision" />
+      </body>
+      <geom name="collision_part_72" mesh="collision_part_72" type="mesh" class="collision" />
+      <geom name="collision_part_96" mesh="collision_part_96" type="mesh" class="collision" />
+      <geom name="collision_part_101" mesh="collision_part_101" type="mesh" class="collision" />
+      <geom name="collision_part_117" mesh="collision_part_117" type="mesh" class="collision" />
+      <geom name="collision_part_118" mesh="collision_part_118" type="mesh" class="collision" />
+      <geom name="collision_part_119" mesh="collision_part_119" type="mesh" class="collision" />
+      <geom name="collision_part_120" mesh="collision_part_120" type="mesh" class="collision" />
+      <geom name="collision_part_122" mesh="collision_part_122" type="mesh" class="collision" />
+      <geom name="collision_part_125" mesh="collision_part_125" type="mesh" class="collision" />
+      <geom name="collision_part_128" mesh="collision_part_128" type="mesh" class="collision" />
+      <geom name="collision_part_129" mesh="collision_part_129" type="mesh" class="collision" />
+      <geom name="collision_part_131" mesh="collision_part_131" type="mesh" class="collision" />
+      <geom name="collision_part_139" mesh="collision_part_139" type="mesh" class="collision" />
+      <geom name="collision_part_146" mesh="collision_part_146" type="mesh" class="collision" />
+      <geom name="collision_part_147" mesh="collision_part_147" type="mesh" class="collision" />
+      <geom name="collision_part_157" mesh="collision_part_157" type="mesh" class="collision" />
+      <geom name="collision_part_159" mesh="collision_part_159" type="mesh" class="collision" />
+      <geom name="collision_part_161" mesh="collision_part_161" type="mesh" class="collision" />
+      <geom name="collision_part_163" mesh="collision_part_163" type="mesh" class="collision" />
+      <geom name="collision_part_165" mesh="collision_part_165" type="mesh" class="collision" />
+      <geom name="collision_part_166" mesh="collision_part_166" type="mesh" class="collision" />
+      <geom name="collision_part_167" mesh="collision_part_167" type="mesh" class="collision" />
+      <geom name="collision_part_180" mesh="collision_part_180" type="mesh" class="collision" />
+      <geom name="collision_part_181" mesh="collision_part_181" type="mesh" class="collision" />
+      <geom name="collision_part_182" mesh="collision_part_182" type="mesh" class="collision" />
+      <geom name="collision_part_183" mesh="collision_part_183" type="mesh" class="collision" />
+      <geom name="collision_part_187" mesh="collision_part_187" type="mesh" class="collision" />
+      <geom name="collision_part_189" mesh="collision_part_189" type="mesh" class="collision" />
+      <geom name="collision_part_191" mesh="collision_part_191" type="mesh" class="collision" />
+      <geom name="collision_part_196" mesh="collision_part_196" type="mesh" class="collision" />
+      <geom name="collision_part_198" mesh="collision_part_198" type="mesh" class="collision" />
+      <geom name="collision_part_201" mesh="collision_part_201" type="mesh" class="collision" />
+      <geom name="collision_part_203" mesh="collision_part_203" type="mesh" class="collision" />
+      <geom name="collision_part_204" mesh="collision_part_204" type="mesh" class="collision" />
+      <geom name="collision_part_206" mesh="collision_part_206" type="mesh" class="collision" />
+      <geom name="collision_part_216" mesh="collision_part_216" type="mesh" class="collision" />
+      <geom name="collision_part_217" mesh="collision_part_217" type="mesh" class="collision" />
+      <geom name="collision_part_218" mesh="collision_part_218" type="mesh" class="collision" />
+      <geom name="collision_part_229" mesh="collision_part_229" type="mesh" class="collision" />
+      <geom name="collision_part_230" mesh="collision_part_230" type="mesh" class="collision" />
+      <geom name="collision_part_231" mesh="collision_part_231" type="mesh" class="collision" />
+      <geom name="collision_part_232" mesh="collision_part_232" type="mesh" class="collision" />
+      <geom name="collision_part_234" mesh="collision_part_234" type="mesh" class="collision" />
+      <geom name="collision_part_237" mesh="collision_part_237" type="mesh" class="collision" />
+      <geom name="collision_part_256" mesh="collision_part_256" type="mesh" class="collision" />
+      <geom name="collision_part_257" mesh="collision_part_257" type="mesh" class="collision" />
+      <geom name="collision_part_265" mesh="collision_part_265" type="mesh" class="collision" />
+      <geom name="collision_part_266" mesh="collision_part_266" type="mesh" class="collision" />
+      <geom name="collision_part_267" mesh="collision_part_267" type="mesh" class="collision" />
+      <geom name="collision_part_288" mesh="collision_part_288" type="mesh" class="collision" />
+      <geom name="collision_part_292" mesh="collision_part_292" type="mesh" class="collision" />
+      <geom name="collision_part_299" mesh="collision_part_299" type="mesh" class="collision" />
+      <geom name="collision_part_300" mesh="collision_part_300" type="mesh" class="collision" />
+      <geom name="collision_part_301" mesh="collision_part_301" type="mesh" class="collision" />
+      <geom name="collision_part_304" mesh="collision_part_304" type="mesh" class="collision" />
+      <geom name="collision_part_307" mesh="collision_part_307" type="mesh" class="collision" />
+      <geom name="collision_part_372" mesh="collision_part_372" type="mesh" class="collision" />
+      <geom name="collision_part_373" mesh="collision_part_373" type="mesh" class="collision" />
+      <geom name="collision_part_377" mesh="collision_part_377" type="mesh" class="collision" />
+      <geom name="collision_part_378" mesh="collision_part_378" type="mesh" class="collision" />
+      <geom name="collision_part_379" mesh="collision_part_379" type="mesh" class="collision" />
+      <geom name="collision_part_399" mesh="collision_part_399" type="mesh" class="collision" />
+      <geom name="collision_part_403" mesh="collision_part_403" type="mesh" class="collision" />
+      <geom name="collision_part_410" mesh="collision_part_410" type="mesh" class="collision" />
+      <geom name="collision_part_411" mesh="collision_part_411" type="mesh" class="collision" />
+      <geom name="collision_part_412" mesh="collision_part_412" type="mesh" class="collision" />
+      <geom name="collision_part_415" mesh="collision_part_415" type="mesh" class="collision" />
+      <geom name="collision_part_418" mesh="collision_part_418" type="mesh" class="collision" />
+      <geom name="collision_part_419" mesh="collision_part_419" type="mesh" class="collision" />
+      <geom name="collision_part_420" mesh="collision_part_420" type="mesh" class="collision" />
+      <geom name="collision_part_488" mesh="collision_part_488" type="mesh" class="collision" />
+      <site name="imu" size=".003" group="4" />
+      <camera name="base_follow_camera" mode="trackcom" pos="1 -1 .7" xyaxes=".7071 .7071 0 -.4082 .4082 .8165" />
+      <body name="guide_wheel_158" pos="0.271 -0.114 -0.13058514798">
+        <joint name="guide_wheel_158_joint" type="hinge" axis="6.9388939039e-16 1 -5.1017884227e-31" limited="false" />
+        <inertial pos="6.7441762805e-18 0.00083457249071 1.4929175882e-18" mass="0.016225697737" fullinertia="1.8189854725e-06 3.030887955e-06 1.8189854725e-06 8.5978724862e-22 6.6746272971e-23 -7.1910854018e-23" />
+        <geom name="guide_wheel_158_visual" mesh="guide_wheel_large" quat="0.021870526815 -0.021870526815 0.70676847698 0.70676847698" rgba="0.24313725531 0.54117649794 0.30980393291 1" class="visual" />
+        <geom name="guide_wheel_158_contact" type="cylinder" size="0.02 0.005" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_160" pos="-0.271 -0.114 -0.12858514798">
+        <joint name="guide_wheel_160_joint" type="hinge" axis="6.9388939039e-16 1 -5.1017884227e-31" limited="false" />
+        <inertial pos="6.7441762805e-18 0.00083457249071 1.4929175882e-18" mass="0.016225697737" fullinertia="1.8189854725e-06 3.030887955e-06 1.8189854725e-06 8.5978724862e-22 6.6746272971e-23 -7.1910854018e-23" />
+        <geom name="guide_wheel_160_visual" mesh="guide_wheel_large" quat="0.021870526815 -0.021870526815 0.70676847698 0.70676847698" rgba="0.24313725531 0.54117649794 0.30980393291 1" class="visual" />
+        <geom name="guide_wheel_160_contact" type="cylinder" size="0.02 0.005" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_162" pos="-0.271 0.114 -0.12858514798">
+        <joint name="guide_wheel_162_joint" type="hinge" axis="6.9388939039e-16 1 -8.7013514887e-31" limited="false" />
+        <inertial pos="-8.6140288781e-19 -0.00083457249071 -6.336975763e-18" mass="0.016225697737" fullinertia="1.8189854725e-06 3.030887955e-06 1.8189854725e-06 7.6673265552e-22 5.6803245515e-23 4.7131857535e-24" />
+        <geom name="guide_wheel_162_visual" mesh="guide_wheel_large" quat="-0.4661491982 -0.4661491982 0.53170003293 -0.53170003293" rgba="0.24313725531 0.54117649794 0.30980393291 1" class="visual" />
+        <geom name="guide_wheel_162_contact" type="cylinder" size="0.02 0.005" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_164" pos="0.271 0.114 -0.13058514798">
+        <joint name="guide_wheel_164_joint" type="hinge" axis="6.9388939039e-16 1 -4.9303806576e-31" limited="false" />
+        <inertial pos="-4.3130219435e-18 -0.00083457249071 -5.1278446294e-18" mass="0.016225697737" fullinertia="1.8189854725e-06 3.030887955e-06 1.8189854725e-06 7.8166654502e-22 -6.167384005e-23 4.4890886474e-23" />
+        <geom name="guide_wheel_164_visual" mesh="guide_wheel_large" quat="0.59963805062 0.59963805062 -0.37474552465 0.37474552465" rgba="0.24313725531 0.54117649794 0.30980393291 1" class="visual" />
+        <geom name="guide_wheel_164_contact" type="cylinder" size="0.02 0.005" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_168" pos="0.1225 0.0875 -0.15758514798">
+        <joint name="guide_wheel_168_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="6.6877404148e-19 -4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 -8.6257222372e-24 4.3655745685e-24" />
+        <geom name="guide_wheel_168_visual" mesh="guide_wheel_small" quat="0.70710678119 0.70710678119 0 0" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_168_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_169" pos="0.1225 0.0705 -0.15758514798">
+        <joint name="guide_wheel_169_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_169_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_169_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_170" pos="0.1575 0.0875 -0.14758514798">
+        <joint name="guide_wheel_170_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_170_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_170_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_171" pos="0.1575 0.0705 -0.14758514798">
+        <joint name="guide_wheel_171_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="6.6877404148e-19 -4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 -8.6257222372e-24 4.3655745685e-24" />
+        <geom name="guide_wheel_171_visual" mesh="guide_wheel_small" quat="0.70710678119 0.70710678119 0 0" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_171_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_172" pos="0.1225 -0.0705 -0.15758514798">
+        <joint name="guide_wheel_172_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_172_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_172_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_173" pos="0.1575 -0.0705 -0.14758514798">
+        <joint name="guide_wheel_173_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_173_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_173_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_174" pos="0.1575 -0.0845 -0.14758514798">
+        <joint name="guide_wheel_174_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_174_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_174_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_175" pos="0.1225 -0.0845 -0.15758514798">
+        <joint name="guide_wheel_175_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_175_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_175_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_221" pos="0.051 0.0845 -0.16758514798">
+        <joint name="guide_wheel_221_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="6.6877404148e-19 -4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 -8.6257222372e-24 4.3655745685e-24" />
+        <geom name="guide_wheel_221_visual" mesh="guide_wheel_small" quat="0.70710678119 0.70710678119 0 0" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_221_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_222" pos="0.051 0.0705 -0.16758514798">
+        <joint name="guide_wheel_222_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="6.6877404148e-19 -4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 -8.6257222372e-24 4.3655745685e-24" />
+        <geom name="guide_wheel_222_visual" mesh="guide_wheel_small" quat="0.70710678119 0.70710678119 0 0" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_222_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_223" pos="-0.051 0.0705 -0.16758514798">
+        <joint name="guide_wheel_223_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="6.6877404148e-19 -4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 -8.6257222372e-24 4.3655745685e-24" />
+        <geom name="guide_wheel_223_visual" mesh="guide_wheel_small" quat="0.70710678119 0.70710678119 0 0" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_223_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_224" pos="-0.051 0.0845 -0.16758514798">
+        <joint name="guide_wheel_224_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="6.6877404148e-19 -4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 -8.6257222372e-24 4.3655745685e-24" />
+        <geom name="guide_wheel_224_visual" mesh="guide_wheel_small" quat="0.70710678119 0.70710678119 0 0" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_224_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_225" pos="0.051 -0.0845 -0.16758514798">
+        <joint name="guide_wheel_225_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_225_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_225_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_226" pos="0.051 -0.0705 -0.16758514798">
+        <joint name="guide_wheel_226_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_226_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_226_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_227" pos="-0.051 -0.0845 -0.16758514798">
+        <joint name="guide_wheel_227_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_227_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_227_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+      <body name="guide_wheel_228" pos="-0.051 -0.0705 -0.16758514798">
+        <joint name="guide_wheel_228_joint" type="hinge" axis="0 1 0" limited="false" />
+        <inertial pos="-6.6877404148e-19 4.4408920985e-19 8.8654144208e-19" mass="0.0048858048949" fullinertia="3.0047700103e-07 5.716391727e-07 3.0047700103e-07 -5.816113682e-39 8.6257222372e-24 -4.3655745685e-24" />
+        <geom name="guide_wheel_228_visual" mesh="guide_wheel_small" quat="0 0 0.70710678119 0.70710678119" rgba="0.14509804547 1 0.25490197539 1" class="visual" />
+        <geom name="guide_wheel_228_contact" type="cylinder" size="0.015 0.003" quat="0.70710678119 0.70710678119 0 0" contype="4" conaffinity="2" class="collision" />
+      </body>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="right_upper_C" body1="right_upper_coupler_link" body2="right_knee_node_link" anchor="-0.092276581537 -0.0127 -0.075140085839" solref=".002 1" solimp=".999 .9999 .0001" />
+    <connect name="right_lower_E" body1="right_lower_coupler_link" body2="right_shank_link" anchor="-0.10584279285 -0.014499998396 -0.044970024982" solref=".002 1" solimp=".999 .9999 .0001" />
+    <connect name="left_upper_C" body1="left_upper_coupler_link" body2="left_knee_node_link" anchor="-0.092276581537 0.0127 -0.075140085839" solref=".002 1" solimp=".999 .9999 .0001" />
+    <connect name="left_lower_E" body1="left_lower_coupler_link" body2="left_shank_link" anchor="-0.10584279285 0.0145 -0.044970024982" solref=".002 1" solimp=".999 .9999 .0001" />
+    <connect name="right_gas_S" body1="right_gas_rod_link" body2="right_thigh_link" anchor="0.17553777687 0 0" solref=".002 1" solimp=".999 .9999 .0001" />
+    <connect name="left_gas_S" body1="left_gas_rod_link" body2="left_thigh_link" anchor="0.17553777687 0 0" solref=".002 1" solimp=".999 .9999 .0001" />
+  </equality>
+  <actuator>
+    <motor name="left_front_hip_motor" joint="left_front_hip_joint" gear="1" ctrlrange="-40 40" />
+    <motor name="right_front_hip_motor" joint="right_front_hip_joint" gear="1" ctrlrange="-40 40" />
+    <motor name="left_rear_hip_motor" joint="left_rear_hip_joint" gear="1" ctrlrange="-40 40" />
+    <motor name="right_rear_hip_motor" joint="right_rear_hip_joint" gear="1" ctrlrange="-40 40" />
+    <motor name="left_wheel_motor" joint="left_wheel_joint" gear="1" ctrlrange="-6 6" />
+    <motor name="right_wheel_motor" joint="right_wheel_joint" gear="1" ctrlrange="-6 6" />
+  </actuator>
+  <sensor>
+    <framequat name="imu_quat" objtype="site" objname="imu" />
+    <gyro name="imu_gyro" site="imu" />
+    <accelerometer name="imu_accel" site="imu" />
+    <jointpos name="left_front_hip_pos" joint="left_front_hip_joint" />
+    <jointvel name="left_front_hip_vel" joint="left_front_hip_joint" />
+    <jointpos name="left_rear_hip_pos" joint="left_rear_hip_joint" />
+    <jointvel name="left_rear_hip_vel" joint="left_rear_hip_joint" />
+    <jointpos name="left_wheel_pos" joint="left_wheel_joint" />
+    <jointvel name="left_wheel_vel" joint="left_wheel_joint" />
+    <jointpos name="right_front_hip_pos" joint="right_front_hip_joint" />
+    <jointvel name="right_front_hip_vel" joint="right_front_hip_joint" />
+    <jointpos name="right_rear_hip_pos" joint="right_rear_hip_joint" />
+    <jointvel name="right_rear_hip_vel" joint="right_rear_hip_joint" />
+    <jointpos name="right_wheel_pos" joint="right_wheel_joint" />
+    <jointvel name="right_wheel_vel" joint="right_wheel_joint" />
+    <jointactuatorfrc name="left_front_hip_torque" joint="left_front_hip_joint" />
+    <jointactuatorfrc name="right_front_hip_torque" joint="right_front_hip_joint" />
+    <jointactuatorfrc name="left_rear_hip_torque" joint="left_rear_hip_joint" />
+    <jointactuatorfrc name="right_rear_hip_torque" joint="right_rear_hip_joint" />
+  </sensor>
+  <contact>
+    <exclude body1="right_thigh_link" body2="right_hip_knee_driver_link" />
+    <exclude body1="right_upper_coupler_link" body2="right_knee_node_link" />
+    <exclude body1="right_lower_coupler_link" body2="right_shank_link" />
+    <exclude body1="left_thigh_link" body2="left_hip_knee_driver_link" />
+    <exclude body1="left_upper_coupler_link" body2="left_knee_node_link" />
+    <exclude body1="left_lower_coupler_link" body2="left_shank_link" />
+  </contact>
+</mujoco>
