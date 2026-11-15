@@ -1,10 +1,4 @@
-"""VMC 力矩映射（手册 §6）：任务空间力 → 关节力矩。
-
-基于虚功原理 τ_joint = J^T · F，其中 F = [f_l, t_l]^T 为任务空间虚拟力/力矩，
-J = ∂(L, θ_leg)/∂(front_angle, back_angle) 为雅可比矩阵。
-
-雅可比解析式由五连杆几何直接展开。
-"""
+"""五连杆 VMC：按虚功关系 τ = JᵀF 将轴向力和摆矩映射到髋关节。"""
 
 import numpy as np
 
@@ -38,13 +32,9 @@ class VmcMapper:
         -------
         (front_torque, back_torque) : (float, float)
         """
-        # Singularity guard: sin(phi_front - phi_back) -> 0 when the front and
-        # rear links are collinear. Clamp the denominator magnitude so the J^T
-        # mapping cannot blow up; the resulting hip torque is still clipped
-        # downstream to the actuator limits. Normal (non-collinear) poses keep
-        # their exact denominator, so this only bounds the near-singular region.
+        # 连杆接近共线时限制分母幅值，避免雅可比映射放大力矩。
         denom = np.sin(phi_front - phi_back)
-        denom_min = 0.05  # rad; caps torque amplification to ~1/denom_min
+        denom_min = 0.05
         if denom > 0.0:
             denom = max(denom, denom_min)
         elif denom < 0.0:

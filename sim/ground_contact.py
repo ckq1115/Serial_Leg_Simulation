@@ -1,23 +1,4 @@
-"""Ground contact detection per 轮腿机器人控制理论手册 §9.
-
-Provides per-wheel contact state using only onboard sensors:
-  - Fn from VMC force + IMU + leg kinematics (no extra hardware)
-  - liftoff / touchdown with hysteresis + debounce
-  - stuck detection  (torque saturation + zero wheel speed)
-  - slip detection   (3-condition, manual §9.4)
-
-Slip model (manual §9.4):
-  条件A (spinning):   |ω_est - ω_imu| >= θ_yaw
-  条件B (vel gap):    |v_wheel| - |v_body| >= θ_vel
-  条件C (accel gap):  |Δv_wheel| - |Δv_acc| >= θ_acc     <- core criterion
-  打滑 = A OR (B AND C)
-
-Condition C is the core: a slipping wheel's instantaneous acceleration exceeds
-the body's real acceleration (Δv_acc comes from the IMU, independent of the
-wheel). A and B are "framing" conditions that gate C so the detector has a
-reliable exit. Exit uses per-wheel onset-speed hysteresis: on trigger record
-f_dv_wheel = |v_wheel|, clear when |v_wheel| drops back below it.
-"""
+"""估计轮端法向载荷、离地、卡滞和打滑状态。"""
 import numpy as np
 from self_righting import rotation
 
@@ -32,7 +13,6 @@ class GroundContactDetector:
         self.half_track = half_track
         self.wheel_base = 2.0 * half_track  # L_wheel, left-right wheel spacing
 
-        # ── thresholds ────────────────────────────────────────────
         self.gravity = gravity
         self.static_load = static_load
         self.liftoff_Fn = .085 * static_load
@@ -40,12 +20,11 @@ class GroundContactDetector:
         self.debounce_s   = 0.01   # [s]  consecutive steps required (10 ms)
         self.debounce_n   = max(1, int(self.debounce_s / dt))
 
-        self.stuck_torque_ratio = 0.90  # joint torque > 90% of limit
+        self.stuck_torque_ratio = 0.90
         self.stuck_wheel_vel    = 0.5   # rad/s, wheel nearly stopped
         self.stuck_duration_s   = 0.15  # sustained before flag
         self.stuck_n            = max(1, int(self.stuck_duration_s / dt))
 
-        # slip thresholds (manual §9.4)
         self.dby_threshold = dby_threshold  # [rad/s] condition A: yaw-rate deviation
         self.dvb_threshold = dvb_threshold  # [m/s]   condition B: wheel-body vel deviation
         self.dvw_threshold = dvw_threshold  # [m/s]   condition C: per-step vel-change deviation
@@ -54,8 +33,7 @@ class GroundContactDetector:
         self.joint_torque_limit = joint_torque_limit
         self.wheel_torque_limit = wheel_torque_limit
 
-        # ── per-wheel state ───────────────────────────────────────
-        self._fn_raw    = [0.0, 0.0]       # latest raw Fn estimate
+        self._fn_raw    = [0.0, 0.0]
         self._fn_filt = [static_load, static_load]
         self._fn_alpha = dt/(.008+dt)
         self._previous_link_velocity = [None, None]
@@ -66,23 +44,20 @@ class GroundContactDetector:
         self._debounce_counter = [0, 0]    # consecutive steps in current transition
         self._stuck_counter    = [0, 0]
 
-        # slip state
         self._prev_wheel_vx = [0.0, 0.0]   # previous wheel line speed (m/s)
         self._dv_wheel      = [0.0, 0.0]   # mean-filtered wheel speed change (m/s)
         self._f_dv_wheel    = [0.0, 0.0]   # |v_wheel| recorded at slip onset (m/s)
 
-        self.contact_state  = ["grounded", "grounded"]  # per wheel
+        self.contact_state  = ["grounded", "grounded"]
         self.slip_active    = [False, False]
         self.spinning       = False                    # condition A (whole body)
         self.stuck_active   = [False, False]
 
         self.R_turn = 0.0  # turn radius diagnostic (m)
 
-        # slip-adaptive Kalman noise (consumed by controller's body_odom)
-        self.kalman_r_vel = 0.5   # nominal velocity measurement noise
-        self.kalman_q_vel = 0.01  # nominal velocity process noise
+        self.kalman_r_vel = 0.5
+        self.kalman_q_vel = 0.01
 
-    # ── public API ─────────────────────────────────────────────────
     @property
     def fn_left(self):
         return self._fn_filt[0]
@@ -164,7 +139,6 @@ class GroundContactDetector:
             forces.append(float(np.clip(force[1], 0., 5.*self.static_load)))
         return forces
 
-    # ── main update ────────────────────────────────────────────────
     def update(self, fn_l_raw, fn_r_raw,
                left_wheel_vel, right_wheel_vel,
                body_vx, z_acc,
@@ -195,25 +169,17 @@ class GroundContactDetector:
             self._fn_filt[i] = (self._fn_alpha * raw
                                 + (1.0 - self._fn_alpha) * self._fn_filt[i])
 
-        # wheel line speeds (m/s)
         v_wheel = [left_wheel_vel * self.wheel_radius,
                    right_wheel_vel * self.wheel_radius]
 
-        # ── 条件A: 偏航角速度偏差 (spinning) ──
-        # ω_est from wheel-speed difference vs IMU gyro.
+        # 轮速差与 IMU 偏航角速度的偏差作为整车诊断量。
         if self.wheel_base > 1e-9:
             omega_est = (v_wheel[1] - v_wheel[0]) / self.wheel_base
         else:
             omega_est = 0.0
         self.spinning = abs(omega_est - yaw_rate) >= self.dby_threshold
 
-        # ── horizontal accel reference + turn radius (条件C 前置量) ──
-        # Reference uses a_x = -a_imu,x + ω²·R_turn.  The negation is a
-        # hardware-specific mounting convention (this model's IMU x = forward),
-        # so forward accel is simply accel_x.  The centripetal ω²·R_turn term is
-        # lateral, not forward, so it is NOT folded into the forward a_x; R_turn
-        # is still computed/stored for diagnostics.  Steady turns don't trip C
-        # anyway (wheel speeds are constant → Δv_wheel ≈ 0).
+        # 打滑判据使用前向加速度积分；转弯半径单独用于诊断。
         a_x = accel_x                      # forward specific force (IMU x = forward)
         dv_acc = abs(a_x) * self.dt        # ∫|a_x|dt ≈ |a_x|·Δt
         denom = 2.0 * (v_wheel[0] - v_wheel[1])
@@ -226,7 +192,7 @@ class GroundContactDetector:
             jt = (left_joint_torques if side == 0 else right_joint_torques)
             wt = (left_wheel_torque if side == 0 else right_wheel_torque)
 
-            # ── 2. liftoff / touchdown (manual §9: Fn threshold + hysteresis + debounce) ──
+            # 有仿真接触数据时直接使用；否则以法向载荷迟滞和连续采样去抖。
             if wheel_contacts is not None:
                 self.contact_state[side] = "grounded" if wheel_contacts[side] else "airborne"
                 self._debounce_counter[side] = 0
@@ -238,7 +204,7 @@ class GroundContactDetector:
                         self._debounce_counter[side] = 0
                 else:
                     self._debounce_counter[side] = 0
-            else:  # airborne
+            else:
                 if not freefall and self._specific_force > .32*self.gravity and fn > self.touchdown_Fn:
                     self._debounce_counter[side] += 1
                     if self._debounce_counter[side] >= self.debounce_n:
@@ -247,7 +213,6 @@ class GroundContactDetector:
                 else:
                     self._debounce_counter[side] = 0
 
-            # ── 3. stuck detection ──
             jt_max = max(abs(jt[0]), abs(jt[1]))
             jt_saturated = jt_max > self.stuck_torque_ratio * self.joint_torque_limit
             wheel_stopped = abs(wv) < self.stuck_wheel_vel
@@ -262,8 +227,7 @@ class GroundContactDetector:
                 if self._stuck_counter[side] == 0:
                     self.stuck_active[side] = False
 
-            # ── 4. slip detection (条件C core, 条件B gate) ──
-            # 条件C: mean-filtered wheel speed change vs body accel integral
+            # 轮速变化超过车身速度变化，同时轮速与车速失配时判为打滑。
             dv_wheel_raw = v_wheel[side] - self._prev_wheel_vx[side]
             self._dv_wheel[side] = (self.dv_wheel_alpha * dv_wheel_raw
                                     + (1.0 - self.dv_wheel_alpha) * self._dv_wheel[side])
@@ -282,14 +246,12 @@ class GroundContactDetector:
                 if abs(v_wheel[side]) <= self._f_dv_wheel[side]:
                     self.slip_active[side] = False
 
-        # ── update Kalman noise based on slip ──
-        self.kalman_r_vel = 0.5  # nominal
+        self.kalman_r_vel = 0.5
         self.kalman_q_vel = 0.01
         if self.any_slip:
             self.kalman_r_vel = 50.0   # trust wheel odometry much less
             self.kalman_q_vel = 0.005  # trust model prediction more
 
-    # ── LQR K-suppression mask ─────────────────────────────────────
     def get_K_suppression_mask(self):
         """Return (zero_wheel_L, zero_wheel_R, zero_leg_L, zero_leg_R).
 

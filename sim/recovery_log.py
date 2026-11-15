@@ -70,7 +70,6 @@ class RecoveryLog:
         if self.file is None and not r.active and now-self.last_pretrigger < .02-1e-9:
             return
 
-        # Aggregate contact points by geom pair. Include self-collisions and chassis contacts.
         pairs = {}
         for contact in data.contact:
             a, b = contact.geom1, contact.geom2

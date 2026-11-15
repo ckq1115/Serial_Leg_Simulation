@@ -1,391 +1,52 @@
-# 当前接入：大眼睛六杆轮腿 + RMUC2027
+# 串联轮腿底盘MuJoCo仿真
 
-默认 `python sim/main.py` 加载 `mjcf/bigeye_rmuc2027.xml`，使用原工程 LQR/VMC 控制流程。模型已移除云台与气弹簧，保留真实六杆闭链及六个主动电机；关节、传感器与电机顺序已对齐原接口。
+基于 MuJoCo 的串联轮腿底盘仿真。包含闭链URDF模型，RMUC2027场地（能钻狗洞 能打飞镖 能飞小飞机）。
 
-物理 1 kHz，控制保留原工程 500 Hz。查看器使用 **MuJoCo 原生 managed viewer**。Space 暂停/运行，Reset 重置仿真，视角和碰撞组在原生界面调整，鼠标扰动由 MuJoCo 处理。没有额外的 3/C/B 碰撞或视角快捷键；J 单次跳跃（松开后可再次触发），Space 仍用于原生暂停。方向键与 Shift 保留原工程的行驶/腿长控制。
+## 安装
 
-腿部正解和 VMC 改为 `sim/cad_kinematics.py`，依据实际 A/B/C/P/K/W 几何计算，使用原生关节零位。旧五连杆杆长没有用于新模型的力矩映射。质量、质心、惯量和轮距已更新至 `config/robot_params.yaml`。LQR/LESO 增益表已按当前 CAD 质量、完整质心偏移和髋轴位置状态重新生成；完整腿长范围、跳跃和大扰动仍需独立验证。
-
-建模参考见 [四套轮腿动力学建模逐项对比](docs/四套轮腿动力学建模逐项对比.html)。
-
----
-
-# 串联五连杆轮腿机器人仿真
-
-基于 MuJoCo 物理引擎的串联五连杆轮腿机器人仿真平台。核心控制器采用 **10 维状态空间 LQR + VMC（虚拟模型控制）** 方案，支持键盘遥控与 LQR 自主平衡两种运行模式。
-
-## 目录
-
-- [系统架构](#系统架构)
-- [环境要求](#环境要求)
-- [快速开始](#快速开始)
-- [运行模式](#运行模式)
-  - [键盘遥控模式](#键盘遥控模式)
-  - [LQR 自主平衡模式](#lqr-自主平衡模式)
-- [命令行参数](#命令行参数)
-- [配置文件说明](#配置文件说明)
-- [项目结构](#项目结构)
-- [工具脚本](#工具脚本)
-  - [LQR 增益表生成](#lqr-增益表生成)
-- [控制理论背景](#控制理论背景)
-- [实机部署参考](#实机部署参考)
-
----
-
-## 系统架构
-
-```
-┌──────────────────────────────────────────────────┐
-│                   main.py                         │
-│          (参数解析 / 仿真循环 / 日志)               │
-├──────────────────────────────────────────────────┤
-│                StandController                    │
-│  ┌─────────────┬──────────────┬────────────────┐ │
-│  │ KalmanOdometry│  LQR Governor │ FiveLinkLeg   │ │
-│  │  (状态估计)   │ (键盘→目标值) │  (五连杆运动学) │ │
-│  ├─────────────┼──────────────┼────────────────┤ │
-│  │  VmcMapper   │   PID ×5     │ Chebyshev 2D  │ │
-│  │  (力矩映射)   │ (腿长/横滚)   │  (增益调度)    │ │
-│  └─────────────┴──────────────┴────────────────┘ │
-├──────────────────────────────────────────────────┤
-│              MuJoCo 物理引擎                       │
-│         mjcf/bigeye_robot.xml (机器人模型)           │
-└──────────────────────────────────────────────────┘
-```
-
-控制流程：
-
-1. **感知**：从 MuJoCo 读取传感器 + 五连杆运动学正解 → 虚拟腿长 L 和摆角 θ
-2. **估计**：Kalman 滤波器融合 IMU 加速度与轮式里程计 → 水平位移 x 与速度 ẋ
-3. **规划**：Chebyshev 增益调度 K(L_l, L_r) + 键盘参考调速器 + 跳跃状态机
-4. **控制**：LQR 最优反馈 u=-Kx + PID 腿长/Roll + 重力前馈
-5. **映射**：VMC 力矩映射 τ=JᵀF + 离地检测 K 矩阵抑制
-6. **执行**：力矩限幅 → MuJoCo `data.ctrl` → `mj_step()`
-7. **遥测**：UDP 发送 24 维状态数据（供 VOFA+ 可视化）
-
----
-
-## 环境要求
-
-| 依赖 | 说明 |
-|------|------|
-| Python 3.9+ | 建议使用 conda/venv 虚拟环境 |
-| [MuJoCo](https://github.com/google-deepmind/mujoco) | 物理引擎（`pip install mujoco`） |
-| NumPy | 数值计算 |
-| SciPy | 线性化工具需要（`fsolve`, `expm`, `least_squares` 等） |
-| PyYAML | 读取配置文件 |
-| SymPy | 符号动力学推导（仅 `tools/linearize.py` 需要） |
-| pynput | 键盘读取（仅键盘遥控模式需要） |
-
-安装依赖：
+在项目根目录运行：
 
 ```bash
-pip install mujoco numpy scipy pyyaml sympy pynput
+python -m pip install mujoco numpy scipy pyyaml pynput
 ```
 
----
+如需重新生成动力学和控制增益表，另装 `sympy`。
 
 ## 快速开始
 
-### 1. 键盘遥控模式（默认）
-
 ```bash
-cd Serial_Leg_Simulation
+# 默认场景：RMUC2027，打开查看器
 python sim/main.py
+
+# 平地自主平衡，无界面运行 5 秒
+python sim/main.py --scene mjcf/bigeye_flat.xml --control-mode lqr --headless --duration 5
+
+# 启用 MPC
+python sim/main.py --balance-controller mpc
+
+# 运行 LESO 版本
+python sim/main_leso.py
 ```
 
-启动后会弹出 MuJoCo 可视化窗口，机器人自动站立。使用键盘控制：
+查看器中，方向键控制行驶和转向，左、右 Shift 分别升高和降低车身，J 触发单次跳跃，Space 暂停或继续仿真。在主入口中，M 可切换 LQR 和 MPC。更多参数见 `python sim/main.py --help`。
 
-| 按键 | 功能 |
-|------|------|
-| `↑` / `↓` | 前进 / 后退 |
-| `←` / `→` | 左转 / 右转 |
-| `Shift`（左/右） | 升高 / 降低车身 |
-| `Space` | MuJoCo 原生暂停/运行 |
-| `J` | 双轮触地时单次跳跃，按住不连续触发 |
-| 原生界面 | 选择相机及 Rendering 碰撞显示组 |
+## 控制方式
 
-### 2. LQR 自主平衡模式
+- **LQR + VMC**：十状态 LQR 控制纵向平衡、偏航和腿摆角，按左右腿长调度增益。独立支撑控制调节高度和横滚，VMC 将虚拟力和摆矩映射为髋电机力矩。
+- **MPC + VMC**：十状态 MPC 计算左右腿摆矩和轮矩。腿长（双轮支撑时为车身高度）和横滚由与 LQR 共用的独立支撑反馈调节。
+- **LESO**：通过独立入口运行线性扩张状态观测器版本。
 
-```bash
-python sim/main.py --control-mode lqr
-```
-
-机器人站在原点自主平衡，不做移动。
-
-### 3. 无界面模式（Headless）
-
-```bash
-python sim/main.py --headless --duration 10
-```
-
-适合批量测试、自动化脚本。运行 10 秒后自动退出。
-
-### 4. 施加外部扰动
-
-```bash
-python sim/main.py --push-time 2.0 --push-duration 0.5 --push-force-x 50
-```
-
-在 t=2.0s 时对车身施加 x 方向 50N 的冲量扰动，持续 0.5s。常用于测试抗扰能力。
-
-```bash
-python sim/main.py --initial-pitch 0.1 --initial-x-velocity 1.0
-```
-
-设置初始俯仰角 0.1 rad 和初始 x 速度 1.0 m/s，测试从非零初始状态的恢复能力。
-
----
-
-## 运行模式
-
-### 键盘遥控模式
-
-默认模式（`--control-mode keyboard`）。键盘输入经 **LqrReferenceGovernor** 转为 LQR 参考目标：
-
-- 速度与偏航均为**瞬时指令**（无斜坡）：`x_dot = 轴值 × max_speed`，`yaw_dot = 轴值 × max_yaw_rate`
-- 位置目标对速度指令积分，并 clamp 到实际位置前方 0.05 m，避免目标漂移
-- 松开速度键时位置目标吸附到当前位置，防止回弹
-
-键盘指令最终叠加位置预览、速度误差与轮端前馈。
-
-### LQR 自主平衡模式
-
-（`--control-mode lqr`）机器人维持在初始位置和姿态。可通过命令行参数设置目标偏置：
-
-```bash
-python sim/main.py --control-mode lqr --target-x 1.0
-```
-
-让机器人向前移动 1 米后停下。
-
----
-
-## 命令行参数
-
-| 参数 | 默认值 | 说明 |
-|------|--------|------|
-| `--duration` | `0.0` | 运行时长（秒），0 表示无限运行 |
-| `--viewer` / `--headless` | `--viewer` | 是否显示 MuJoCo 可视化窗口 |
-| `--camera-mode` | `base` | 初始相机：`base` 车身跟随相机，`free` MuJoCo 自由视角 |
-| `--control-mode` | `keyboard` | 控制模式：`keyboard` 或 `lqr` |
-| `--target-leg-length` | 0.22 m | 目标腿长（m） |
-| `--support-force` | `0.5·m·g` | 单腿支撑力（N） |
-| `--target-x` | `0.0` | LQR 目标 x 位置（m） |
-| `--target-yaw` | `0.0` | LQR 目标偏航角（rad） |
-| `--target-pitch` | `0.0` | LQR 目标俯仰角（rad） |
-| `--target-left-leg-theta` | `0.0` | LQR 目标左腿摆角（rad） |
-| `--target-right-leg-theta` | `0.0` | LQR 目标右腿摆角（rad） |
-| `--target-x-dot` | `0.0` | LQR 目标 x 速度（m/s） |
-| `--target-yaw-dot` | `0.0` | LQR 目标偏航角速度（rad/s） |
-| `--max-keyboard-speed` | `2.0` | 键盘最大速度（m/s） |
-| `--max-keyboard-yaw-rate` | `2.0` | 键盘最大偏航角速度（rad/s） |
-| `--initial-pitch` | `0.0` | 初始俯仰角（rad） |
-| `--initial-x-velocity` | `0.0` | 初始 x 速度（m/s） |
-| `--push-body` | `base` | 推动目标刚体名称 |
-| `--push-time` | `1.0` | 推力开始时间（s） |
-| `--push-duration` | `0.0` | 推力持续时间（s） |
-| `--push-force-x/y/z` | `0.0` | 推力分量（N） |
-| `--push-torque-x/y/z` | `0.0` | 推力矩分量（Nm） |
-| `--joint-torque-limit` | `40.0` | 关节力矩限制（Nm） |
-| `--wheel-torque-limit` | `5.0` | 轮端力矩限制（Nm） |
-| `--length-position-force-limit` | `1500.0` | 腿长位置环力限制（N） |
-| `--length-velocity-force-limit` | `1000.0` | 腿长速度环力限制（N） |
-| `--roll-force-limit` | `1000.0` | 横滚力限制（N） |
-| `--fall-angle` | `1.0` | 摔倒判定角（rad），当前仅作保留参数，未触发停机 |
-| `--log-every` | `0.05` | 日志打印间隔（s） |
-
-> 注：`--keyboard-*-accel` 系列参数仍被解析，但调速器已改为瞬时速度指令，不再使用。
-> `--target-*`、`--max-keyboard-*` 等参数默认值为 `None`，实际值从 `config/robot_params.yaml` 读取。
-
-跳跃参数在 `config/robot_params.yaml` 的 `control_initial.jump` 下配置：
-`force_per_leg_n` 每腿起跳力（当前 300 N）、`max_thrust_time_s` 最长蹬地时间（0.15 s）、
-`retract_length_m` 收腿目标（0.10 m）、`min_retract_time_s` 最短收腿时间（0.25 s）、
-`retract_force_scale` 收腿位置环增益倍率（2）。按 J 触发一次，双轮离地后收腿，
-满足最短收腿时间并双轮触地后恢复站立腿长。跳跃请求会跨控制周期缓存，避免按键丢失。
-平地两次完整跳跃已验证；RMUC2027 场地上的落地稳定性仍需处理。
-
----
-
-## 配置文件说明
-
-所有机器人物理参数和初始控制参数集中在 `config/robot_params.yaml` 中，MATLAB 建模、MuJoCo 仿真、Python 控制共享同一套参数。
-
-### 主要配置段
-
-| 段 | 说明 |
-|----|------|
-| `simulation` | 仿真步长（500Hz）、积分器（implicitfast）、重力加速度 |
-| `coordinates` | 坐标系约定、LQR 状态/输出顺序 |
-| `geometry` | 轮径、轮距、车身尺寸、五连杆各段杆长 |
-| `mass_properties` | 总质量、各部分质量与转动惯量 |
-| `mujoco` | MuJoCo 模型文件路径、关节/传感器/执行器命名 |
-| `actuators` | 电机力矩限幅、轮毂电机（M3508）功率模型参数 |
-| `contact` | 轮地接触摩擦参数、闭环运动学约束求解参数 |
-| `control_initial` | PID 参数、LQR 目标偏置、键盘指令参数、跳跃参数、Kalman 噪声参数 |
-
-### 增益调度
-
-增益矩阵使用 2D Chebyshev 多项式 `K(L_l, L_r)`，系数存储在 `data/lqr_gain_fit.py`。
-仿真直接调用 `get_K(L_l, L_r)` 实时计算 4×10 增益矩阵，无需查表插值。
-
----
+**LESO 和 MPC 的参数目前均未细调，控制效果可能不是很好。**
 
 ## 项目结构
 
-```
-Serial_Leg_Simulation/
-├── config/
-│   └── robot_params.yaml          # 统一参数配置文件
-├── mjcf/
-│   ├── bigeye_robot.xml           # 大眼睛六杆轮腿机器人模型
-│   ├── bigeye_rmuc2027.xml        # 大眼睛与 RMUC2027 组合场景
-│   ├── bigeye_flat.xml            # 平地测试场景
-│   └── bigeye_ramp17.xml          # 17° 斜坡与碎石测试场景
-├── RMUC2027/                      # 比赛场地模型与资源
-├── sim/                           # 在线仿真模块（每控制步调用）
-│   ├── main.py                    # 主入口，参数解析与仿真循环
-│   ├── controller.py              # StandController: 控制链路
-│   ├── kinematics.py              # FiveLinkLeg: FK + IK + Jacobian
-│   ├── vmc.py                     # VmcMapper: VMC 力矩映射 τ=JᵀF
-│   ├── pid.py                     # PID 控制器
-│   ├── kalman.py                  # KalmanOdometry: 2-D Kalman 滤波器
-│   ├── lqr_governor.py            # LqrReferenceGovernor: 参考调速器
-│   ├── jump_state_machine.py      # JumpStateMachine: 跳跃状态机
-│   ├── ground_contact.py          # GroundContactDetector: 离地/卡死/打滑检测
-│   ├── keyboard_reader.py         # 键盘输入读取
-│   ├── utils.py                   # 工具函数 + ContinuousAngle
-│   └── __init__.py                # 包初始化 + 公共 API 导出
-├── data/                          # 预计算数据（离线生成，在线查表）
-│   ├── lqr_gain_fit.py            # Chebyshev 2D 多项式系数加载 + get_K/get_e2/get_e3
-│   ├── _K2D_COEFF.npy             # 4×10×45 K 矩阵系数
-│   ├── _E2_COEFF.npy / _E3_COEFF.npy  # e2/e3 平衡偏置系数
-│   ├── _U_EQ_COEFF.npy            # 平衡控制量前馈系数
-│   ├── AB_sampling_points.npz     # 采样点 A_d/B_d 矩阵
-│   └── k_table_2d.h               # C 头文件: 2D Chebyshev 增益表（MCU 用）
-├── tools/                         # 离线计算（运行一次，生成 data/）
-│   └── linearize.py               # 动力学线性化 → DARE → 2D 拟合 → 导出
-├── 轮腿机器人控制理论手册.md       # 控制理论参考手册
-└── README.md                      # 本文件
-```
+| 路径 | 内容 |
+| --- | --- |
+| [`sim/`](sim/) | 仿真入口、控制器和腿部运动学 |
+| [`mjcf/`](mjcf/) | 机器人模型和场景入口 |
+| [`RMUC2027/`](RMUC2027/) | RMUC2027 场地及资源 |
+| [`config/robot_params.yaml`](config/robot_params.yaml) | 机器人参数和控制配置 |
+| [`tools/linearize.py`](tools/linearize.py) | 离线动力学线性化与控制增益生成 |
+| [`data/`](data/) | 线性化数据、增益表和导出的 C 头文件 |
 
----
-
-## 工具脚本
-
-### 动力学线性化 + LQR 增益表生成
-
-`tools/linearize.py` 使用 **SymPy 拉格朗日力学**推导五连杆轮腿机器人非线性动力学模型，
-在多个腿长工作点线性化得到 A_d, B_d 矩阵，求解 DARE 得到 K 矩阵，拟合 2D 多项式系数，
-导出到 `data/` 目录。
-
-```bash
-# 生成 2D Chebyshev 增益表（14×14 网格，8 阶）+ C 头文件
-python tools/linearize.py
-
-# 更细网格
-python tools/linearize.py --grid-size 27
-```
-
-**输出文件：**
-
-| 文件 | 用途 |
-|------|------|
-| `data/lqr_gain_fit.py` | Chebyshev 系数加载 + get_K/get_e2/get_e3（仿真导入） |
-| `data/_K2D_COEFF.npy` 等 | K、e2/e3、u_eq 的系数（`.npy`） |
-| `data/k_table_2d.h` | 2D Chebyshev 增益表 C 头文件（MCU 移植） |
-| `data/AB_sampling_points.npz` | 各采样点的线性化 A_d/B_d 矩阵 |
-
-2D 增益表支持左右腿长不同的非对称工况（转弯、单腿台阶等）。
-
-单独再生成 LESO 表时，运行 `python tools/linearize.py --leso-only --leso-check-grid 81`。该命令和仿真运行时都会读取 `data/AB_sampling_points.npz`。
-
----
-
-## 控制理论背景
-
-本仿真的控制方案在 `轮腿机器人控制理论手册.md` 中有详尽的理论推导，核心要点：
-
-### 10 维状态空间
-
-LQR 控制的 10 维状态向量：
-
-```
-x = [x, yaw, pitch, θ_L, θ_R, ẋ, yaẇ, pitcḣ, θ̇_L, θ̇_R]ᵀ
-```
-
-其中 `θ_L`、`θ_R` 为左右腿相对于铅垂线的摆角。
-
-### 4 维控制输出
-
-```
-u = [τ_L, τ_R, T_wL, T_wR]ᵀ
-```
-
-即左右虚拟腿力矩 + 左右轮端力矩。
-
-### 控制链路
-
-```
-传感器读数 → 五连杆运动学 → (L, θ) → Kalman 状态估计 → 10 维状态
-    ↓
-2D Chebyshev 增益调度 K(L_l, L_r) + e2/e3(L_l, L_r)
-    ↓
-LQR u = -K·(x - x_ref) + PID 腿长力 + Roll 力
-    ↓
-VMC τ = JᵀF → 关节力矩
-    ↓
-离地检测 K 抑制 → 力矩限幅 → MuJoCo 执行
-```
-
-### 增益调度
-
-2D Chebyshev 多项式 `K(L_l, L_r)` 将腿长变化纳入增益计算。
-40 个 K 元素各自为 45 项（总阶数 8）三角 Chebyshev 基函数的线性组合，运行时递推求值。
-
-### 着地检测
-
-`GroundContactDetector` 提供三级检测：离地（Fn 滞后+去抖）、
-卡腿（力矩饱和+轮速为零）、打滑（轮速与车速失配）。
-检测结果抑制 K 矩阵对应行，防止悬空/卡死腿失控。
-
----
-
-## 实机部署参考
-
-仿真代码考虑了向嵌入式 MCU 移植的需求：
-
-1. **LQR 增益表**通过 `python tools/linearize.py` 导出为 C 头文件 `data/k_table_2d.h`，含 Chebyshev 递推求值函数 `k_table_2d_eval(L_l, L_r, k_out)`
-2. **PID 参数**、**Kalman 噪声参数**、**力限幅值**均在 YAML 配置文件中统一管理
-3. **UDP 遥测**：仿真运行时通过 `127.0.0.1:12345` 发送 24 个 float（10 状态 + 10 目标 + 2 腿长 + 2 法向力），可直接用 VOFA+ 上位机实时观察
-4. 控制频率 **500Hz**（dt = 0.002s）
-
----
-
-## 常见使用示例
-
-```bash
-# 基础键盘遥控
-python sim/main.py
-
-# LQR 定点自平衡
-python sim/main.py --control-mode lqr
-
-# 抗扰测试：侧向推力
-python sim/main.py --control-mode lqr --push-time 4.0 --push-duration 0.2 --push-force-y 80
-
-# 高速巡航测试
-python sim/main.py --max-keyboard-speed 2.5 --max-keyboard-yaw-rate 8.0
-
-# 自定义初始状态 + 无头模式
-python sim/main.py --headless --duration 5 --initial-pitch 0.15 --control-mode lqr
-```
-
-方向键冲突修复：Windows 下仅当本仿真窗口获得焦点时，四个方向键被底盘控制读取并拦截，不再触发 MuJoCo 时间回放/单步暂停。Space 和原生暂停按钮不变；其他窗口的方向键不受影响。修改后须重启 Python 仿真进程。
-
-线性化工具已适配新 CAD：闭链直接读取原生 connect 锚点，不再依赖旧 Left_front_site1 等 site；按当前模型读取运动杆、质量和惯量，轮距按轮中心测量。离线求姿态使用机器人本体，避免加载场地。重新运行 tools/linearize.py 会同步生成增益、二维平衡偏置和 MCU 表；原降阶动力学形式与 Q/R 权重保留。
-
-质心与坐标修正：物理模型的质心保留原值，动力学显式使用机身 X/Y/Z 质心偏移；腿部质心采用髋轴向下距离和前后偏移。位置状态统一为髋轴中点，轮胎滚动反作用力矩按同一坐标推导。IMU 比力投影到水平前向轴后再进入速度滤波和打滑检测，去掉倾斜时的重力分量。不添加常数 pitch 补偿。重新运行 tools/linearize.py 可复现增益表。
-
-
-腿角统一定义：theta_body 是关节正解得到的机身相对角，theta_world = theta_body + body_pitch 是矢状面内相对世界竖直线的有符号角。theta 为 theta_world 的兼容字段；LQR、里程计修正、腿角微分及支撑力竖直投影均使用 theta_world。零度为腿竖直，髋轴在轮心前方为正。质心补偿产生的平衡腿角可以非零。VMC 在固定机身姿态下对关节求导，两种角的关节雅可比相同，不重复叠加 pitch。
+运行 `python tools/linearize.py` 可重新生成控制数据。若只需用已有线性化数据生成 LESO 表，运行 `python tools/linearize.py --leso-only --leso-check-grid 81`。

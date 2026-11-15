@@ -1,9 +1,4 @@
-"""Serial wheel-leg simulation with an input-disturbance LESO.
-
-This launcher leaves the original main.py and controller.py unchanged.  It
-uses the scheduled 10-state, 4-input models produced by tools/linearize.py and
-augments them with four constant matched disturbances.
-"""
+"""带输入扰动 LESO 的仿真入口，使用十状态模型估计四个匹配扰动。"""
 
 from pathlib import Path
 

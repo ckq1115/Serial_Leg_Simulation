@@ -1,10 +1,4 @@
-"""五连杆并联腿运动学（手册 §2）：正解 FK + 逆解 IK + 雅可比 J。
-
-当前 MuJoCo 模型为五连杆并联腿（通过 equality connect 闭环）。正解用交点法求解
-五连杆闭合几何 → 虚拟腿长 L 和摆角 θ。正解唯一确定（atan2 选上半支）。
-
-逆解使用数值优化（fsolve）求解 (front_angle, back_angle) 使 FK 输出匹配目标 (L, θ)。
-"""
+"""五连杆运动学与差分器。五连杆正逆解供旧接口使用，当前六杆模型覆写正解与雅可比。"""
 
 import numpy as np
 from scipy.optimize import fsolve
@@ -122,14 +116,13 @@ class FiveLinkLeg:
         return self.length, self.theta
 
     def vmc(self, leg_force, leg_torque, front_angle, back_angle):
-        """VMC 力矩映射（委托给 VmcMapper，手册 §6）。"""
+        """将腿的轴向力和摆矩映射到前、后髋关节。"""
         self.force = leg_force
         self.front_torque, self.back_torque = self._vmc.compute(
             self.length, self.theta, self.phi_front, self.phi_back,
             leg_force, leg_torque, front_angle, back_angle)
         return self.front_torque, self.back_torque
 
-    # ── 逆运动学（手册 §2.4）──────────────────────────────────────────
     def inverse(self, L_des, theta_des, body_pitch=0.0):
         """数值逆解：给定目标 (L, θ_leg)，求解 (front_angle, back_angle)。
 
@@ -150,12 +143,11 @@ class FiveLinkLeg:
         (front_angle, back_angle) : (float, float)
             使 FK 输出匹配目标的关节角度 [rad]。
         """
-        # 以当前角度为初值
         fa0 = np.arctan2(
             np.sin(self.phi_front) if hasattr(self, 'phi_front') and self.phi_front != 0 else 0.3,
             np.cos(self.phi_front) if hasattr(self, 'phi_front') else 1.0)
-        ba0 = np.pi - 0.5  # 合理初值
-        # 更鲁棒的初值：从上次 FK 结果反推
+        ba0 = np.pi - 0.5
+        # 用上次 FK 的连杆角作为优先初值，减少跳到另一构型的机会。
         try:
             _ = self.length
             fa0 = float(np.arctan2(np.sin(self.phi_front), np.cos(self.phi_front))) if abs(self.phi_front) > 0.01 else 0.3
@@ -202,7 +194,6 @@ class FiveLinkLeg:
         theta = -np.arctan2(x_c, y_c)
         return L, theta
 
-    # ── 雅可比（手册 §2.5）────────────────────────────────────────────
     def jacobian(self, front_angle, back_angle):
         """数值雅可比 J = ∂(L, θ_leg)/∂(front, back)（有限差分 ε=1e-6）。
 

@@ -9,6 +9,7 @@ Usage:
   python tools/linearize.py --grid-size 27     # finer grid
   python tools/linearize.py --order 8  --grid-size 10
   python tools/linearize.py --leso-check-grid 81  # denser optional pole check
+  python tools/linearize.py --wheel-load-only    # 检查左右轮静态法向载荷
 """
 
 import sys, time, argparse, json
@@ -22,12 +23,9 @@ import sympy as sp
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "sim"))
 from utils import load_config, resolve_project_path  # type: ignore[import-untyped] 
 
-# ══════════════════════════════════════════════════════════════════════
-#  Serial_Leg_Simulation physical constants
-# ══════════════════════════════════════════════════════════════════════
 M_BODY = 20.8775740
 M_WHEEL = 0.4904
-M_LEG   = 1.1132+0.306873+0.058433+0.042999+0.065877+0.010945#0.058433+0.042999+0.065877+0.010945+0.306873+1.1132
+M_LEG   = 1.1132+0.306873+0.058433+0.042999+0.065877+0.010945
 I_BODY_XX = 0.3595155; I_BODY_YY = 0.35249; I_BODY_ZZ = 0.45655
 I_WHEEL_YY = 0.0005817; I_WHEEL_ZZ = 0.00033958
 WHEEL_RADIUS = 0.06; HALF_TRACK = 0.1877
@@ -40,32 +38,23 @@ LESO_AUG_STATES = LESO_PLANT_STATES + LESO_INPUTS
 LESO_STATE_PROCESS_NOISE = 1e-5
 LESO_DISTURBANCE_PROCESS_NOISE = 1e-5
 
-# Measurement standard deviations in the same order as the plant state:
-#   x, yaw, pitch, theta_L, theta_R,
-#   x_dot, yaw_dot, pitch_dot, theta_L_dot, theta_R_dot
-#
-# These are conservative initial values for the MCU measurement chain.  In
-# particular, wheel/odometry velocity and numerically differentiated leg-angle
-# rates are deliberately trusted much less than directly measured angles.
-# Replace these values with standard deviations calculated from stationary
-# hardware logs when those logs are available.  Re uses variance, hence std^2.
+# LESO 的测量标准差按下方状态顺序排列，平方后作为测量协方差的对角线。
 LESO_MEASUREMENT_STD = np.array([
     2.0e-3,  # x [m], odometry/Kalman position
     2.0e-3,  # yaw [rad], IMU integrated yaw
     1.5e-3,  # pitch [rad], IMU attitude
-    6.0e-1,  # theta_L [rad], leg kinematics
-    6.0e-1,  # theta_R [rad], leg kinematics
+    1.0e-2,  # theta_L [rad], leg kinematics
+    1.0e-2,  # theta_R [rad], leg kinematics
     2.0e-2,  # x_dot [m/s], wheel/IMU fused velocity
     1.0e-2,  # yaw_dot [rad/s], gyroscope
     1.0e-2,  # pitch_dot [rad/s], gyroscope
-    5.0e-1,  # theta_L_dot [rad/s], differentiated leg angle
-    5.0e-1,  # theta_R_dot [rad/s], differentiated leg angle
+    1.0e-2,  # theta_L_dot [rad/s], differentiated leg angle
+    1.0e-2,  # theta_R_dot [rad/s], differentiated leg angle
 ], dtype=float)
 LESO_MEASUREMENT_VARIANCE = LESO_MEASUREMENT_STD ** 2
 LESO_DENSE_CHECK_GRID = 17
 
-# Practical tolerances for offline table generation. Avoid spending thousands
-# of iterations chasing precision below the finite-difference noise floor.
+# 离线求解容差应高于数值差分的噪声底。
 POSE_SOLVE_TOL = 1e-7
 POSE_MAX_NFEV = 300
 POSE_RESIDUAL_TOL_M = 1e-4  # 0.1 mm closure/leg-length error
@@ -74,50 +63,39 @@ EQUILIBRIUM_MAX_ITER = 100
 EQUILIBRIUM_RESIDUAL_TOL = 1e-5
 
 
-# Generalized-coordinate damping (N·m·s/rad), mapped from serial_leg.xml joint
-# damping: x/yaw/pitch ride on the free joint -> undamped (0); theta_L/theta_R
-# (virtual leg swing) are driven by two hip joints with damping=0.05 each -> ~0.1.
+# 降阶模型的广义阻尼，顺序为位移、偏航、俯仰、左腿角、右腿角。
 DAMPING_Q = np.array([0.1, 0.1, 0.0, 0.1, 0.1])
-_DATA_DIR = Path(__file__).resolve().parents[1] / "data"  # always Serial_Leg_Simulation/data/
+_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
-# LQR 状态权重 Q（10×10 对角）
-# 状态:      x    yaw   pitch  th_L   th_R   x_dot yaw_dot pitch_dot th_L_dot th_R_dot
+# Q 的对角线按位移、偏航、俯仰、左右腿角及对应速度排列。
 Q_DIAG = np.array([
-    117.67440200586925,   # x
-    2351.34759652582306,   # yaw
-    64378.818186328936,   # pitch
-    2532.853035539866,   # th_L
-    2532.853035539866,   # th_R
-    28.137208213125398,   # x_dot
-    4.049107012270894,   # yaw_dot
-    34.019194283273411,   # pitch_dot
-    2.473426446138944,   # thL_dot
-    2.473426446138944,   # thR_dot
+    36.4960615194,      # 位移
+    280.2831482354,     # 偏航角
+    48363.1968069981,   # 俯仰角
+    3016.0253765672,    # 左腿角
+    3016.0253765672,    # 右腿角
+    18.9416149683,      # 纵向速度
+    9.9043106757,       # 偏航角速度
+    3.5156691657,       # 俯仰角速度
+    0.6061526386,       # 左腿角速度
+    0.6061526386,       # 右腿角速度
 ])
 
-# LQR 控制权重 R（4×4 对角）
-# 控制:    tau_L  tau_R  T_wL   T_wR
-# 行列顺序：左髋力矩、右髋力矩、左轮力矩、右轮力矩
+# R 的输入顺序为左右虚拟腿摆矩、左右轮矩。
 R_MAT = np.array([
-    [0.6885913068617185, 0.35198577057112945, 0.0,            0.0],
-    [0.35198577057112945, 0.6885913068617185, 0.0,            0.0],
-    [0.0,            0.0,            3.443771826589662, 1.556228173410338],
-    [0.0,            0.0,            1.556228173410338, 3.443771826589662],
+    [9.7885694276, 9.4525021292, 0.0,          0.0],
+    [9.4525021292, 9.7885694276, 0.0,          0.0],
+    [0.0,          0.0,          4.5336677586, 0.7377569067],
+    [0.0,          0.0,          0.7377569067, 4.5336677586],
 ], dtype=float)
-# python tools/linearize.py --grid-size 27
 
-
-# ══════════════════════════════════════════════════════════════════════
-#  MuJoCo LegPoseSolver — actual Serial 5-link leg COM geometry
-# ══════════════════════════════════════════════════════════════════════
 
 class LegPoseSolver:
     def __init__(self, model, cfg):
         self.model = model
         self.leg_geom = cfg["geometry"]["five_link"]
         self.wheel_radius = cfg["geometry"]["wheel"]["radius_m"]
-        # Read actual local anchors from native connect constraints. No legacy
-        # CAD marker sites are needed, and lateral plate offsets are preserved.
+        # 从 MuJoCo 的 connect 约束读取局部铰点，保留左右安装板偏置。
         self._closures = [(int(model.eq_obj1id[i]), int(model.eq_obj2id[i]),
                            model.eq_data[i,:3].copy(),model.eq_data[i,3:6].copy())
                           for i in range(model.neq)
@@ -329,11 +307,7 @@ def body_com_offset_from_hip(model, data, cfg):
     return base_rot.T @ (center - hip_mid)
 
 
-# ══════════════════════════════════════════════════════════════════════
-#  Serial-specific SymPy Lagrangian (matching MATLAB structure)
-# ══════════════════════════════════════════════════════════════════════
-
-def build_serial_model():
+def build_serial_model(with_wheel_loads=False):
     """Build the local bilateral-support model with coupled Yaw/leg inertia."""
 
     x_s,w_s,th_s,thl_s,thr_s = sp.symbols('x w theta theta_l theta_r')
@@ -354,36 +328,40 @@ def build_serial_model():
     # x is the HIP midpoint position, matching the controller's body odometry.
     # theta_i > 0 means the hip is ahead of its wheel; pitch is +Y rotation.
     h_l=L_l*sp.cos(thl_s);h_r=L_r*sp.cos(thr_s)
-    # Simultaneous wheel support: bank is fixed by the difference in projected
-    # leg heights. Wheel centers stay at one support height; they cannot move
-    # vertically in opposite directions as the old mean-height model allowed.
+    # 双轮同高支撑时，两腿竖直投影之差决定横滚几何。
     bank=sp.atan((h_l-h_r)/(2*d))
     bank_rate=sp.diff(bank,thl_s)*thld_s+sp.diff(bank,thr_s)*thrd_s
     hip_z=(h_l+h_r)/2*sp.cos(bank)
-    hip_zdot=sp.diff(hip_z,thl_s)*thld_s+sp.diff(hip_z,thr_s)*thrd_s
+    # 求接触反力时，髋轴高度和横滚先作为独立坐标。
+    height, roll = sp.symbols('height roll')
+    height_rate, roll_rate = sp.symbols('height_rate roll_rate')
+    q_full = sp.Matrix([x_s, w_s, th_s, thl_s, thr_s, height, roll])
+    qd_full = sp.Matrix([xd_s, wd_s, thd_s, thld_s, thrd_s, height_rate, roll_rate])
+    support = {height: hip_z, roll: bank, height_rate:
+               sp.diff(hip_z, thl_s)*thld_s + sp.diff(hip_z, thr_s)*thrd_s,
+               roll_rate: bank_rate}
+    wheel_gap = sp.Matrix([height + d*sp.sin(roll) - h_l*sp.cos(roll),
+                           height - d*sp.sin(roll) - h_r*sp.cos(roll)])
     axle_x=-(L_l*sp.sin(thl_s)+L_r*sp.sin(thr_s))/2
     wheel_terms=[];leg_terms=[]
     for side,L,angle,rate,mass,c,cx,j,y in [
         (1,L_l,thl_s,thld_s,ml,c_l,cx_l,j_ly,y_l),
         (-1,L_r,thr_s,thrd_s,mr,c_r,cx_r,j_ry,y_r)]:
-        wx=-L*sp.sin(angle)
         wvx=xd_s-side*d*wd_s-L*sp.cos(angle)*rate
         wheel_terms.append(sp.Rational(1,2)*(m_w+j_wy/r**2)*wvx**2)
         rx=cx*sp.cos(angle)-c*sp.sin(angle)
         rz=-cx*sp.sin(angle)-c*sp.cos(angle)
         vx=xd_s-y*wd_s+sp.diff(rx,angle)*rate
-        point_z=hip_z+y*sp.sin(bank)+rz*sp.cos(bank)
-        vz=sp.diff(point_z,thl_s)*thld_s+sp.diff(point_z,thr_s)*thrd_s
+        point_z=height+y*sp.sin(roll)+rz*sp.cos(roll)
+        vz=sp.Matrix([point_z]).jacobian(q_full).dot(qd_full)
         leg_terms.append(sp.Rational(1,2)*mass*(vx**2+vz**2)+sp.Rational(1,2)*j*rate**2)
     body_rx=bx*sp.cos(th_s)+bz*sp.sin(th_s)
     body_rz=-bx*sp.sin(th_s)+bz*sp.cos(th_s)
     body_vx=xd_s-by*wd_s+sp.diff(body_rx,th_s)*thd_s
-    body_z=hip_z+by*sp.sin(bank)+body_rz*sp.cos(bank)
-    body_vz=sp.diff(body_z,thl_s)*thld_s+sp.diff(body_z,thr_s)*thrd_s+sp.diff(body_z,th_s)*thd_s
-    # The external Roll controller maintains small bank. Include its induced
-    # kinetic energy in the frozen-length balance model instead of allowing
-    # the wheels to leave their support plane. This is a local upright model.
-    roll_inertia=j_x+m*(hip_z+body_rz)**2
+    body_z=height+by*sp.sin(roll)+body_rz*sp.cos(roll)
+    body_vz=sp.Matrix([body_z]).jacobian(q_full).dot(qd_full)
+    # 在冻结腿长的直立模型中计入约束诱导的横滚动能。
+    roll_inertia=j_x+m*(height+body_rz)**2
     # Forward velocity squares above already contain lateral-offset inertia
     # and Yaw/leg-rate cross terms. Add only lateral translation and local
     # rotational inertia here, without counting the wheel track twice.
@@ -391,23 +369,24 @@ def build_serial_model():
     for angle,mass,c,cx,jx,jz,y in [(thl_s,ml,c_l,cx_l,j_lx,j_lz,y_l),(thr_s,mr,c_r,cx_r,j_rx,j_rz,y_r)]:
         rx=cx*sp.cos(angle)-c*sp.sin(angle)
         rz=-cx*sp.sin(angle)-c*sp.cos(angle)
-        roll_inertia+=jx*sp.cos(angle)**2+jz*sp.sin(angle)**2+mass*(hip_z+rz)**2
+        roll_inertia+=jx*sp.cos(angle)**2+jz*sp.sin(angle)**2+mass*(height+rz)**2
         yaw_inertia+=jx*sp.sin(angle)**2+jz*sp.cos(angle)**2+mass*(rx-axle_x)**2
     yaw_inertia+=2*j_wz
-    # Local upright rolling model about the supporting axle midpoint.
-    # Yaw/leg inertial coupling is retained in the velocity squares above.
-    T=(sum(wheel_terms)+sum(leg_terms)
+    # 偏航惯量以支撑轮轴中点为基准。
+    T_full=(sum(wheel_terms)+sum(leg_terms)
        +sp.Rational(1,2)*m*(body_vx**2+body_vz**2)
        +sp.Rational(1,2)*j_y*thd_s**2
-       +sp.Rational(1,2)*roll_inertia*bank_rate**2
+       +sp.Rational(1,2)*roll_inertia*roll_rate**2
        +sp.Rational(1,2)*yaw_inertia*wd_s**2)
     rz_l=-cx_l*sp.sin(thl_s)-c_l*sp.cos(thl_s)
     rz_r=-cx_r*sp.sin(thr_s)-c_r*sp.cos(thr_s)
-    V=g*(m*(hip_z+by*sp.sin(bank)+body_rz*sp.cos(bank))
-         +ml*(hip_z+y_l*sp.sin(bank)+rz_l*sp.cos(bank))
-         +mr*(hip_z+y_r*sp.sin(bank)+rz_r*sp.cos(bank)))
+    V_full=g*(m*body_z
+              + ml*(height+y_l*sp.sin(roll)+rz_l*sp.cos(roll))
+              + mr*(height+y_r*sp.sin(roll)+rz_r*sp.cos(roll)))
+    # 代入双轮支撑约束，得到原有五自由度的能量表达式。
+    T = T_full.xreplace(support)
+    V = V_full.xreplace(support)
 
-    # Euler-Lagrange (same generalized forces as MATLAB eq1-eq5)
     L_expr = T - V
     def ddL(Li,qi,qdi,qddi):
         dL=sp.diff(Li,qdi); ddt=0
@@ -442,18 +421,46 @@ def build_serial_model():
     M_func  = sp.lambdify(param_vars+state_vars, M_sym, 'numpy')
     Bq_func = sp.lambdify(param_vars+state_vars, Bq_sym, 'numpy')
     V_func  = sp.lambdify(param_vars+q_vars, V, 'numpy')
-    return M_func, Bq_func, V_func
+    if not with_wheel_loads:
+        return M_func, Bq_func, V_func
 
+    # 轮心高度以支撑面上的轮心高度为零。轮子的竖向动能和势能
+    # 在约束流形上均为零，但势能的法向导数给出轮子自重。
+    J_normal = wheel_gap.jacobian(q_full)
+    wheel_vertical_speed = J_normal @ qd_full
+    T_full += m_w * wheel_vertical_speed.dot(wheel_vertical_speed) / 2
+    V_full += g * m_w * sum(wheel_gap)
+    momentum = sp.Matrix([T_full]).jacobian(qd_full).T
+    mass_full = momentum.jacobian(qd_full)
+    bias_full = (momentum.jacobian(q_full) @ qd_full
+                 - sp.Matrix([T_full - V_full]).jacobian(q_full).T)
+    contact_bias = wheel_vertical_speed.jacobian(q_full) @ qd_full
+    # 在约束流形上取值，但保留对独立高度和横滚坐标求导的结果。
+    contact_terms = sp.lambdify(
+        param_vars + state_vars,
+        tuple(expr.xreplace(support) for expr in (mass_full, bias_full, J_normal, contact_bias)),
+        'numpy', cse=True)
 
-# ══════════════════════════════════════════════════════════════════════
-#  Numerical linearization
-# ══════════════════════════════════════════════════════════════════════
+    def wheel_loads(parameters, q, qd, u):
+        """返回双轮同高接触所需的左、右法向力，单位 N。"""
+        mass, bias, jacobian, contact_accel = contact_terms(*parameters, *q, *qd)
+        generalized_force = np.zeros(7)
+        generalized_force[:5] = (
+            Bq_func(*parameters, *q, *qd) @ u - DAMPING_Q * qd)
+        # 法向向上。负反力表示该侧需要地面拉住轮子，双轮支撑不成立。
+        system = np.block([[mass, -jacobian.T],
+                           [jacobian, np.zeros((2, 2))]])
+        rhs = np.r_[generalized_force - bias.ravel(), -contact_accel.ravel()]
+        return np.linalg.solve(system, rhs)[-2:]
+
+    return M_func, Bq_func, V_func, wheel_loads
+
 
 def linearize_at_length(L_l, L_r, r_com_l, c_x_l, r_com_r, c_x_r,
                         M_func, Bq_func, V_func, eq_stats=None,
                         leg_inertia_l=0.003,leg_inertia_r=0.003,
                         leg_axes_l=(.003,.003),leg_axes_r=(.003,.003),
-                        leg_y_l=None,leg_y_r=None):
+                        leg_y_l=None,leg_y_r=None, wheel_load_check=None):
     p = [M_BODY,M_WHEEL,HALF_TRACK,WHEEL_RADIUS,
          I_BODY_YY,I_BODY_ZZ,I_WHEEL_YY,I_WHEEL_ZZ,GRAVITY,
          L_l,L_r, M_LEG,M_LEG, r_com_l,r_com_r,c_x_l,c_x_r,
@@ -522,6 +529,9 @@ def linearize_at_length(L_l, L_r, r_com_l, c_x_l, r_com_r, c_x_r,
     u_eq = np.asarray(equilibrium.x[2:], dtype=float)
 
     q_eq=[0,0,th_eq,thl_eq,thr_eq]; qd_eq=[0,0,0,0,0]; se=q_eq+qd_eq
+    if wheel_load_check is not None:
+        wheel_loads, samples = wheel_load_check
+        samples.append(wheel_loads(p, q_eq, qd_eq, u_eq))
     M =np.array(M_func(*p,*se),dtype=float)
     Bq=np.array(Bq_func(*p,*se),dtype=float)
 
@@ -540,10 +550,6 @@ def linearize_at_length(L_l, L_r, r_com_l, c_x_l, r_com_r, c_x_r,
 
     return A, B, u_eq, th_eq, thl_eq, thr_eq
 
-
-# ══════════════════════════════════════════════════════════════════════
-#  ZOH + DARE
-# ══════════════════════════════════════════════════════════════════════
 
 def discretize_zoh(A,B,dt):
     n,m=A.shape[0],B.shape[1]; M=np.zeros((n+m,n+m)); M[:n,:n]=A; M[:n,n:]=B; M*=dt; E=expm(M)
@@ -618,9 +624,6 @@ def design_leso_gain(Ad, Bd):
     gain = np.linalg.solve(innovation_covariance, gain_numerator.T).T
     return gain
 
-# ══════════════════════════════════════════════════════════════════════
-#  2D Chebyshev polynomial fit + C header export（手册 §5.6, §12）
-# ══════════════════════════════════════════════════════════════════════
 
 def normalize_length(L):
     """Map leg length from [H_MIN, H_MAX] to the Chebyshev domain [-1, 1]."""
@@ -717,7 +720,7 @@ def export_c_header_2d(p, coeff, filepath):
 
     lines = []
     lines.append(f"// Auto-generated {p}th-order 2D Chebyshev LQR gain table for asymmetric leg lengths.")
-    lines.append(f"// {n_floats} float32 coefficients = {n_kb:.2f} KB")
+    lines.append(f"// {n_floats} float32 coefficients")
     lines.append("// clang-format off")
     lines.append("#pragma once")
     lines.append("#include <stdint.h>")
@@ -731,7 +734,6 @@ def export_c_header_2d(p, coeff, filepath):
     lines.append("")
     lines.append(f"static const float k_table_2d[{n_floats}] = {{")
 
-    # Print 8 values per line
     chunk = 8
     for start in range(0, n_floats, chunk):
         vals = flat[start:start + chunk]
@@ -1034,10 +1036,6 @@ def fit_and_export_leso_tables(p, left_lengths, right_lengths, ad_set, bd_set,
     return gain_set
 
 
-# ══════════════════════════════════════════════════════════════════════
-#  Main
-# ══════════════════════════════════════════════════════════════════════
-
 def main():
     parser = argparse.ArgumentParser(
         description="Serial Lagrangian LQR gain table generator")
@@ -1051,7 +1049,11 @@ def main():
                         default=LESO_DENSE_CHECK_GRID,
                         help=f"Dense N x N grid used to verify fitted LESO poles. "
                              f"Default: {LESO_DENSE_CHECK_GRID}; use 81 for a denser check")
+    parser.add_argument("--wheel-load-only", action="store_true",
+                        help="检查静态工作点的左右轮法向载荷")
     args = parser.parse_args()
+    if args.wheel_load_only and args.leso_only:
+        parser.error("--wheel-load-only 与 --leso-only 不能同时使用")
 
     t0 = time.perf_counter()
     if args.leso_only:
@@ -1069,7 +1071,10 @@ def main():
         return
 
     print("Serial Lagrangian + MuJoCo geometry")
-    M_func, Bq_func, V_func = build_serial_model()
+    dynamics = build_serial_model(with_wheel_loads=args.wheel_load_only)
+    M_func, Bq_func, V_func = dynamics[:3]
+    wheel_load_samples = []
+    wheel_load_check = (dynamics[3], wheel_load_samples) if args.wheel_load_only else None
     print(f"  Model built in {time.perf_counter()-t0:.1f}s")
 
     cfg = load_config()
@@ -1083,9 +1088,6 @@ def main():
     solver = LegPoseSolver(model, cfg)
     body_com=load_model_parameters(model,data,cfg,solver)
 
-    # ════════════════════════════════════════════════════════════════
-    #  2D: asymmetric leg lengths + Chebyshev fit + C header
-    # ════════════════════════════════════════════════════════════════
     ORDER_2D = args.order
     N_2D = args.grid_size
     h_2d = np.linspace(H_MIN, H_MAX, N_2D)
@@ -1095,7 +1097,6 @@ def main():
     n_2d = len(L_l_flat)
     K_2d = np.zeros((n_2d, 4, 10))
     u_eq_set = np.zeros((n_2d, 4))
-    # Store A_d, B_d, equilibrium offsets at each grid point
     A_d_set = np.zeros((n_2d, 10, 10))
     B_d_set = np.zeros((n_2d, 10, 4))
     leso_gain_set = np.zeros((n_2d, LESO_AUG_STATES, LESO_PLANT_STATES))
@@ -1117,11 +1118,7 @@ def main():
         "worst": None,
     }
 
-    # Precompute per-leg COM geometry as a function of leg length (symmetric
-    # pose at each length). Each leg's COM depends only on its own length, so
-    # an asymmetric (L_l, L_r) grid point uses COM(L_l) for the left leg and
-    # COM(L_r) for the right leg — instead of the previous symmetric-average
-    # approximation that reused one COM for both legs.
+    # 左右腿分别按各自长度取质心和惯量，保留非对称构型。
     unique_L = np.sort(np.unique(L_l_flat))
     com_by_L = {}
     seed_com = None
@@ -1147,7 +1144,10 @@ def main():
             M_func, Bq_func, V_func, eq_stats,
             com_by_L[L_l]['left_inertia'],com_by_L[L_r]['right_inertia'],
             com_by_L[L_l]['left_axes'],com_by_L[L_r]['right_axes'],
-            com_by_L[L_l]['left_y'],com_by_L[L_r]['right_y'])
+            com_by_L[L_l]['left_y'],com_by_L[L_r]['right_y'],
+            wheel_load_check=wheel_load_check)
+        if args.wheel_load_only:
+            continue
         u_eq_set[k] = u_eq
         Ad, Bd = discretize_zoh(A, B, DT)
         A_d_set[k], B_d_set[k] = Ad, Bd
@@ -1159,20 +1159,29 @@ def main():
         K_2d[k] = F
         eig_max_track[k] = np.max(np.abs(np.linalg.eigvals(Ad - Bd @ F)))
         K_abs_max_track[k] = np.max(np.abs(F))
+    if args.wheel_load_only:
+        loads = np.asarray(wheel_load_samples)
+        weight = (M_BODY + 2*M_LEG + 2*M_WHEEL) * GRAVITY
+        print(f"静态总重 {weight:.3f} N，双轮载荷和的最大误差 "
+              f"{np.max(np.abs(loads.sum(axis=1)-weight)):.3e} N")
+        for side, label in enumerate(("左轮", "右轮")):
+            index = np.argmin(loads[:, side])
+            print(f"{label}法向力 {loads[index, side]:.3f} 至 {loads[:, side].max():.3f} N，"
+                  f"最小值对应腿长 ({L_l_flat[index]:.3f}, {L_r_flat[index]:.3f}) m")
+        negative = np.any(loads < -1e-6, axis=1)
+        print(f"出现负反力的工作点 {np.count_nonzero(negative)}/{n_2d}")
+        return
+
     print(f"  Solved in {time.perf_counter()-t_fit:.1f}s")
-    # ── Closed-loop stability + K matrix diagnostics ──
     eig_worst_idx = int(np.argmax(eig_max_track))
-    # also track max eigenvalue excluding position integrators (x, psi)
     eig_max_dyn_track = np.zeros(n_2d)
     for k in range(n_2d):
         evals, evecs = np.linalg.eig(A_d_set[k] - B_d_set[k] @ K_2d[k])
         ev_abs = np.abs(evals)
-        # Exclude eigenvalues whose eigenvectors are dominated by x (state 0)
-        # or psi (state 1) — those are pure integrators/near-integrators.
+        # 单独统计位移或偏航主导的慢模态，便于识别姿态稳定性问题。
         integrator_mask = np.zeros(len(evals), dtype=bool)
         for j in range(len(evals)):
             w = np.abs(evecs[:, j])
-            # if >50% of eigenvector weight is on x or psi, it's an integrator
             if w[0] > 0.5 or w[1] > 0.5:
                 integrator_mask[j] = True
         dyn_ev = ev_abs[~integrator_mask]
@@ -1200,7 +1209,6 @@ def main():
               f"L_r={L_r_flat[K_worst_idx]:.3f} — check Q/R scaling **")
     if np.max(K_2d) > 1e5:
         print(f"  ** ERROR: K element magnitude explosion — Q/R ratio likely wrong **")
-    # per-point listing of near-unstable DYNAMIC poles (capped at 10)
     bad_mask = eig_max_dyn_track > 0.99
     n_bad = int(np.sum(bad_mask))
     if n_bad > 0:
@@ -1222,7 +1230,6 @@ def main():
         if eq_stats["nonconverged"] > 0:
             print(f"    worst message: {msg_w}")
 
-    # ── Save A_d, B_d + equilibrium offsets ──
     ab_path = _DATA_DIR / "AB_sampling_points.npz"
     ab_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(str(ab_path),
@@ -1246,25 +1253,22 @@ def main():
     else:
         print(f"  WARNING: max error = {max_err_pct:.2f}% > 5%")
 
-    # ── Export C header ──
     h_path = _DATA_DIR / "k_table_2d.h"
     export_c_header_2d(ORDER_2D, coeff_2d, str(h_path))
 
-    # ── Fit and export gain-scheduled LESO matrices ──
     fit_and_export_leso_tables(
         ORDER_2D, L_l_flat, L_r_flat,
         A_d_set, B_d_set, leso_gain_set,
         args.leso_check_grid,
     )
 
-    # ── Fit u_eq 2D Chebyshev ──
     coeff_u_eq = fit_poly_2d(ORDER_2D, L_l_flat, L_r_flat,
                               u_eq_set.reshape(n_2d, 4, 1))
     np.save(str(_DATA_DIR / "_U_EQ_COEFF.npy"), coeff_u_eq)
     export_c_header_ueq(ORDER_2D, coeff_u_eq,
                         str(_DATA_DIR / "u_eq_table_2d.h"))
 
-    # ── Fit pitch and legacy symmetric leg-angle offsets ──
+    # 一元四次曲线保留给旧接口，左右平衡腿角另做二维拟合。
     avg_L = 0.5 * (L_l_flat + L_r_flat)
     A_e = np.column_stack([avg_L**4, avg_L**3, avg_L**2, avg_L, np.ones_like(avg_L)])
     E2_COEFF = np.linalg.lstsq(A_e, e2_set, rcond=None)[0]
@@ -1307,7 +1311,7 @@ def main():
         body_com_in_dynamics=['x','y','z'],leg_com_convention='x offset and vertical distance below hip',
         support_model='simultaneous wheel support; induced small-bank inertia; locally upright',
         yaw_model='coupled Yaw/leg inertia; joint ten-state four-input LQR',
-        Q_diagonal=Q_DIAG.tolist(),R_diagonal=np.diag(R_MAT).tolist(),
+        Q_diagonal=Q_DIAG.tolist(),R_diagonal=np.diag(R_MAT).tolist(),R_matrix=R_MAT.tolist(),
         max_closed_loop_pole=float(np.max(eig_max_track)),fit_max_relative_error_pct=max_err_pct,
         grid_size=N_2D,order=ORDER_2D),indent=2)+'\n',encoding='utf8')
     print(f"\nTotal: {time.perf_counter()-t0:.1f}s")

@@ -78,7 +78,7 @@ class CadSixBarLeg(FiveLinkLeg):
         x, z, angle = self._wheel_geometry(front, back)
         self.length, self.theta_body = hypot(x, z), -atan2(x, -z)
         self.theta_world=self.theta_body+body_pitch
-        self.theta=self.theta_world  # Existing LQR/odometry API uses world angle.
+        self.theta=self.theta_world
         # Positive CAD joint rotation is about -Y; wheel spin is about +Y.
         shank = body_pitch - (angle + self._wheel_offset_angle)
         if self._shank_last is not None:

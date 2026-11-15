@@ -1,16 +1,4 @@
-"""轮腿机器人仿真模块（手册各章节对应）。
-
-在线仿真模块映射：
-  kinematics.py     — 手册 §2: 五连杆并联腿运动学 FK + IK + Jacobian
-  vmc.py            — 手册 §6: VMC 力矩映射 τ = JᵀF
-  pid.py            — 手册 §8: PID 控制器
-  kalman.py         — 手册 §7: 2-D Kalman 滤波器
-  lqr_governor.py   — 手册 §4-5: 参考调速器 + 增益调度
-  ground_contact.py — 手册 §9: 地面接触检测
-  controller.py     — 手册 §8, §13: 控制管线编排器
-  keyboard_reader.py — 键盘输入读取
-  utils.py          — 工具函数 + ContinuousAngle
-"""
+"""轮腿仿真的运动学、估计和控制接口。"""
 
 from .kinematics import FiveLinkLeg, DiscreteDerivative, SecondDerivative
 from .vmc import VmcMapper

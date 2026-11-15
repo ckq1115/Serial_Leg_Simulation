@@ -395,7 +395,6 @@ class SelfRighting:
             self.retry('rear_flip_lateral_slip', R, legs)
             return
 
-        # 几何用于排除轮子悬空，承载由髋力矩、气弹簧补偿和 IMU 估计。
         clearance = [leg['height']-leg['rest_h'] for leg in legs]
         supported = [wheel_load is not None and wheel_load[i] > 12. and height > -.006
                      for i, height in enumerate(clearance)]
@@ -460,7 +459,6 @@ class SelfRighting:
         self.enter('flip_brake')
 
     def ground_target_x(self, leg, x):
-        # Arrival uses exactly the same feasible target as the force controller.
         # At low hip height, x=0 may be inside the minimum-length boundary.
         minimum_x = np.sqrt(max(0., (self.min_length+.002)**2-leg['p'][1]**2))
         return (1. if x >= 0 else -1.)*max(abs(x), minimum_x)
@@ -620,7 +618,6 @@ class SelfRighting:
                 elif self.elapsed > .65 and (self.stalled(1.-up_z, .02, dt, .5) or self.elapsed > 2.5):
                     self.retry('flip_push_stalled', R, legs)
         elif self.phase == 'flip_brake':
-            # Remove the long ground lever while preserving each leg's current direction.
             b = smooth(self.elapsed/.13)
             for i, leg in enumerate(legs):
                 start = self.brake_start_length[i]
@@ -671,7 +668,6 @@ class SelfRighting:
                         if self.stalled(error, .005, dt) or self.elapsed > max(self.sweep_delay)+max(self.swing_duration)+1.:
                             self.retry('reposition_stalled', R, legs)
             elif self.support_action == 'align':
-                # Bring the wheels below the hips before asking LQR to take load.
                 duration = self.folded_duration if self.support_folded else (.35 if self.support_tilted else .26)
                 b = smooth(self.elapsed/duration)
                 roll = sample['euler'][0]

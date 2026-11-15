@@ -1,14 +1,4 @@
-"""轮腿机器人站立控制器（手册 §8 控制管线编排器）。
-
-每控制步管线（对应手册 §13 chassis_task 顺序）：
-  Stage 0: 感知（§2） — 传感器读取 + 运动学正解
-  Stage 1: 估计（§7） — 10 维 LQR 状态向量构建 + Kalman 融合
-  Stage 2: 规划（§4-5）— 键盘调速器 + 增益调度
-  Stage 3: 控制（§4, §8） — LQR 反馈 + PID 腿长/Roll + 重力前馈
-  Stage 4: 映射（§6, §9） — VMC 力矩映射 + K 矩阵抑制（离地检测）
-  Stage 5: 执行          — 力矩限幅 + 外力施加 + mj_step
-  Stage 6: 遥测          — UDP 发送 + 控制台日志
-"""
+"""轮腿控制器，运行平衡、跳跃、翻正和台阶接管逻辑。"""
 
 import sys
 from pathlib import Path
@@ -19,33 +9,26 @@ import mujoco as mj
 from utils import (sensor_value, quat_to_euler, clip_symmetric,
                    normalize_angle, ContinuousAngle, approach_value)
 
-# Import Chebyshev-based LQR gain module (手册 §5.6, §12)
 _proj_root = Path(__file__).resolve().parents[1]
 if str(_proj_root) not in sys.path:
     sys.path.insert(0, str(_proj_root))
 from data.lqr_gain_fit import get_K, get_e3, get_u_eq
 
-from cad_kinematics import CadSixBarLeg as FiveLinkLeg       # 手册 §2: 五连杆运动学
-from pid import PID                       # 手册 §8: PID 控制器
-from kalman import ChassisOdometry, KalmanOdometry         # 手册 §7: Kalman 状态估计
-from lqr_governor import LqrReferenceGovernor  # 手册 §4-5: 参考调速器
+from cad_kinematics import CadSixBarLeg as FiveLinkLeg
+from pid import PID
+from kalman import ChassisOdometry, KalmanOdometry
+from lqr_governor import LqrReferenceGovernor
 from jump_dynamics import JumpMomentumModel
 from self_righting import SelfRighting, rotation
 from step_climb import StepClimb
 from recovery_log import RecoveryLog
-from ground_contact import GroundContactDetector  # 手册 §9: 地面接触检测
+from ground_contact import GroundContactDetector
 
 
 class StandController:
-    """轮腿站立控制器，编排 6 阶段控制管线。
-
-    Public API:
-      __init__(model, data, cfg, args)
-      step(keyboard_axes=None) -> bool
-    """
+    """读取传感器、估计状态，并按运动模式分配六个电机的输出。"""
 
     def __init__(self, model, data, cfg, args):
-        # ── MuJoCo 句柄 ──
         self.model = model
         self.data = data
         self.cfg = cfg
@@ -61,7 +44,6 @@ class StandController:
         if any(geom_id < 0 for geom_id in self.wheel_contact_geom_ids):
             raise ValueError("Wheel contact geoms are required for liftoff torque suppression")
 
-        # ── 配置读取 ──
         self.sensor_names = cfg["mujoco"]["sensors"]
         self.geometry = cfg["geometry"]
         self.wheel_radius = self.geometry["wheel"]["radius_m"]
@@ -81,7 +63,6 @@ class StandController:
                 + self.side_leg_mass * self.gravity
             )
 
-        # ── 运动学模块（手册 §2）──
         self.left_leg = FiveLinkLeg("left", self.geometry["five_link"], self.dt)
         self.right_leg = FiveLinkLeg("right", self.geometry["five_link"], self.dt)
         self.gas_springs = {}
@@ -95,19 +76,21 @@ class StandController:
             reference_force = stiffness * (model.qpos_spring[qpos] - model.qpos0[qpos])
             self.gas_springs[side] = (stiffness, reference_force)
 
-        # ── 状态估计模块（手册 §7）──
         self.odometry = KalmanOdometry(self.dt)
         self.body_odom = ChassisOdometry(self.dt, self.half_track)
         self.yaw_unwrapper = ContinuousAngle()
 
-        # ── PID 模块（手册 §8.1-8.2，参数单源化自 robot_params.yaml）──
         ll_pid = cfg["control_initial"]["leg_length_pid"]
         self.left_length_pos = PID(kp=ll_pid["position_kp"], ki=ll_pid["position_ki"], kd=ll_pid["position_kd"])
         self.right_length_pos = PID(kp=ll_pid["position_kp"], ki=ll_pid["position_ki"], kd=ll_pid["position_kd"])
         self.left_length_vel = PID(kp=ll_pid["velocity_kp"], ki=ll_pid["velocity_ki"], kd=ll_pid["velocity_kd"])
         self.right_length_vel = PID(kp=ll_pid["velocity_kp"], ki=ll_pid["velocity_ki"], kd=ll_pid["velocity_kd"])
+        self.support_height_pos = PID(kp=ll_pid["position_kp"], ki=ll_pid["position_ki"],
+                                      kd=ll_pid["position_kd"])
+        self.support_height_vel = PID(kp=ll_pid["velocity_kp"], ki=ll_pid["velocity_ki"],
+                                      kd=ll_pid["velocity_kd"])
 
-        # ── Roll 控制：高度调度 PD + 速率阻尼 + 斜坡积分（命题 7.2 / 定理 3.1）──
+        # Roll 控制：高度调度 PD + 速率阻尼 + 斜坡积分（命题 7.2 / 定理 3.1）
         roll_cfg = cfg["control_initial"]["roll_control"]
         self.roll_inertia = cfg["mass_properties"]["body"]["inertia_kg_m2"][0]  # I_xx
         self.wc_roll = float(roll_cfg["wc_radps"])
@@ -115,7 +98,6 @@ class StandController:
         self.ki_slope = float(roll_cfg["ki_slope"])
         self.roll_integral = 0.0
 
-        # ── 规划模块（手册 §4-5, §10）──
         control_cfg = cfg["control_initial"]
         target_cfg = control_cfg.get("lqr_target", {})
         self.control_mode = args.control_mode
@@ -172,6 +154,15 @@ class StandController:
                                   self.gravity, guide_geometry, args.joint_torque_limit, self.dt,
                                   wheel_torque_limit=args.wheel_torque_limit)
         self.previous_motor_ctrl = np.zeros(model.nu)
+        self.balance_controller = "lqr"
+        self.active_balance_controller = None
+        self._mpc = None
+        self._balance_switch_offset = np.zeros(model.nu)
+        self._balance_switch_time = -np.inf
+        self._wheel_contact_ticks = np.zeros(2, dtype=int)
+        self._wheel_support_confirmed = np.zeros(2, dtype=bool)
+        self._wheel_torque_scale = np.zeros(2)
+        self.set_balance_controller(getattr(args, "balance_controller", "lqr"))
         self.recovery_log = RecoveryLog(_proj_root / "output" / "recovery_logs", model, self.wheel_contact_geom_ids[0])
         self.recovery.trace_enabled = self.recovery.enabled
         wheel_dofs = [model.jnt_dofadr[model.joint(side + "_wheel_joint").id]
@@ -192,7 +183,6 @@ class StandController:
         self.jump_retract_start_time = 0.0
         self.jump_airborne_seen = False
 
-        # ── 地面接触检测（手册 §9）──
         slip_cfg = cfg["control_initial"].get("slip_detection", {})
         self.gc = GroundContactDetector(self.dt, args.joint_torque_limit,
                                         args.wheel_torque_limit,
@@ -202,7 +192,6 @@ class StandController:
                                         dvw_threshold=slip_cfg.get("dvw_threshold", 0.02),
                                         gravity=self.gravity, static_load=.5*self.total_mass*self.gravity)
 
-        # ── 初始状态 ──
         self.U_lqr = np.zeros((4, 1))
         self.last_log_time = -1.0
         self.last_sim_time = data.time
@@ -210,18 +199,35 @@ class StandController:
         self.refresh_kinematics()
         self._reset_leg_length_targets()
 
-        # ── UDP 遥测 ──
         self.udp_ip = "127.0.0.1"
         self.udp_port = 12345
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.vofa_tail = b'\x00\x00\x80\x7f'
 
-    # ══════════════════════════════════════════════════════════════════
-    #  状态重置
-    # ══════════════════════════════════════════════════════════════════
+
+    def set_balance_controller(self, mode):
+        """选择平衡控制器，专用动作完成后继续使用所选控制器。"""
+        if mode not in ("lqr", "mpc"):
+            raise ValueError(f"未知平衡控制器 {mode}")
+        if mode == "mpc" and self._mpc is None:
+            from balance_mpc import BalanceMPC
+            self._mpc = BalanceMPC(_proj_root / "data", self.dt)
+        if mode != self.balance_controller:
+            self._reset_mpc_plans()
+        self.balance_controller = mode
+
+    def _reset_mpc_plans(self):
+        if self._mpc is not None:
+            self._mpc.reset()
 
     def reset_internal_state(self):
+        self.active_balance_controller = None
+        self._balance_switch_time = -np.inf
+        self._reset_mpc_plans()
         self._pending_jump = False
+        self._wheel_contact_ticks.fill(0)
+        self._wheel_support_confirmed.fill(False)
+        self._wheel_torque_scale.fill(0.)
         self.recovery_log.reset()
         self.step_climb.reset()
         self.recovery.reset()
@@ -234,6 +240,8 @@ class StandController:
         self.right_length_pos.reset()
         self.left_length_vel.reset()
         self.right_length_vel.reset()
+        self.support_height_pos.reset()
+        self.support_height_vel.reset()
         self.roll_integral = 0.0
         current_state = self.read_state()
         self.yaw_unwrapper.reset(current_state["euler"][2])
@@ -278,7 +286,7 @@ class StandController:
     def _reset_leg_length_targets(self):
         """Reset the requested leg-length endpoint and its smoothed trajectory."""
         if self.args.target_leg_length is None:
-            target_leg_length = self.leg_length_default  # default standing length
+            target_leg_length = self.leg_length_default
         else:
             target_leg_length = self.args.target_leg_length
         target_leg_length = float(np.clip(target_leg_length,
@@ -287,9 +295,6 @@ class StandController:
         self.target_leg_length_command = target_leg_length
         self.target_leg_length = target_leg_length
 
-    # ══════════════════════════════════════════════════════════════════
-    #  传感器读取 + 运动学（手册 §2）
-    # ══════════════════════════════════════════════════════════════════
 
     def read_state(self):
         """读取所有 MuJoCo 传感器数据。"""
@@ -331,15 +336,11 @@ class StandController:
         state["gas_hip_torque_nm"] = gas_hip_torque
         return state
 
-    # ══════════════════════════════════════════════════════════════════
-    #  状态估计（手册 §7）
-    # ══════════════════════════════════════════════════════════════════
 
     def build_lqr_state(self, state):
-        """构造 10 维 LQR 状态向量 x ∈ ℝ¹⁰（手册 §3.1）。"""
+        """按增益表顺序构造十状态；位移与纵向速度均以髋轴中点为参考。"""
         acc_b = state["accel"]
-        # Project specific force onto the yaw-aligned horizontal forward axis.
-        # Gravity then has zero projection, even when pitch/roll are nonzero.
+        # 将 IMU 比力投影到水平前向轴，消除竖直重力分量。
         body_to_world = rotation(state["quat"])
         horizontal_forward = body_to_world[:2, 0]
         horizontal_length = np.linalg.norm(horizontal_forward)
@@ -352,14 +353,10 @@ class StandController:
         wheel_body_vx = self.wheel_forward_velocity(state)
         state["wheel_body_vx"] = wheel_body_vx
 
-        # Wheel-only odometry for diagnostics.  It will show slip/airborne bias.
+        # 原始轮速里程计只用于诊断，打滑和离地会造成偏差。
         self.odometry.update(wheel_body_vx, horizontal_acc)
 
-        # Body-frame Kalman for LQR (sagittal-plane model).
-        # Velocity measurement is wheel odometry corrected to BODY (CoM) velocity:
-        #   v_body = r·ω + L̇·sin(θ) + L·cos(θ)·θ̇
-        # Wheel spin gives wheel-center speed; the leg-swing terms convert it
-        # to CoM speed. Acceleration measurement is the IMU horizontal accel.
+        # 用闭链运动学将轮速换算成髋轴纵向速度；失去可靠接触时暂停相应轮速观测。
         contacts = state["_wheel_contacts"]
         flight_odom = ((self.step_climb.phase != "idle" and not self.step_climb.wheel_odometry_valid)
                        or (self.recovery.active and self.recovery.phase not in ("rise", "blend"))
@@ -416,12 +413,9 @@ class StandController:
             [0.0]
         ], dtype=float)
 
-    # ══════════════════════════════════════════════════════════════════
-    #  主控制步（手册 §13 chassis_task 管线编排）
-    # ══════════════════════════════════════════════════════════════════
 
     def step(self, keyboard_axes=None, viewer_perturb=None):
-        """单控制步：感知 → 估计 → 规划 → 控制 → 映射 → 执行（手册 §13）。"""
+        """按控制周期更新控制输出，独立运行时推进 MuJoCo 物理步。"""
         if self.data.time + 0.5 * self.dt < self.last_sim_time:
             self.reset_internal_state()
 
@@ -440,7 +434,6 @@ class StandController:
             keyboard_axes[3] = True
             self._pending_jump = False
 
-        # ── Stage 0: 感知（§2）──
         state = self._read_sensors(keyboard_axes)
 
         previous_climb_phase = self.step_climb.phase
@@ -453,6 +446,9 @@ class StandController:
             if climb_ctrl is not None:
                 x_lqr = self.build_lqr_state(state)
                 self.U_lqr.fill(0.)
+                self.active_balance_controller = None
+                self._balance_switch_time = -np.inf
+                self._reset_mpc_plans()
                 self._apply_control(climb_ctrl, state, x_lqr, viewer_perturb)
                 self._send_telemetry(x_lqr, self.build_lqr_target(0., 0.), state, climb_ctrl)
                 return True
@@ -517,10 +513,8 @@ class StandController:
             self.target_leg_length_command = self.target_leg_length = self.recovery.capture_length
             keyboard_axes = (0.,0.,0.,False)
 
-        # ── Stage 1: 估计（§7）──
         x_lqr = self.build_lqr_state(state)
 
-        # ── Stage 2: 规划（§4-5）──
         if climb_capture:
             self.target_x = float(x_lqr[0, 0]) + .05*self.step_climb.direction
             self.target_x_dot = .9*self.step_climb.direction
@@ -539,20 +533,22 @@ class StandController:
             target_e3_r*=fraction
         target = self.build_lqr_target(target_e3_l, target_e3_r)
 
-        # Stages 3–4: evaluate balance torque only when it can reach the motors.
+        # 专用动作接管电机期间跳过平衡力矩计算。
         capturing = recovery_ctrl is not None and self.recovery.phase == 'rise'
         if capturing:
             recovery_ctrl = self.capture_motor_ctrl
         if recovery_ctrl is not None and self.recovery.blend == 0. and not capturing:
             self.U_lqr.fill(0.)
+            self.active_balance_controller = None
+            self._balance_switch_time = -np.inf
+            self._reset_mpc_plans()
             forces = balance_ctrl = None
             ctrl = recovery_ctrl
         else:
             K_raw = get_K(self.left_leg.length, self.right_leg.length)
             u_eq = get_u_eq(self.left_leg.length, self.right_leg.length)
-            forces = self._compute_forces(x_lqr, target, K_raw, state)
-            balance_ctrl = self._map_to_actuators(*forces, x_lqr, K_raw,
-                                                  target_e3_l, target_e3_r, u_eq, state)
+            balance_ctrl, forces = self._balance_command(
+                x_lqr, target, K_raw, target_e3_l, target_e3_r, u_eq, state)
             ctrl = balance_ctrl
             if climb_capture:
                 # 保留落轮末拍的髋力矩，再逐步撤去切换时的输出差。
@@ -576,17 +572,12 @@ class StandController:
         if self.recovery.enabled:
             self.recovery_log.record(self, state, x_lqr, target, forces, balance_ctrl, recovery_ctrl, ctrl)
 
-        # ── Stage 5: 执行 ──
         self._apply_control(ctrl, state, x_lqr, viewer_perturb)
 
-        # ── Stage 6: 遥测 ──
         self._send_telemetry(x_lqr, target, state, ctrl)
 
         return True
 
-    # ══════════════════════════════════════════════════════════════════
-    #  Stage 0 私有方法
-    # ══════════════════════════════════════════════════════════════════
 
     @staticmethod
     def _unpack_keyboard_axes(keyboard_axes):
@@ -603,21 +594,33 @@ class StandController:
         state = self.refresh_kinematics()
         self._jump_sensor = state
         state["_wheel_contacts"] = self._wheel_contact_flags()
+        for side, contact in enumerate(state["_wheel_contacts"]):
+            ticks = self._wheel_contact_ticks[side]
+            if contact:
+                ticks = max(0, ticks) + 1
+                if ticks*self.dt >= .004:
+                    self._wheel_support_confirmed[side] = True
+            else:
+                ticks = min(0, ticks) - 1
+                if -ticks*self.dt >= .006:
+                    self._wheel_support_confirmed[side] = False
+                    self._wheel_torque_scale[side] = 0.
+            self._wheel_contact_ticks[side] = ticks
+            if contact and self._wheel_support_confirmed[side]:
+                self._wheel_torque_scale[side] = min(1., self._wheel_torque_scale[side]+self.dt/.012+1e-12)
+
+        # 里程计仍逐轮使用原始接触，避免空转速度进入融合。
         self.gc.contact_state[:] = ["grounded" if contact else "airborne"
                                     for contact in state["_wheel_contacts"]]
 
         speed_axis, yaw_axis, hight_axis, jump_requested = self._unpack_keyboard_axes(keyboard_axes)
 
-        # Store axes for later pipeline stages
         state["_speed_axis"] = speed_axis
         state["_yaw_axis"] = yaw_axis
         state["_hight_axis"] = hight_axis
         state["_jump_requested"] = jump_requested
         return state
 
-    # ══════════════════════════════════════════════════════════════════
-    #  Stage 2 私有方法
-    # ══════════════════════════════════════════════════════════════════
 
     def _update_navigation(self, keyboard_axes, current_yaw=None, current_x=None):
         """键盘->参考调速器 + 腿长伸缩限幅。"""
@@ -647,8 +650,11 @@ class StandController:
             self._jump_vz = 0.0
             self._jump_height = self.wheel_radius + 0.5 * sum(
                 leg.length * np.cos(leg.theta) for leg in (self.left_leg, self.right_leg))
-            self._jump_sync_wheels = False
+            self._jump_sync_wheels = 0.0
             self._jump_wheel_reference = None
+            # 短腿前进起跳时，缩短空中伸腿行程，减少落地前腿的后摆。
+            self._jump_low_forward = (self._jump_return_length <= self.jump_retract_length + .03
+                                      and self.body_odom.velocity > .25)
         if self.jump_state != "idle":
             sensor = self._jump_sensor
             roll,pitch,_ = sensor["euler"]
@@ -678,22 +684,35 @@ class StandController:
                     leg.length_dot.value * np.cos(leg.theta)
                     - leg.length * np.sin(leg.theta) * leg.theta_dot.value
                     for leg in (self.left_leg, self.right_leg))
-                if clearance_rate < 0.0 and clearance < -0.04 * clearance_rate + 0.015:
-                    self._jump_sync_wheels = True
+                if self._jump_low_forward and clearance_rate < 0.0:
+                    touchdown_time = max(0., clearance - .015) / -clearance_rate
+                    fraction = float(np.clip((.10 - touchdown_time) / .08, 0., 1.))
+                    self._jump_sync_wheels = max(self._jump_sync_wheels, fraction*fraction*(3.-2.*fraction))
+                elif (not self._jump_low_forward and clearance_rate < 0.0
+                      and clearance < -0.04 * clearance_rate + 0.015):
+                    self._jump_sync_wheels = 1.0
             if self.jump_state in ("retract","extend"):
                 if self.jump_airborne_seen and any(contacts) and t-self.jump_retract_start_time>=0.12:
                     self.jump_state="landing"
+                    landing_length = self.leg_length_default
+                    if self._jump_low_forward:
+                        landing_length = min(landing_length, self._jump_return_length + .05)
                     self._jump_trajectory=(t,np.array([self.left_leg.length,self.right_leg.length]),
-                                           self.leg_length_default,self.jump_landing_duration)
+                                           landing_length,self.jump_landing_duration)
                 elif (self.jump_state=="retract" and self._jump_vz < -0.3
                       and t-self.jump_retract_start_time>0.12):
                     self.jump_state="extend"
+                    extend_length = self.leg_length_default
+                    if self._jump_low_forward:
+                        extend_length = min(extend_length, self._jump_return_length + .06)
                     self._jump_trajectory=(t,np.array([self.left_leg.length,self.right_leg.length]),
-                                           self.leg_length_default,self.jump_retract_duration)
+                                           extend_length,self.jump_retract_duration)
             if (self.jump_state=="landing" and self._jump_ground_time >= 0.06
                 and t-self._jump_trajectory[0]>=self.jump_landing_duration):
                 self.jump_state="idle"
                 self.target_leg_length_command=self.leg_length_default
+                if self._jump_low_forward:
+                    self.target_leg_length_command = self._jump_trajectory[2]
                 self._jump_returning = True
                 self.jump_airborne_seen=False
                 self._jump_trajectory=None
@@ -723,12 +742,12 @@ class StandController:
         return initial+(goal-initial)*smooth,(goal-initial)*speed
 
     def _compute_forces(self, x_lqr, target, K_raw, state):
-        """PID 力控综合。
+        """返回左右腿请求的轴向力，单位 N。"""
+        if self._has_double_support(state):
+            return self._height_roll_support(target, state)
 
-        Returns
-        -------
-        F_l, F_r : float    — 左右腿轴向力
-        """
+        self.support_height_pos.reset()
+        self.support_height_vel.reset()
         if self.jump_state != "idle":
             if self.jump_state=="thrust":
                 forces=np.full(2,self.jump_force)
@@ -745,7 +764,6 @@ class StandController:
                 forces+=np.array([difference,-difference])
             return tuple(forces)
 
-        # ── PID 位置环（手册 §8.1）──
         length_l = length_r = self.target_leg_length
         if self.recovery.phase == 'rise':
             height_blend = self.recovery.capture_pose_blend
@@ -758,42 +776,84 @@ class StandController:
         left_pos_force = clip_symmetric(left_pos_force, self.args.length_position_force_limit)
         right_pos_force = clip_symmetric(right_pos_force, self.args.length_position_force_limit)
 
-        # ── PID 速度环（阻尼，手册 §8.1）──
         left_vel_force = self.left_length_vel.update(0.0, self.left_leg.length_dot.value)
         right_vel_force = self.right_length_vel.update(0.0, self.right_leg.length_dot.value)
         left_vel_force = clip_symmetric(left_vel_force, self.args.length_velocity_force_limit)
         right_vel_force = clip_symmetric(right_vel_force, self.args.length_velocity_force_limit)
 
-        # ── Roll 稳定：高度调度 PD + 速率阻尼 + 斜坡积分（抗饱和）──
-        roll = state["euler"][0]
-        roll_rate = state["gyro"][0]                 # gyro[0] = 横滚角速度
-        # 基座高度由虚拟腿长 + 轮径解算（不用 framepos 真值）：
-        # h = r_wheel + L·cos(θ)，θ 已含 body_pitch（相对世界铅垂线）。
+        # 用世界腿角的竖直投影和轮半径估计髋部高度。
         h = self.wheel_radius + 0.5 * (
             self.left_leg.length * np.cos(self.left_leg.theta)
             + self.right_leg.length * np.cos(self.right_leg.theta))
-        I0 = self.roll_inertia + self.total_mass * h * h               # 平行轴定理
-        W = 2.0 * self.half_track                                       # 轮距
-        kp_eff = (self.total_mass * self.gravity * h + I0 * self.wc_roll**2) / W   # 抵消 mgh + 极点配置
-        kd_eff = (2.0 * self.zeta_roll * self.wc_roll * I0) / W                     # 阻尼
-        self.roll_integral += roll * self.dt
-        roll_force = -kp_eff * roll - kd_eff * roll_rate - self.ki_slope * self.roll_integral
-        roll_force = clip_symmetric(roll_force, self.args.roll_force_limit)
-        # 抗积分饱和：输出被限幅则回退本步积分
-        if abs(roll_force) >= self.args.roll_force_limit:
-            self.roll_integral -= roll * self.dt
+        roll_force = self._roll_support_force(state, h, self.args.roll_force_limit)
 
-        # ── 力控综合（手册 §8.3）──
-        # Vertical support projects from the WORLD-vertical leg angle, not
-        # from the angle relative to a tilted chassis.
+        # 按世界腿角将竖直支撑力换算成轴向力。
         left_cos = float(max(np.cos(self.left_leg.theta_world), 1e-3))
         right_cos = float(max(np.cos(self.right_leg.theta_world), 1e-3))
         left_support_force = self.support_force / left_cos
         right_support_force = self.support_force / right_cos
         F_l = left_vel_force + roll_force + left_pos_force + left_support_force
         F_r = right_vel_force - roll_force + right_pos_force + right_support_force
-
         return F_l, F_r
+
+    def _has_double_support(self, state):
+        return (self.jump_state == "idle" and self.step_climb.phase == "idle"
+                and not self.recovery.active and all(state["_wheel_contacts"])
+                and all(self._wheel_support_confirmed))
+
+    def _support_measurement(self, target, state):
+        world_up = rotation(state["quat"])[2]
+        omega = state["gyro"]
+        roll = state["euler"][0]
+        pitch_rate = np.cos(roll) * omega[1] - np.sin(roll) * omega[2]
+        projections, heights, rates = [], [], []
+        for leg in (self.left_leg, self.right_leg):
+            sine, cosine = np.sin(leg.theta_body), np.cos(leg.theta_body)
+            axis = np.array([sine, 0., cosine])
+            tangent = np.array([cosine, 0., -sine])
+            axis_rate = np.cross(omega, axis) + tangent * (leg.theta_dot.value - pitch_rate)
+            projection = float(world_up @ axis)
+            projections.append(projection)
+            heights.append(leg.length * projection)
+            rates.append(leg.length_dot.value * projection + leg.length * (world_up @ axis_rate))
+
+        # 高度相对于两轮接触面的平均高度。轮半径在参考与实测之差中抵消。
+        height = float(np.mean(heights))
+        height_ref = self.target_leg_length * float(np.mean(np.cos(target[3:5, 0])))
+        height_rate = float(np.mean(rates))
+        # 跟踪欧拉横滚角，使用对应的角速度而不是直接使用陀螺仪 x 轴。
+        pitch = state["euler"][1]
+        roll_rate = omega[0] + np.tan(pitch) * (np.sin(roll) * omega[1] + np.cos(roll) * omega[2])
+        return (height, height_rate, height_ref, roll, roll_rate), np.asarray(projections)
+
+    def _height_roll_support(self, target, state):
+        """在双轮支撑时，用高度与横滚反馈生成两腿轴向力。"""
+        (height, height_rate, height_ref, _, _), projections = self._support_measurement(target, state)
+        projections = np.maximum(projections, 1e-3)
+        pos_force = clip_symmetric(self.support_height_pos.update(height_ref, height),
+                                   self.args.length_position_force_limit)
+        vel_force = clip_symmetric(self.support_height_vel.update(0., height_rate),
+                                   self.args.length_velocity_force_limit)
+        mean_force = max(0., self.support_force + pos_force + vel_force)
+        # 左右差动力保持总支撑力，并避免要求任一侧向下拉地。
+        roll_force = self._roll_support_force(
+            state, self.wheel_radius + height, min(mean_force, self.args.roll_force_limit))
+        return ((mean_force + roll_force) / projections[0],
+                (mean_force - roll_force) / projections[1])
+
+    def _roll_support_force(self, state, h, force_limit):
+        roll = state["euler"][0]
+        roll_rate = state["gyro"][0]
+        I0 = self.roll_inertia + self.total_mass * h * h               # 平行轴定理
+        W = 2.0 * self.half_track
+        kp_eff = (self.total_mass * self.gravity * h + I0 * self.wc_roll**2) / W   # 抵消 mgh + 极点配置
+        kd_eff = (2.0 * self.zeta_roll * self.wc_roll * I0) / W
+        self.roll_integral += roll * self.dt
+        roll_force = -kp_eff * roll - kd_eff * roll_rate - self.ki_slope * self.roll_integral
+        # 抗积分饱和：输出被限幅则回退本步积分
+        if abs(roll_force) >= force_limit:
+            self.roll_integral -= roll * self.dt
+        return clip_symmetric(roll_force, force_limit)
 
     def compute_foot_forces(self, state):
         """估计两轮法向载荷，每个控制周期更新一次。"""
@@ -804,13 +864,113 @@ class StandController:
             state, hip_torque+state['gas_hip_torque_nm'], self.previous_motor_ctrl[4:6],
             self._jump_momentum, self.step_climb.geometry.dy)
 
-    # ══════════════════════════════════════════════════════════════════
-    #  Stage 4 私有方法
-    # ══════════════════════════════════════════════════════════════════
+    def _balance_command(self, x_lqr, target, K_raw, e3_l, e3_r, u_eq, state):
+        """Select the controller and blend commands at a mode change."""
+        double_support = self._has_double_support(state)
+        suppression = self.gc.get_K_suppression_mask()
+        mode = self.balance_controller
+        jumping = (self.jump_state not in ("idle", "landing") or
+                   (self.jump_state == "landing" and not any(state["_wheel_contacts"])))
+        forces = self._compute_forces(x_lqr, target, K_raw, state)
+        if mode == "mpc" and not jumping:
+            ctrl, forces = self._mpc_balance_command(x_lqr, target, state, suppression, forces)
+        else:
+            if self._mpc is not None and self._mpc.plan is not None:
+                self._reset_mpc_plans()
+            if mode == "mpc":
+                ctrl = self._jump_torques(*forces, state)
+            else:
+                ctrl = self._map_to_actuators(*forces, x_lqr, K_raw, e3_l, e3_r, u_eq, state)
+
+        if double_support:
+            if self.active_balance_controller not in (None, mode):
+                self._balance_switch_offset = self.previous_motor_ctrl - ctrl
+                self._balance_switch_time = self.data.time
+            blend = max(0., 1. - (self.data.time - self._balance_switch_time) / .04)
+            if blend > 0.:
+                lower, upper = self._motor_bounds()
+                ctrl = np.clip(ctrl + blend * self._balance_switch_offset, lower, upper)
+            ctrl[4:][np.asarray(suppression[:2])] = 0.
+            if mode == "mpc":
+                ctrl[4:] = np.clip(ctrl[4:], *self._mpc_wheel_bounds)
+                ctrl[:4][np.tile(np.asarray(suppression[2:], dtype=bool), 2)] = 0.
+        else:
+            self._balance_switch_time = -np.inf
+        self.active_balance_controller = mode if not jumping else None
+        return ctrl, forces
+
+    def _motor_bounds(self):
+        limits = np.repeat([self.args.joint_torque_limit, self.args.wheel_torque_limit], [4, 2])
+        lower, upper = -limits, limits.copy()
+        limited = np.asarray(self.model.actuator_ctrllimited, dtype=bool)
+        lower[limited] = np.maximum(lower[limited], self.model.actuator_ctrlrange[limited, 0])
+        upper[limited] = np.minimum(upper[limited], self.model.actuator_ctrlrange[limited, 1])
+        return lower, upper
+
+    @staticmethod
+    def _torque_interval(gains, offset, lower, upper):
+        """Intersect the scalar input ranges allowed by the two hip motors."""
+        lo, hi = -np.inf, np.inf
+        for gain, bias, minimum, maximum in zip(gains, offset, lower, upper):
+            if abs(gain) < 1e-8:
+                if not minimum <= bias <= maximum:
+                    return np.inf, -np.inf
+                continue
+            first, second = (minimum - bias) / gain, (maximum - bias) / gain
+            lo, hi = max(lo, min(first, second)), min(hi, max(first, second))
+        return lo, hi
+
+    def _mpc_balance_command(self, x_lqr, target, state, suppression, forces):
+        legs = (self.left_leg, self.right_leg)
+        jacobians = [leg.jacobian(state[f"{side}_front_pos"], state[f"{side}_back_pos"])
+                     for side, leg in zip(("left", "right"), legs)]
+        lower, upper = self._motor_bounds()
+        wheel_bounds = np.column_stack((lower[4:], upper[4:])) * self._wheel_torque_scale[:, None]
+        contacts = np.asarray(state["_wheel_contacts"], dtype=bool)
+        swing_enabled = ~np.asarray(suppression[2:], dtype=bool)
+        wheel_bounds[~contacts | np.asarray(suppression[:2], dtype=bool)] = 0.
+        spring = state["gas_hip_torque_nm"]
+        lengths = np.array([leg.length for leg in legs])
+        forces = np.array(forces, dtype=float)
+        swing_bounds = []
+        for i, jac in enumerate(jacobians):
+            if not swing_enabled[i]:
+                forces[i] = 0.
+                swing_bounds.append((0., 0.))
+                continue
+            motors = slice(i, 4, 2)
+            motor_min, motor_max = lower[motors], upper[motors]
+            offset = jac[0] * forces[i] - spring[motors]
+            lo, hi = self._torque_interval(jac[1], offset, motor_min, motor_max)
+            if lo > hi:
+                # Limit the PD force only if no swing torque can make it feasible.
+                force_lo, force_hi = self._torque_interval(
+                    jac[0], -spring[motors], motor_min, motor_max)
+                if force_lo <= force_hi:
+                    forces[i] = np.clip(forces[i], force_lo, force_hi)
+                    offset = jac[0] * forces[i] - spring[motors]
+                    lo, hi = self._torque_interval(jac[1], offset, motor_min, motor_max)
+            swing_bounds.append((lo, hi) if lo <= hi else (0., 0.))
+        result = self._mpc.solve(
+            lengths, x_lqr, target, [*swing_bounds, *wheel_bounds])
+        if result is None:
+            raise RuntimeError("平衡 MPC 未得到有限的力矩解")
+        self.U_lqr = result
+        self._mpc_wheel_bounds = wheel_bounds.T
+        hip = np.zeros(4)
+        for i, (leg, jac) in enumerate(zip(legs, jacobians)):
+            leg.force = forces[i]
+            leg.front_torque, leg.back_torque = jac.T @ np.array([forces[i], result[i, 0]])
+            if swing_enabled[i]:
+                motors = slice(i, 4, 2)
+                hip[motors] = np.array([leg.front_torque, leg.back_torque]) - spring[motors]
+        ctrl = np.r_[np.clip(hip, lower[:4], upper[:4]), result[2:, 0]]
+        return ctrl, tuple(forces)
+
 
     def _map_to_actuators(self, F_l, F_r, x_lqr, K_raw,
                           e3_l, e3_r, u_eq, state):
-        """VMC 力矩映射 + 离地 K 抑制 + 力矩限幅（手册 §6, §9）。
+        """VMC 力矩映射 + 离地 K 抑制 + 力矩限幅。
 
         Returns
         -------
@@ -818,33 +978,35 @@ class StandController:
         """
         if (self.jump_state not in ("idle", "landing") or
                 (self.jump_state == "landing" and not any(self._wheel_contact_flags()))):
+            self.active_balance_controller = None
+            self._balance_switch_time = -np.inf
             return self._jump_torques(F_l, F_r, state)
 
-        # ── 地面接触检测 → K 行抑制（手册 §9）──
-        K_adj = K_raw.copy()
         e3_l_adj = e3_l
         e3_r_adj = e3_r
 
         zwL, zwR, zlL, zlR = self.gc.get_K_suppression_mask()
+        normal_balance = (self.jump_state == "idle" and self.step_climb.phase == "idle"
+                          and not self.recovery.active)
+        if normal_balance:
+            zwL = zlL or not self._wheel_support_confirmed[0]
+            zwR = zlR or not self._wheel_support_confirmed[1]
         if self.jump_state == "landing":
             contactL, contactR = self._wheel_contact_flags()
             zwL, zwR = not contactL, not contactR
             zlL, zlR = not contactL, not contactR
-        if zwL: K_adj[2, :] = 0.0
-        if zwR: K_adj[3, :] = 0.0
-        if zlL: K_adj[0, :] = 0.0; e3_l_adj = -e3_l
-        if zlR: K_adj[1, :] = 0.0; e3_r_adj = -e3_r
-
-        # Equilibrium feedforward u_eq (matched to the linearization point),
-        # suppressed on the same channels whose feedback is zeroed.
-        u_eq_adj = np.asarray(u_eq, dtype=float).reshape(4, 1).copy()
-        if zlL: u_eq_adj[0, 0] = 0.0
-        if zlR: u_eq_adj[1, 0] = 0.0
-        if zwL: u_eq_adj[2, 0] = 0.0
-        if zwR: u_eq_adj[3, 0] = 0.0
-
+        if zlL:
+            e3_l_adj = -e3_l
+        if zlR:
+            e3_r_adj = -e3_r
         target_adj = self.build_lqr_target(e3_l_adj, e3_r_adj)
-        U_adj = u_eq_adj - K_adj @ (x_lqr - target_adj)
+
+        K_adj = K_raw.copy()
+        equilibrium = np.asarray(u_eq, dtype=float).reshape(4, 1).copy()
+        suppressed = np.array([zlL, zlR, zwL, zwR])
+        K_adj[suppressed, :] = 0.
+        equilibrium[suppressed] = 0.
+        U_adj = equilibrium - K_adj @ (x_lqr - target_adj)
         self.U_lqr = U_adj
 
         if self.jump_state == "landing":
@@ -862,7 +1024,6 @@ class StandController:
                 forces[i]=np.clip(forces[i],lo,hi) if lo<=hi else 0.
             F_l,F_r=forces
 
-        # ── VMC 力矩映射（手册 §6）──
         left_front, left_back = self.left_leg.vmc(
             F_l, U_adj[0, 0], state["left_front_pos"], state["left_back_pos"])
         right_front, right_back = self.right_leg.vmc(
@@ -876,12 +1037,12 @@ class StandController:
         ctrl[:4] = np.clip(ctrl[:4], -self.args.joint_torque_limit, self.args.joint_torque_limit)
         ctrl[4:] = np.clip(ctrl[4:], -self.args.wheel_torque_limit, self.args.wheel_torque_limit)
 
-        left_contact, right_contact = self._wheel_contact_flags()
-        if not left_contact:
-            ctrl[4] = 0.0
-        if not right_contact:
-            ctrl[5] = 0.0
-
+        if normal_balance:
+            ctrl[4:] *= self._wheel_torque_scale
+        if zwL:
+            ctrl[4] = 0.
+        if zwR:
+            ctrl[5] = 0.
         return ctrl
 
     def _jump_torques(self, F_l, F_r, state):
@@ -935,10 +1096,11 @@ class StandController:
             inertia=self._jump_momentum.inertia[[7,14]]
             reference=float(np.clip((H-expected)/np.sum(inertia),-self.jump_wheel_speed_limit,self.jump_wheel_speed_limit))
             if self._jump_sync_wheels:
-                reference = np.array([
+                ground_reference = np.array([
                     (self.body_odom.velocity - leg.length_dot.value * np.sin(leg.theta)
                      - leg.length * np.cos(leg.theta) * leg.theta_dot.value) / self.wheel_radius
                     - leg.shank_rate for leg in legs])
+                reference += self._jump_sync_wheels * (ground_reference - reference)
             if self._jump_wheel_reference is None:
                 acceleration=0.0
             else:
@@ -959,7 +1121,11 @@ class StandController:
             # Approximate total normal load from body support and leg mass.
             # Hdot = -height * Fx - lever * Fz, Fx ~= (Tw - damping) / r.
             vertical_force=np.sum(forces*np.cos(angles))*self.total_mass/self.body_mass
-            total=self.jump_momentum_gain*H-self.wheel_radius*lever*vertical_force/height+sum(wheel_drag)
+            momentum_gain = self.jump_momentum_gain
+            if self._jump_low_forward:
+                # 给离地后的腿角调整保留轮速余量。
+                momentum_gain = min(momentum_gain, 10.0)
+            total=momentum_gain*H-self.wheel_radius*lever*vertical_force/height+sum(wheel_drag)
             wheels[:]=np.clip(total/2.,-self.args.wheel_torque_limit,self.args.wheel_torque_limit)
         left=legs[0].vmc(forces[0],hips[0],*pos[0]);right=legs[1].vmc(forces[1],hips[1],*pos[1])
         self.U_lqr=np.array([hips[0],hips[1],wheels[0],wheels[1]]).reshape(4,1)
@@ -981,13 +1147,9 @@ class StandController:
             contacts.append(bool(np.any((other >= 0) & (roots[other] != robot_root))))
         return tuple(contacts)
 
-    # ══════════════════════════════════════════════════════════════════
-    #  Stage 5 私有方法
-    # ══════════════════════════════════════════════════════════════════
 
     def _apply_control(self, ctrl, state, x_lqr, viewer_perturb=None):
         """地面接触检测更新 + 外力施加 + MuJoCo 物理步进。"""
-        # Ground contact detector update for next step
         left_jt = np.array([ctrl[0], ctrl[2]])
         right_jt = np.array([ctrl[1], ctrl[3]])
         Fn_l, Fn_r = self.compute_foot_forces(state)
@@ -1002,7 +1164,6 @@ class StandController:
                        specific_force_norm=np.linalg.norm(state['accel']),
                        wheel_contacts=state["_wheel_contacts"])
 
-        # External push force
         if getattr(self, "native_managed", False):
             self.data.ctrl[:] = ctrl
             self.last_sim_time = self.data.time
@@ -1022,9 +1183,6 @@ class StandController:
         mj.mj_step(self.model, self.data)
         self.last_sim_time = self.data.time
 
-    # ══════════════════════════════════════════════════════════════════
-    #  Stage 6 私有方法
-    # ══════════════════════════════════════════════════════════════════
 
     def _send_telemetry(self, x_lqr, target, state, ctrl):
         """UDP 发送（24 floats） + 控制台定时日志。"""
@@ -1032,7 +1190,6 @@ class StandController:
         yaw = state["yaw_continuous"]
         Fn_l, Fn_r = self.gc.fn_left, self.gc.fn_right
 
-        # UDP packet: 24 floats
         send_list = [
             x_lqr[0, 0], x_lqr[1, 0], x_lqr[2, 0], x_lqr[3, 0], x_lqr[4, 0],
             x_lqr[5, 0], x_lqr[6, 0], x_lqr[7, 0], x_lqr[8, 0], x_lqr[9, 0],
@@ -1046,7 +1203,6 @@ class StandController:
         binary_data = struct.pack('<' + 'f' * len(send_list), *send_list)
         self.sock.sendto(binary_data + self.vofa_tail, (self.udp_ip, self.udp_port))
 
-        # Console log
         if self.args.log_every > 0.0 and self.data.time - self.last_log_time >= self.args.log_every:
             self.last_log_time = self.data.time
             wheel_body_vx = state.get("wheel_body_vx", self.wheel_forward_velocity(state))

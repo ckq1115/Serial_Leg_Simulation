@@ -1,18 +1,4 @@
-"""2-D Kalman filter for wheel-leg robot odometry (control manual §7.3).
-
-State:       x = [velocity, acceleration]
-Process:     x_k = F x_{k-1}          (constant-acceleration model)
-Measurement: z = [v_est, a_imu]       (wheel-odom velocity + IMU horizontal accel)
-
-Both states are observed (H = identity). During slip the velocity measurement
-(wheel odometry) is de-weighted (r_v up) while the IMU acceleration measurement
-stays trusted — this is what keeps the velocity estimate anchored to the real
-body motion when the wheels spin.
-
-Tuning from robot_params.yaml -> control_initial.kalman (q_v, q_a, r_v, r_a).
-r_v / q_v are overridden per step by the ground-contact detector's
-slip-adaptive values.
-"""
+"""轮腿里程计：旧接口融合速度与加速度，三状态接口估计位移、速度和加速度零偏。"""
 
 import numpy as np
 
@@ -21,11 +7,9 @@ class KalmanOdometry:
     def __init__(self, dt, q_v=0.01, q_a=1.0, r_v=0.5, r_a=1.0):
         self.dt = dt
 
-        # State: [velocity, acceleration]
         self.x = np.zeros((2, 1))
         self.P = np.eye(2)
 
-        # Constant-acceleration process model
         self.F = np.array([[1.0, self.dt],
                            [0.0, 1.0]])
         self.H = np.eye(2)  # both velocity and acceleration observed
@@ -74,11 +58,9 @@ class KalmanOdometry:
             self._initialized = True
             return self.position, self.velocity, self.acceleration
 
-        # --- Predict ---
         self.x = self.F @ self.x
         self.P = self.F @ self.P @ self.F.T + Q
 
-        # --- Update ---
         z = np.array([[v_est], [a_imu]])
         y = z - self.H @ self.x
         S = self.H @ self.P @ self.H.T + R

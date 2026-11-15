@@ -16,6 +16,7 @@ def parse_args():
     parser.add_argument("--camera-mode", choices=["base", "free"], default="free",
                         help="Initial viewer camera. 'base' follows the robot body; 'free' uses MuJoCo free camera.")
     parser.add_argument("--control-mode", choices=["lqr", "keyboard"], default="keyboard")
+    parser.add_argument("--balance-controller", choices=["lqr", "mpc"], default="lqr")
     parser.add_argument("--target-leg-length", type=float, default=None,
                         help="Target leg length in meters. Defaults to 0.22 m if omitted.")
     parser.add_argument("--support-force", type=float, default=None)
@@ -70,20 +71,26 @@ def run_headless(controller, duration):
 
 def run_with_viewer(controller, duration, camera_mode):
     import mujoco.viewer
-    keyboard = KeyboardHoldReader(consume_viewer_arrows=True) if controller.control_mode == "keyboard" else None
+    keyboard = KeyboardHoldReader(consume_viewer_arrows=controller.control_mode == "keyboard",
+                                  balance_hotkey=True)
     controller.native_managed = True
     last_time = [None]
     cached = np.zeros(controller.model.nu)
     def control(model, data):
         controller.model, controller.data = model, data
         if last_time[0] is None or abs(data.time - last_time[0]) > 1e-12:
-            axes = keyboard.read_axes() if keyboard is not None else None
+            if keyboard.consume_balance_toggle():
+                mode = "mpc" if controller.balance_controller == "lqr" else "lqr"
+                controller.set_balance_controller(mode)
+                print(f"平衡控制器选择 {mode.upper()}")
+            axes = keyboard.read_axes() if controller.control_mode == "keyboard" else None
             controller.step(axes)
             cached[:] = data.ctrl
             last_time[0] = data.time
         else:
             data.ctrl[:] = cached
     print("MuJoCo native viewer: native Pause/Run, Reset, camera, rendering groups and mouse perturbation.")
+    print("M 切换 LQR/MPC")
     print("J jumps once per press; Space pauses/runs. Collision groups use the native Rendering panel.")
     mj.set_mjcb_control(control)
     try:
@@ -91,7 +98,7 @@ def run_with_viewer(controller, duration, camera_mode):
     finally:
         mj.set_mjcb_control(None)
         controller.recovery_log.finish("viewer_closed")
-        if keyboard is not None: keyboard.stop()
+        keyboard.stop()
     return True
 
 
@@ -114,7 +121,7 @@ def main():
 
     print(f"Loaded {xml_path.relative_to(PROJECT_ROOT)}")
     print(f"actuator_order={actuator_order}")
-    print(f"control_mode={controller.control_mode}")
+    print(f"control_mode={controller.control_mode}, balance_controller={controller.balance_controller}")
     print(f"target_leg_length={controller.target_leg_length:.6f} m")
     print(f"lqr_target: x={controller.target_x:.3f}, x_dot={controller.target_x_dot:.3f}, "
           f"yaw_dot={controller.target_yaw_dot:.3f}, pitch={controller.target_pitch:.3f}, "

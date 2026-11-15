@@ -31,7 +31,6 @@ class LqrReferenceGovernor:
         yaw_axis = float(np.clip(yaw_axis * self.yaw_axis_sign, -1.0, 1.0))
 
         prev_x_dot = self.x_dot
-        # Instant velocity (no ramps — matched to legwheel)
         self.x_dot = speed_axis * self.max_speed
 
         if self.instant_yaw_rate_command:
@@ -43,7 +42,6 @@ class LqrReferenceGovernor:
         if abs(self.x_dot) < 1e-6 and abs(prev_x_dot) > 1e-6 and current_x is not None:
             self.x = current_x
 
-        # Always integrate position (matched to legwheel)
         self.x += self.x_dot * self.dt
         # Clamp position target to 0.05 m from actual (matched to legwheel)
         if current_x is not None and abs(self.x_dot) > 1e-6:
